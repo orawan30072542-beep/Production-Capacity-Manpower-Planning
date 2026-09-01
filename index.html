@@ -25,18 +25,18 @@
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
                     <h1 class="text-xl font-bold text-white">Manpower Planning & Production Capacity</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและติดตามยอดผลิตรายชั่วโมง (แยกหน้าตั้งค่ากระบวนการและหน้าสรุปข้อมูล)</p>
+                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและตั้งค่ากระบวนการ Line การผลิต (รองรับเลือกหลาย Model)</p>
             </div>
             <div class="flex gap-2 text-sm items-center">
                 <button onclick="switchMainView('dashboard')" id="nav-btn-dashboard" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow">📊 หน้าหลัก (Dashboard)</button>
-                <button onclick="switchMainView('setup')" id="nav-btn-setup" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white">⚙️ ตั้งค่ากระบวนการและเวลา</button>
+                <button onclick="switchMainView('setup')" id="nav-btn-setup" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white">⚙️ ตั้งค่ากระบวนการและรุ่น</button>
             </div>
         </header>
 
         <!-- Navigation Tabs for Lines -->
         <nav class="flex flex-wrap gap-2 custom-card p-3 rounded-xl">
             <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="press">Press Machine</button>
-            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow" data-target="back_bottom">Back & Bottom Plate (4 Stations)</button>
+            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow" data-target="back_bottom">Bottom plate #A (Line)</button>
             <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_a">Door A</button>
             <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_b">Door B</button>
             <button onclick="switchTab('door_c')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_c">Door C</button>
@@ -49,47 +49,30 @@
 
     <script>
         const appState = {
-            press: { name: "Press Machine", data: [], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25 },
+            press: { name: "Press Machine", data: [], models: ["159C", "159F"], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25 },
             back_bottom: { 
-                name: "Back plate & Bottom plate (4 Stations)", 
+                name: "Bottom plate #A — One Door", 
+                models: ["159C", "159F", "199C", "199F"],
                 data: [
-                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #1", plan: 480, ct: 30, actual: 490, hours: 8, process: "Press & Bend", workTime: "08:00 - 17:00" },
-                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #2", plan: 480, ct: 30, actual: 485, hours: 8, process: "Spot Welding", workTime: "08:00 - 17:00" },
-                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #1", plan: 480, ct: 30, actual: 475, hours: 8, process: "Cutting & Punch", workTime: "08:00 - 17:00" },
-                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #2", plan: 480, ct: 30, actual: 480, hours: 8, process: "Assembly Prep", workTime: "08:00 - 17:00" },
-                    { product: "FUF18", model: "FUF18 D", type: "Back Plate #1", plan: 500, ct: 32, actual: 510, hours: 8, process: "Press & Bend", workTime: "08:00 - 17:00" },
-                    { product: "FUF18", model: "FUF18 D", type: "Bottom Plate #1", plan: 500, ct: 32, actual: 495, hours: 8, process: "Cutting & Punch", workTime: "08:00 - 17:00" }
+                    { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
+                    { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
+                    { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 },
+                    { station: "BTA04", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 7.68, wt2: 4.25, wt3: 8.62, loss: 0 },
+                    { station: "BTA05", p1: "ติดเทปด้านข้าง", p2: "", p3: "", wt1: 12.15, wt2: 0, wt3: 0, loss: 0 },
+                    { station: "BTA06", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปปิดรู Suction", wt1: 9.60, wt2: 8.60, wt3: 18.40, loss: 0 },
+                    { station: "BTA07", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปปิดรู Suction", wt1: 5.80, wt2: 10.10, wt3: 6.90, loss: 0 },
+                    { station: "BTA08", p1: "ติด Seal 2 pcs.", p2: "", p3: "", wt1: 15.80, wt2: 0, wt3: 0, loss: 0 },
+                    { station: "BTA09", p1: "", p2: "", p3: "", wt1: 16.10, wt2: 0, wt3: 0, loss: 5.77 }
                 ],
-                totalPlan: 2920, totalActual: 2935, hours: 8, cycle: 31
+                totalPlan: 2920, totalActual: 2935, hours: 8
             },
-            door_a: { 
-                name: "Door A", 
-                data: [
-                    { product: "TD 469", model: "T DOOR H Metal", type: "Door A", plan: 400, ct: 35, actual: 410, hours: 8, process: "Foaming", workTime: "08:00 - 17:00" },
-                    { product: "TD 520", model: "T DOOR 520", type: "Door A", plan: 400, ct: 35, actual: 390, hours: 8, process: "Assembly", workTime: "08:00 - 17:00" }
-                ],
-                totalPlan: 800, totalActual: 800, hours: 8, cycle: 35 
-            },
-            door_b: { 
-                name: "Door B", 
-                data: [
-                    { product: "SBS", model: "SBS 550", type: "Door B", plan: 450, ct: 34, actual: 460, hours: 8, process: "Outer Frame", workTime: "08:00 - 17:00" },
-                    { product: "SBS", model: "SBS 620", type: "Door B", plan: 400, ct: 34, actual: 400, hours: 8, process: "Inner Lining", workTime: "08:00 - 17:00" }
-                ],
-                totalPlan: 850, totalActual: 860, hours: 8, cycle: 34 
-            },
-            door_c: { 
-                name: "Door C", 
-                data: [
-                    { product: "BM23", model: "BM23", type: "Door C", plan: 400, ct: 38, actual: 390, hours: 8, process: "Sealing", workTime: "08:00 - 17:00" },
-                    { product: "BM29", model: "BM29", type: "Door C", plan: 350, ct: 38, actual: 340, hours: 8, process: "Inspection", workTime: "08:00 - 17:00" }
-                ],
-                totalPlan: 750, totalActual: 730, hours: 8, cycle: 38 
-            }
+            door_a: { name: "Door A", models: ["TD 469"], data: [], totalPlan: 800, totalActual: 800, hours: 8, cycle: 35 },
+            door_b: { name: "Door B", models: ["SBS 550"], data: [], totalPlan: 850, totalActual: 860, hours: 8, cycle: 34 },
+            door_c: { name: "Door C", models: ["BM23"], data: [], totalPlan: 750, totalActual: 730, hours: 8, cycle: 38 }
         };
 
         let currentTab = 'back_bottom';
-        let currentMainView = 'dashboard'; // 'dashboard' or 'setup'
+        let currentMainView = 'dashboard';
 
         function switchMainView(view) {
             currentMainView = view;
@@ -119,97 +102,97 @@
             const state = appState[currentTab];
             const container = document.getElementById('app-container');
 
+            // Calculate Takt and Bottleneck
+            let maxWt = 0;
+            let sumWtAll = 0;
+            state.data.forEach(item => {
+                const total = (item.wt1 || 0) + (item.wt2 || 0) + (item.wt3 || 0);
+                if(total > maxWt) maxWt = total;
+                sumWtAll += total;
+            });
+            const stationsCount = state.data.length || 1;
+            const takt = (stationsCount > 0 && maxWt > 0) ? maxWt.toFixed(2) : "36.6";
+            const balance = stationsCount > 0 ? Math.round((sumWtAll / (stationsCount * maxWt)) * 100) : 59;
+
             if(currentMainView === 'dashboard') {
                 let tableRows = '';
                 if(state.data.length > 0) {
                     state.data.forEach(item => {
-                        const diff = item.actual - item.plan;
-                        const statusBadge = diff >= 0 ? 
-                            `<span class="bg-green-950 text-green-400 px-2.5 py-1 rounded text-xs border border-green-800">ผ่าน (+${diff})</span>` : 
-                            `<span class="bg-red-950 text-red-400 px-2.5 py-1 rounded text-xs border border-red-800">ต่ำ (${diff})</span>`;
-                        
+                        const wtTotal = ((item.wt1 || 0) + (item.wt2 || 0) + (item.wt3 || 0)).toFixed(2);
+                        const cycleTime = (parseFloat(wtTotal) + (item.loss || 0)).toFixed(2);
+                        const isBottleneck = parseFloat(wtTotal) === maxWt;
+                        const cycleTimeClass = isBottleneck ? "text-red-400 font-bold" : "text-gray-200 font-semibold";
+
                         tableRows += `
                             <tr class="hover:bg-gray-800/40 transition">
-                                <td class="p-4 font-semibold text-white">${item.product}</td>
-                                <td class="p-4 text-gray-300">${item.model}</td>
-                                <td class="p-4 text-blue-400 font-medium">${item.type}</td>
-                                <td class="p-4 text-gray-300">${item.process || '-'}</td>
-                                <td class="p-4 text-gray-300">${item.workTime || '-'}</td>
-                                <td class="p-4 text-right font-bold text-white">${item.plan.toLocaleString()}</td>
-                                <td class="p-4 text-right text-yellow-400 font-medium">${item.ct}s</td>
-                                <td class="p-4 text-right text-green-400 font-semibold">${item.actual.toLocaleString()}</td>
-                                <td class="p-4 text-center">${statusBadge}</td>
+                                <td class="p-3.5 font-semibold text-white">${item.station}</td>
+                                <td class="p-3.5 text-gray-300">${item.p1 || '-'}</td>
+                                <td class="p-3.5 text-gray-300">${item.p2 || '-'}</td>
+                                <td class="p-3.5 text-gray-300">${item.p3 || '-'}</td>
+                                <td class="p-3.5 text-right text-gray-300">${item.wt1 ? item.wt1.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-right text-gray-300">${item.wt2 ? item.wt2.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-right text-gray-300">${item.wt3 ? item.wt3.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-right font-bold text-white">${wtTotal}</td>
+                                <td class="p-3.5 text-right text-gray-400">${item.loss ? item.loss.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-right ${cycleTimeClass}">${cycleTime} s</td>
                             </tr>
                         `;
                     });
                 } else {
-                    tableRows = `<tr><td colspan="9" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูล กรุณาอัปโหลดไฟล์ Excel หรือตั้งค่าที่หน้าจัดการ</td></tr>`;
+                    tableRows = `<tr><td colspan="10" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูลสถานี กรุณาไปที่หน้าตั้งค่ากระบวนการ</td></tr>`;
                 }
 
-                const planPerHour = Math.round(state.totalPlan / state.hours);
-                const actualPerHour = Math.round(state.totalActual / state.hours);
-                const taktTime = state.totalPlan > 0 ? ((state.hours * 3600) / state.totalPlan).toFixed(1) : 0;
-                const maxCap = Math.floor((state.hours * 3600) / state.cycle);
+                let modelBadges = '';
+                state.models.forEach(m => {
+                    modelBadges += `<span class="bg-gray-800 text-yellow-400 border border-gray-700 px-2.5 py-1 rounded text-xs font-semibold">${m}</span>`;
+                });
 
                 container.innerHTML = `
                     <div class="space-y-6">
-                        <!-- Title Bar -->
-                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center border-l-4 border-blue-500 gap-4">
-                            <div>
-                                <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Current Production Line (Dashboard)</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">${state.name}</h2>
+                        <!-- Top Info Bar -->
+                        <div class="custom-card p-5 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div class="flex items-center gap-3 flex-wrap">
+                                <h2 class="text-lg font-bold text-white">${state.name}</h2>
+                                <span class="bg-red-950 text-red-400 border border-red-800 px-3 py-1 rounded-full text-xs font-semibold">Bottom plate #A</span>
+                                <span class="bg-green-950 text-green-400 border border-green-800 px-3 py-1 rounded-full text-xs font-semibold">A line</span>
+                                <span class="bg-blue-950 text-blue-400 border border-blue-800 px-3 py-1 rounded-full text-xs font-semibold">Edited</span>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <input type="file" id="excel-upload" accept=".xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
-                                <button onclick="document.getElementById('excel-upload').click()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md flex items-center gap-2">
-                                    <span>📁</span> อัปโหลดไฟล์ Excel ยอดผลิต
+                            <div class="flex items-center gap-2">
+                                <button onclick="switchMainView('setup')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1.5">
+                                    <span>✏️</span> Edit
                                 </button>
                             </div>
                         </div>
 
-                        <!-- KPI Cards Summary -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div class="custom-card p-5 rounded-xl">
-                                <p class="text-xs text-gray-400 font-medium">ยอดแผนรวม / เฉลี่ยต่อ ชม.</p>
-                                <h3 class="text-2xl font-bold text-blue-400 mt-1">${state.totalPlan.toLocaleString()} ชิ้น</h3>
-                                <p class="text-xs text-gray-500 mt-1">~ ${planPerHour.toLocaleString()} ชิ้น / ชั่วโมง</p>
+                        <!-- Models and Metrics Summary Bar -->
+                        <div class="custom-card p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                ${modelBadges}
                             </div>
-                            <div class="custom-card p-5 rounded-xl">
-                                <p class="text-xs text-gray-400 font-medium">ยอดผลิตจริง / เฉลี่ยต่อ ชม.</p>
-                                <h3 class="text-2xl font-bold text-green-400 mt-1">${state.totalActual.toLocaleString()} ชิ้น</h3>
-                                <p class="text-xs text-gray-500 mt-1">~ ${actualPerHour.toLocaleString()} ชิ้น / ชั่วโมง</p>
-                            </div>
-                            <div class="custom-card p-5 rounded-xl">
-                                <p class="text-xs text-gray-400 font-medium">Takt Time คำนวณได้</p>
-                                <h3 class="text-2xl font-bold text-yellow-400 mt-1">${taktTime} วินาที</h3>
-                                <p class="text-xs text-gray-500 mt-1">ตามเวลาทำงาน ${state.hours} ชม.</p>
-                            </div>
-                            <div class="custom-card p-5 rounded-xl">
-                                <p class="text-xs text-gray-400 font-medium">กำลังผลิตสูงสุด (Max Capacity)</p>
-                                <h3 class="text-2xl font-bold text-purple-400 mt-1">${maxCap.toLocaleString()} ชิ้น</h3>
-                                <p class="text-xs text-gray-500 mt-1">อ้างอิง Cycle Time เฉลี่ย ${state.cycle}s</p>
+                            <div class="flex items-center gap-6 text-sm">
+                                <div><span class="text-gray-400 text-xs">Takt</span> <strong class="text-white ml-1">${takt} s</strong></div>
+                                <div><span class="text-gray-400 text-xs">Bottleneck</span> <strong class="text-red-400 ml-1">${maxWt.toFixed(2)} s</strong></div>
+                                <div><span class="text-gray-400 text-xs">Stations</span> <strong class="text-white ml-1">${stationsCount}</strong></div>
+                                <div><span class="text-gray-400 text-xs">Balance</span> <strong class="text-white ml-1">${balance}%</strong></div>
                             </div>
                         </div>
 
                         <!-- Main Table Display -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                                <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิต กระบวนการ และเวลาทำงาน</h2>
-                                <span class="text-xs text-gray-400">แสดงผล Cycle Time และ Takt Time อัตโนมัติ</span>
-                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
                                     <thead>
-                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-4">Product ใหญ่</th>
-                                            <th class="p-4">Model ย่อย</th>
-                                            <th class="p-4">จุดงาน (Station)</th>
-                                            <th class="p-4">กระบวนการทำงาน</th>
-                                            <th class="p-4">ช่วงเวลาทำงาน</th>
-                                            <th class="p-4 text-right">ยอดแผน (Plan)</th>
-                                            <th class="p-4 text-right">Cycle Time</th>
-                                            <th class="p-4 text-right">ยอดจริง (Actual)</th>
-                                            <th class="p-4 text-center">สถานะ</th>
+                                        <tr class="bg-gray-900/60 text-gray-400 text-xs border-b border-gray-800">
+                                            <th class="p-3.5">Station</th>
+                                            <th class="p-3.5">Process 1</th>
+                                            <th class="p-3.5">Process 2</th>
+                                            <th class="p-3.5">Process 3</th>
+                                            <th class="p-3.5 text-right">WT 1</th>
+                                            <th class="p-3.5 text-right">WT 2</th>
+                                            <th class="p-3.5 text-right">WT 3</th>
+                                            <th class="p-3.5 text-right">WT Total</th>
+                                            <th class="p-3.5 text-right">Loss</th>
+                                            <th class="p-3.5 text-right">Cycle Time</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm divide-y divide-gray-800/60">
@@ -221,47 +204,77 @@
                     </div>
                 `;
             } else {
-                // Setup View
+                // Setup / Edit View
                 let setupRows = '';
                 state.data.forEach((item, index) => {
                     setupRows += `
                         <tr class="hover:bg-gray-800/40 transition">
-                            <td class="p-4 font-semibold text-white">${item.product}</td>
-                            <td class="p-4 text-gray-300">${item.model}</td>
-                            <td class="p-4 text-blue-400">${item.type}</td>
-                            <td class="p-4"><input type="text" value="${item.process || ''}" onchange="updateSetupField(${index}, 'process', this.value)" class="input-dark px-3 py-2 rounded text-sm w-full" placeholder="ระบุขั้นตอนการทำงาน"></td>
-                            <td class="p-4"><input type="text" value="${item.workTime || ''}" onchange="updateSetupField(${index}, 'workTime', this.value)" class="input-dark px-3 py-2 rounded text-sm w-full" placeholder="08:00 - 17:00"></td>
-                            <td class="p-4"><input type="number" value="${item.ct || 30}" onchange="updateSetupField(${index}, 'ct', parseFloat(this.value))" class="input-dark px-3 py-2 rounded text-sm w-24 text-right"></td>
+                            <td class="p-3 font-semibold text-white"><input type="text" value="${item.station}" onchange="updateSetupRow(${index}, 'station', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20"></td>
+                            <td class="p-3"><input type="text" value="${item.p1 || ''}" onchange="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
+                            <td class="p-3"><input type="text" value="${item.p2 || ''}" onchange="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
+                            <td class="p-3"><input type="text" value="${item.p3 || ''}" onchange="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
+                            <td class="p-3 text-right"><input type="number" step="0.01" value="${item.wt1 || 0}" onchange="updateSetupRow(${index}, 'wt1', parseFloat(this.value))" class="input-dark px-2 py-1 rounded text-xs w-20 text-right"></td>
+                            <td class="p-3 text-right"><input type="number" step="0.01" value="${item.wt2 || 0}" onchange="updateSetupRow(${index}, 'wt2', parseFloat(this.value))" class="input-dark px-2 py-1 rounded text-xs w-20 text-right"></td>
+                            <td class="p-3 text-right"><input type="number" step="0.01" value="${item.wt3 || 0}" onchange="updateSetupRow(${index}, 'wt3', parseFloat(this.value))" class="input-dark px-2 py-1 rounded text-xs w-20 text-right"></td>
+                            <td class="p-3 text-center"><button onclick="removeStation(${index})" class="bg-red-950 text-red-400 border border-red-800 px-2 py-1 rounded text-xs">ลบ</button></td>
                         </tr>
+                    `;
+                });
+
+                const allModelsList = ["159C", "159F", "199C", "199F", "TM545#212", "FUF14 D", "FUF18 D", "TD 469"];
+                let modelCheckboxes = '';
+                allModelsList.forEach(m => {
+                    const checked = state.models.includes(m) ? 'checked' : '';
+                    modelCheckboxes += `
+                        <label class="flex items-center gap-2 bg-gray-900 border border-gray-800 px-3 py-2 rounded-lg cursor-pointer text-xs">
+                            <input type="checkbox" value="${m}" ${checked} onchange="toggleModel('${m}')" class="rounded bg-gray-800 border-gray-700 text-blue-600">
+                            <span class="text-white">${m}</span>
+                        </label>
                     `;
                 });
 
                 container.innerHTML = `
                     <div class="space-y-6">
-                        <div class="custom-card p-6 rounded-2xl flex justify-between items-center border-l-4 border-yellow-500">
+                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center border-l-4 border-yellow-500 gap-4">
                             <div>
-                                <span class="text-xs uppercase tracking-wider text-yellow-400 font-semibold">Settings Page</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">ตั้งค่ากระบวนการทำงานและเวลาทำงาน (${state.name})</h2>
+                                <span class="text-xs uppercase tracking-wider text-yellow-400 font-semibold">Setup & Configuration</span>
+                                <h2 class="text-2xl font-bold text-white mt-1">ตั้งค่ากระบวนการและเลือกรุ่น (Models) สำหรับ ${state.name}</h2>
                             </div>
-                            <button onclick="switchMainView('dashboard')" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md">
-                                📊 บันทึกและกลับสู่หน้าหลัก
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="addStation()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold transition border border-gray-700">
+                                    ➕ เพิ่มสถานี
+                                </button>
+                                <button onclick="switchMainView('dashboard')" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md">
+                                    💾 บันทึกและดูผลลัพธ์
+                                </button>
+                            </div>
                         </div>
 
+                        <!-- Model Selection Section -->
+                        <div class="custom-card p-6 rounded-xl space-y-3">
+                            <h3 class="text-sm font-bold text-white">เลือกรุ่น (Models) ที่ใช้ร่วมกันในกระบวนการนี้</h3>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                ${modelCheckboxes}
+                            </div>
+                        </div>
+
+                        <!-- Stations Table Editor -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800">
-                                <h2 class="text-base font-bold text-white">ตารางกรอกข้อมูลกระบวนการและเวลาทำงานรายจุดสถานี</h2>
+                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและกระบวนการทำงาน</h3>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
                                     <thead>
                                         <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-4">Product ใหญ่</th>
-                                            <th class="p-4">Model ย่อย</th>
-                                            <th class="p-4">จุดงาน (Station)</th>
-                                            <th class="p-4">กระบวนการทำงาน (Process)</th>
-                                            <th class="p-4">ช่วงเวลาทำงาน (Work Time)</th>
-                                            <th class="p-4">Cycle Time (s)</th>
+                                            <th class="p-3.5">Station</th>
+                                            <th class="p-3.5">Process 1</th>
+                                            <th class="p-3.5">Process 2</th>
+                                            <th class="p-3.5">Process 3</th>
+                                            <th class="p-3.5 text-right">WT 1 (s)</th>
+                                            <th class="p-3.5 text-right">WT 2 (s)</th>
+                                            <th class="p-3.5 text-right">WT 3 (s)</th>
+                                            <th class="p-3.5 text-center">จัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm divide-y divide-gray-800/60">
@@ -275,83 +288,29 @@
             }
         }
 
-        function updateSetupField(index, field, value) {
+        function updateSetupRow(index, field, value) {
             appState[currentTab].data[index][field] = value;
-            if(field === 'ct') {
-                let totalCt = 0;
-                appState[currentTab].data.forEach(d => totalCt += d.ct);
-                appState[currentTab].cycle = Math.round(totalCt / appState[currentTab].data.length);
-            }
         }
 
-        function handleExcelUpload(event) {
-            const file = event.target.files[0];
-            if(!file) return;
+        function addStation() {
+            const stName = "BTA0" + (appState[currentTab].data.length + 1);
+            appState[currentTab].data.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
+            renderView();
+        }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, {type: 'array'});
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
+        function removeStation(index) {
+            appState[currentTab].data.splice(index, 1);
+            renderView();
+        }
 
-                    if(json.length === 0) {
-                        alert('ไม่พบข้อมูลภายในไฟล์ Excel');
-                        return;
-                    }
-
-                    let parsedData = [];
-                    let totalPlan = 0;
-                    let totalActual = 0;
-                    let totalCt = 0;
-                    let hours = 8;
-
-                    json.forEach(row => {
-                        const prod = row['Product Group'] || row['Product'] || 'General Product';
-                        const model = row['Model Name'] || row['Model'] || 'Model-01';
-                        const type = row['Item Type'] || row['Station'] || 'Back Plate #1';
-                        const process = row['Process'] || 'Standard Process';
-                        const workTime = row['Work Time'] || '08:00 - 17:00';
-                        const plan = parseFloat(row['Target Qty (pcs)'] || row['Plan'] || 0);
-                        const ct = parseFloat(row['Cycle Time (s)'] || row['Cycle Time'] || 30);
-                        const actual = parseFloat(row['Actual Qty (pcs)'] || row['Actual'] || 0);
-                        hours = parseFloat(row['Working Hours'] || 8);
-
-                        totalPlan += plan;
-                        totalActual += actual;
-                        totalCt += ct;
-
-                        parsedData.push({
-                            product: prod,
-                            model: model,
-                            type: type,
-                            process: process,
-                            workTime: workTime,
-                            plan: plan,
-                            ct: ct,
-                            actual: actual,
-                            hours: hours
-                        });
-                    });
-
-                    const avgCt = parsedData.length > 0 ? Math.round(totalCt / parsedData.length) : 30;
-
-                    appState[currentTab].data = parsedData;
-                    appState[currentTab].totalPlan = totalPlan;
-                    appState[currentTab].totalActual = totalActual;
-                    appState[currentTab].cycle = avgCt;
-                    appState[currentTab].hours = hours;
-
-                    renderView();
-                    alert('อัปโหลดและประมวลผลไฟล์ Excel สำเร็จ!');
-                } catch(error) {
-                    console.error(error);
-                    alert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel กรุณาตรวจสอบรูปแบบหัวตาราง');
-                }
-            };
-            reader.readAsArrayBuffer(file);
+        function toggleModel(modelName) {
+            const models = appState[currentTab].models;
+            const idx = models.indexOf(modelName);
+            if(idx > -1) {
+                models.splice(idx, 1);
+            } else {
+                models.push(modelName);
+            }
         }
 
         window.onload = function() {
