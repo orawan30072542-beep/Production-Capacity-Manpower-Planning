@@ -47,20 +47,43 @@
     </div>
 
     <script>
-        // Store uploaded or default data for each line
+        // Store uploaded or default data for each line, aligning with real product/model master list
         const appState = {
-            press: { name: "Press Machine", data: [], totalPlan: 1000, totalActual: 1020, hours: 8, cycle: 25 },
+            press: { name: "Press Machine", data: [], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25 },
             back_bottom: { 
                 name: "Back plate & Bottom plate", 
                 data: [
-                    { product: "Inverter Series A", model: "Model A-300", type: "Back & Bottom (1:1)", plan: 950, ct: 30, actual: 960, hours: 8 },
-                    { product: "Standard Series B", model: "Model B-450", type: "Back & Bottom (1:1)", plan: 950, ct: 30, actual: 920, hours: 8 }
+                    { product: "FUF14", model: "FUF14 D", type: "Back & Bottom (1:1)", plan: 480, ct: 30, actual: 490, hours: 8 },
+                    { product: "FUF14", model: "FUF14 L", type: "Back & Bottom (1:1)", plan: 470, ct: 30, actual: 460, hours: 8 },
+                    { product: "FUF18", model: "FUF18 D", type: "Back & Bottom (1:1)", plan: 500, ct: 32, actual: 510, hours: 8 },
+                    { product: "FUF22", model: "FUF22 S", type: "Back & Bottom (1:1)", plan: 450, ct: 32, actual: 440, hours: 8 }
                 ],
-                totalPlan: 1900, totalActual: 1880, hours: 8, cycle: 30
+                totalPlan: 1900, totalActual: 1900, hours: 8, cycle: 31
             },
-            door_a: { name: "Door A", data: [], totalPlan: 800, totalActual: 790, hours: 8, cycle: 36 },
-            door_b: { name: "Door B", data: [], totalPlan: 850, totalActual: 860, hours: 8, cycle: 34 },
-            door_c: { name: "Door C", data: [], totalPlan: 750, totalActual: 730, hours: 8, cycle: 38 }
+            door_a: { 
+                name: "Door A", 
+                data: [
+                    { product: "TD 469", model: "T DOOR H Metal", type: "Door A", plan: 400, ct: 35, actual: 410, hours: 8 },
+                    { product: "TD 520", model: "T DOOR 520", type: "Door A", plan: 400, ct: 35, actual: 390, hours: 8 }
+                ],
+                totalPlan: 800, totalActual: 800, hours: 8, cycle: 35 
+            },
+            door_b: { 
+                name: "Door B", 
+                data: [
+                    { product: "SBS", model: "SBS 550", type: "Door B", plan: 450, ct: 34, actual: 460, hours: 8 },
+                    { product: "SBS", model: "SBS 620", type: "Door B", plan: 400, ct: 34, actual: 400, hours: 8 }
+                ],
+                totalPlan: 850, totalActual: 860, hours: 8, cycle: 34 
+            },
+            door_c: { 
+                name: "Door C", 
+                data: [
+                    { product: "BM23", model: "BM23", type: "Door C", plan: 400, ct: 38, actual: 390, hours: 8 },
+                    { product: "BM29", model: "BM29", type: "Door C", plan: 350, ct: 38, actual: 340, hours: 8 }
+                ],
+                totalPlan: 750, totalActual: 730, hours: 8, cycle: 38 
+            }
         };
 
         let currentTab = 'back_bottom';
@@ -105,7 +128,6 @@
                 tableRows = `<tr><td colspan="7" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูล กรุณาอัปโหลดไฟล์ Excel เพื่อเริ่มต้นใช้งาน</td></tr>`;
             }
 
-            // คำนวณค่าเฉลี่ยรายชั่วโมง
             const planPerHour = Math.round(state.totalPlan / state.hours);
             const actualPerHour = Math.round(state.totalActual / state.hours);
             const taktTime = state.totalPlan > 0 ? ((state.hours * 3600) / state.totalPlan).toFixed(1) : 0;
@@ -155,7 +177,7 @@
                     <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                         <div class="p-6 border-b border-gray-800 flex justify-between items-center">
                             <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิตแยกตาม Product ใหญ่ และ Model ย่อย</h2>
-                            <span class="text-xs text-gray-400">ข้อมูลนำเข้าจากไฟล์ Excel</span>
+                            <span class="text-xs text-gray-400">ข้อมูลนำเข้าจากไฟล์ Excel (อ้างอิงรหัสจริง FUF14, FUF18, FUF22, SBS, BM23, ฯลฯ)</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
@@ -180,7 +202,6 @@
             `;
         }
 
-        // ฟังก์ชันอ่านไฟล์ Excel ผ่าน SheetJS (XLSX)
         function handleExcelUpload(event) {
             const file = event.target.files[0];
             if(!file) return;
