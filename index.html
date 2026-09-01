@@ -17,7 +17,6 @@
 
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center custom-card p-6 rounded-2xl shadow-xl">
             <div>
                 <div class="flex items-center gap-2">
@@ -32,7 +31,6 @@
             </div>
         </header>
 
-        <!-- Navigation Tabs for Lines -->
         <nav class="flex flex-wrap items-center gap-2 custom-card p-3 rounded-xl overflow-x-auto">
             <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="press">
                 <span>Press Machine</span>
@@ -40,21 +38,20 @@
             <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2" data-target="back_bottom">
                 <span>Back & Bottom Plate</span>
             </button>
-            <button onclick="switchTab('door_glass')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_glass">
-                <span>Door Frame & Door Glass</span>
+            <button onclick="switchTab('fuf_plate')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="fuf_plate">
+                <span>Bottom Plate (FUF)</span>
             </button>
-            <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_a">
-                <span>Door A</span>
+            <button onclick="switchTab('tm_plate')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="tm_plate">
+                <span>Bottom Plate (TM)</span>
             </button>
-            <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_b">
-                <span>Door B</span>
+            <button onclick="switchTab('bm_plate')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="bm_plate">
+                <span>Bottom Plate (BM)</span>
             </button>
-            <button onclick="switchTab('door_c')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_c">
-                <span>Door C</span>
+            <button onclick="switchTab('back_plate_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="back_plate_b">
+                <span>Back Plate #B</span>
             </button>
         </nav>
 
-        <!-- Sub Filter Bar -->
         <div id="sub-filter-bar" class="flex flex-wrap items-center justify-between gap-2 custom-card px-4 py-3 rounded-xl text-sm">
             <div id="filter-buttons-container" class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
@@ -64,12 +61,10 @@
             </button>
         </div>
 
-        <!-- Main Dynamic App Container -->
         <div id="app-container"></div>
 
     </div>
 
-    <!-- Filter Editor Modal -->
     <div id="filter-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
         <div class="custom-card p-6 rounded-2xl w-full max-w-lg space-y-4 shadow-2xl border border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -102,11 +97,11 @@
                 data: [] 
             },
             back_bottom: { 
-                name: "Back & Bottom Plate", 
+                name: "Back & Bottom Plate (One Door)", 
                 productGroup: "Bottom Plate (One Door)",
                 workingHours: "8.0",
                 breakTime: "60",
-                taktTime: "52",
+                taktTime: "36.6",
                 models: ["159C", "159F", "199C", "199F"],
                 filters: ["All stations", "Welding", "Back plate", "Bottom plate"],
                 data: [
@@ -121,10 +116,88 @@
                     { station: "BTA09", p1: "", p2: "", p3: "" }
                 ]
             },
-            door_glass: { name: "Door Frame & Door Glass", productGroup: "Door Assembly", workingHours: "8.0", breakTime: "60", taktTime: "60", models: ["TD 469", "SBS 550"], filters: ["All stations", "Frame Assy", "Glass Bonding"], data: [] },
-            door_a: { name: "Door A", productGroup: "Refrigerator Door A", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["TD 469"], filters: ["All stations", "Main Line"], data: [] },
-            door_b: { name: "Door B", productGroup: "Refrigerator Door B", workingHours: "8.0", breakTime: "60", taktTime: "55", models: ["SBS 550"], filters: ["All stations", "Main Line"], data: [] },
-            door_c: { name: "Door C", productGroup: "Refrigerator Door C", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["BM23"], filters: ["All stations", "Main Line"], data: [] }
+            fuf_plate: {
+                name: "Bottom Plate (FUF)",
+                productGroup: "Bottom Plate FUF Series",
+                workingHours: "8.0",
+                breakTime: "60",
+                taktTime: "37.8",
+                models: ["FUF14D", "FUF18D", "FUF22S"],
+                filters: ["All stations", "Line FUF"],
+                data: [
+                    { station: "BTB01", p1: "ประกอบโครงสร้างหลัก", p2: "", p3: "" },
+                    { station: "BTB02", p1: "เชื่อมจุดยึด", p2: "", p3: "" },
+                    { station: "BTB03", p1: "ติดตั้งแผ่นซัพพอร์ต", p2: "", p3: "" },
+                    { station: "BTB04", p1: "ตรวจสอบแนวเชื่อม", p2: "", p3: "" },
+                    { station: "BTB05", p1: "ติดเทปกันรอย", p2: "", p3: "" },
+                    { station: "BTB06", p1: "ซีลรอยต่อ", p2: "", p3: "" },
+                    { station: "BTB07", p1: "ประกอบชิ้นส่วนเสริม", p2: "", p3: "" },
+                    { station: "BTB08", p1: "ตรวจสอบคุณภาพเบื้องต้น", p2: "", p3: "" },
+                    { station: "BTB09", p1: "พ่นกันสนิม/ทำความสะอาด", p2: "", p3: "" },
+                    { station: "BTB10", p1: "จัดเก็บเข้าชั้นพักชิ้นงาน", p2: "", p3: "" }
+                ]
+            },
+            tm_plate: {
+                name: "Bottom Plate (TM)",
+                productGroup: "Bottom Plate TM Series",
+                workingHours: "8.0",
+                breakTime: "60",
+                taktTime: "37.8",
+                models: ["TM10", "TM12", "TM14", "TM19", "TM21", "TM545#212"],
+                filters: ["All stations", "Line TM"],
+                data: [
+                    { station: "BT01", p1: "เตรียมแผ่นพื้นและประกอบฐาน", p2: "", p3: "" },
+                    { station: "BT02", p1: "เชื่อมประกอบชิ้นส่วนฐาน", p2: "", p3: "" },
+                    { station: "BT03", p1: "ประกอบขาตั้ง/เหล็กเสริม", p2: "", p3: "" },
+                    { station: "BT04", p1: "ติดเทปกันกระแทก", p2: "", p3: "" },
+                    { station: "BT05", p1: "ตรวจสอบขนาดและมุมฉาก", p2: "", p3: "" },
+                    { station: "BT06", p1: "ซีลรอยต่อป้องกันความชื้น", p2: "", p3: "" },
+                    { station: "BT07", p1: "ทำความสะอาดพื้นผิว", p2: "", p3: "" },
+                    { station: "BT08", p1: "ตรวจสอบความเรียบร้อยก่อนส่งมอบ", p2: "", p3: "" }
+                ]
+            },
+            bm_plate: {
+                name: "Bottom Plate (BM)",
+                productGroup: "Bottom Plate BM & T-Door",
+                workingHours: "8.0",
+                breakTime: "60",
+                taktTime: "32.4",
+                models: ["BM23", "BM29", "BM T-Door 23", "BM T-Door 28"],
+                filters: ["All stations", "Line BM"],
+                data: [
+                    { station: "BTB01", p1: "ขึ้นรูปชิ้นงานฐาน BM", p2: "", p3: "" },
+                    { station: "BTB02", p1: "ประกอบโครงเสริมแรง", p2: "", p3: "" },
+                    { station: "BTB03", p1: "เชื่อมประกอบชิ้นส่วนหลัก", p2: "", p3: "" },
+                    { station: "BTB04", p1: "เจาะรูและเก็บรายละเอียด", p2: "", p3: "" },
+                    { station: "BTB05", p1: "ติดเทปกาวและฉนวน", p2: "", p3: "" },
+                    { station: "BTB06", p1: "ตรวจสอบรอยเชื่อม", p2: "", p3: "" },
+                    { station: "BTB07", p1: "ประกอบชิ้นส่วนประกอบย่อย", p2: "", p3: "" },
+                    { station: "BTB08", p1: "ซีลซิลิโคนกันรั่วซึม", p2: "", p3: "" },
+                    { station: "BTB09", p1: "ทำความสะอาดและเป่าลม", p2: "", p3: "" },
+                    { station: "BTB10", p1: "ตรวจสอบขั้นสุดท้ายพร้อมแพ็ค", p2: "", p3: "" }
+                ]
+            },
+            back_plate_b: {
+                name: "Back Plate #B",
+                productGroup: "Back Plate Series (T-Door / SBS)",
+                workingHours: "8.0",
+                breakTime: "60",
+                taktTime: "20.0",
+                models: ["T DOOR H Metal", "SBS 550", "SBS 620 Glass WD", "T DOOR 520"],
+                filters: ["All stations", "Metal Line", "Glass Line"],
+                data: [
+                    { station: "BP01", p1: "เตรียมแผ่น Back Plate", p2: "", p3: "" },
+                    { station: "BP02", p1: "ติดตั้งท่อ/ระบบภายใน", p2: "", p3: "" },
+                    { station: "BP03", p1: "ยึดสกรูและประกอบโครง", p2: "", p3: "" },
+                    { station: "BP04", p1: "ติดโฟมฉนวนกันความร้อน", p2: "", p3: "" },
+                    { station: "BP05", p1: "ติดเทปอลูมิเนียมปิดรอยต่อ", p2: "", p3: "" },
+                    { station: "BP06", p1: "ตรวจสอบความแน่นหนา", p2: "", p3: "" },
+                    { station: "BP07", p1: "เก็บงานสายไฟ/จุดเชื่อมต่อ", p2: "", p3: "" },
+                    { station: "BP08", p1: "ทดสอบการทำงานเบื้องต้น", p2: "", p3: "" },
+                    { station: "BP09", p1: "ทำความสะอาดชิ้นงาน", p2: "", p3: "" },
+                    { station: "BP10", p1: "ตรวจสอบคุณภาพ (QC) ผ่านเข้าไลน์ถัดไป", p2: "", p3: "" }
+                ]
+            }
         };
 
         let currentTab = 'back_bottom';
@@ -220,226 +293,3 @@
             tempFilters.splice(idx, 1);
             renderModalFilterList();
         }
-
-        function saveFilterItems() {
-            appState[currentTab].filters = [...tempFilters];
-            if(!appState[currentTab].filters.includes(activeFilter)) {
-                activeFilter = appState[currentTab].filters[0] || 'All stations';
-            }
-            renderFilters();
-            closeFilterEditor();
-        }
-
-        function renderView() {
-            const state = appState[currentTab];
-            const container = document.getElementById('app-container');
-
-            if(currentMainView === 'dashboard') {
-                let modelBadgesSmall = '';
-                if(state.models && state.models.length > 0) {
-                    state.models.forEach(m => {
-                        modelBadgesSmall += `<span class="bg-gray-800/80 text-yellow-400/90 border border-gray-700/60 px-2.5 py-1 rounded-md text-xs font-medium">${m}</span>`;
-                    });
-                } else {
-                    modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
-                }
-
-                container.innerHTML = `
-                    <div class="space-y-6">
-                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-blue-500">
-                            <div>
-                                <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Production Line Overview</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">${state.name} <span class="text-xs text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800/60 ml-2">แสดงผล: ${activeFilter}</span></h2>
-                            </div>
-                            <button onclick="switchMainView('setup')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1.5">
-                                <span>⚙️</span> ไปหน้าตั้งค่ากระบวนการ
-                            </button>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="custom-card p-6 rounded-2xl space-y-4 flex flex-col justify-between">
-                                <div>
-                                    <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
-                                    <div class="mt-2">
-                                        <span class="bg-blue-950/80 text-blue-300 border border-blue-800 px-3.5 py-1.5 rounded-xl text-base font-bold inline-block shadow-inner">${state.productGroup || '-'}</span>
-                                    </div>
-                                </div>
-                                <div class="pt-3 border-t border-gray-800/80 space-y-2">
-                                    <p class="text-xs text-gray-400 font-medium">รุ่นที่ผลิต (Models)</p>
-                                    <div class="flex flex-wrap gap-1.5">
-                                        ${modelBadgesSmall}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="custom-card p-6 rounded-2xl space-y-3">
-                                <p class="text-xs text-gray-400 font-medium">เวลาการทำงานและผลิต (Time Metrics)</p>
-                                <div class="flex justify-between items-center pt-1">
-                                    <span class="text-xs text-gray-300">เวลาทำงาน/วัน:</span>
-                                    <span class="text-sm font-bold text-white">${state.workingHours || '8.0'} ชม.</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs text-gray-300">เวลาพัก:</span>
-                                    <span class="text-sm font-bold text-white">${state.breakTime || '60'} นาที</span>
-                                </div>
-                                <div class="flex justify-between items-center border-t border-gray-800 pt-2">
-                                    <span class="text-xs text-gray-300">Takt Time:</span>
-                                    <span class="text-sm font-bold text-yellow-400">${state.taktTime || '-'} วินาที</span>
-                                </div>
-                            </div>
-
-                            <div class="custom-card p-6 rounded-2xl space-y-2 flex flex-col justify-between">
-                                <p class="text-xs text-gray-400 font-medium">จำนวนพนักงาน (Manpower)</p>
-                                <div class="flex items-baseline gap-2 pt-2">
-                                    <span class="text-xl font-bold text-blue-400">จัดสรรครบถ้วนตามสถานี</span>
-                                </div>
-                                <p class="text-xs text-gray-500">อ้างอิงจากสถานีปฏิบัติงานในไลน์</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                let setupRows = '';
-                state.data.forEach((item, index) => {
-                    setupRows += `
-                        <tr class="hover:bg-gray-800/40 transition">
-                            <td class="p-3 font-semibold text-white"><input type="text" value="${item.station}" onchange="updateSetupRow(${index}, 'station', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20"></td>
-                            <td class="p-3"><input type="text" value="${item.p1 || ''}" onchange="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3"><input type="text" value="${item.p2 || ''}" onchange="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3"><input type="text" value="${item.p3 || ''}" onchange="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3 text-center"><button onclick="removeStation(${index})" class="bg-red-950 text-red-400 border border-red-800 px-2 py-1 rounded text-xs">ลบ</button></td>
-                        </tr>
-                    `;
-                });
-
-                const allModelsList = ["159C", "159F", "199C", "199F", "TM545#212", "FUF14 D", "FUF18 D", "TD 469", "SBS 550", "BM23"];
-                let modelCheckboxes = '';
-                allModelsList.forEach(m => {
-                    const checked = state.models.includes(m) ? 'checked' : '';
-                    modelCheckboxes += `
-                        <label class="flex items-center gap-2 bg-gray-900 border border-gray-800 px-3 py-2 rounded-lg cursor-pointer text-xs">
-                            <input type="checkbox" value="${m}" ${checked} onchange="toggleModel('${m}')" class="rounded bg-gray-800 border-gray-700 text-blue-600">
-                            <span class="text-white">${m}</span>
-                        </label>
-                    `;
-                });
-
-                container.innerHTML = `
-                    <div class="space-y-6">
-                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center border-l-4 border-yellow-500 gap-4">
-                            <div>
-                                <span class="text-xs uppercase tracking-wider text-yellow-400 font-semibold">Setup & Configuration</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">ตั้งค่ากระบวนการและเลือกรุ่น สำหรับ ${state.name}</h2>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="addStation()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold transition border border-gray-700">
-                                    ➕ เพิ่มสถานี
-                                </button>
-                                <button onclick="switchMainView('dashboard')" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md">
-                                    💾 บันทึกและกลับหน้าหลัก
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Product Group, Working Time & Manpower Settings -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">Product ใหญ่ (Product Group)</h3>
-                                <p class="text-xs text-gray-400">ระบุชื่อผลิตภัณฑ์หลัก</p>
-                                <input type="text" value="${state.productGroup || ''}" onchange="updateProductGroup(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate">
-                            </div>
-                            <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">⏱️ เวลาการทำงาน (Working Time)</h3>
-                                <div class="grid grid-cols-2 gap-2 mt-1">
-                                    <div>
-                                        <label class="text-[10px] text-gray-400">เวลาทำงาน (ชม./วัน)</label>
-                                        <input type="number" step="0.5" value="${state.workingHours || '8.0'}" onchange="updateWorkingTime('workingHours', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] text-gray-400">เวลาพัก (นาที)</label>
-                                        <input type="number" value="${state.breakTime || '60'}" onchange="updateWorkingTime('breakTime', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">⚡ Takt Time / เป้าหมาย</h3>
-                                <p class="text-xs text-gray-400">กำหนดรอบเวลามาตรฐาน (วินาที)</p>
-                                <input type="number" value="${state.taktTime || ''}" onchange="updateWorkingTime('taktTime', this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-yellow-400 mt-1" placeholder="เช่น 52">
-                            </div>
-                        </div>
-
-                        <!-- Model Selection Section -->
-                        <div class="custom-card p-6 rounded-xl space-y-3">
-                            <h3 class="text-sm font-bold text-white">เลือกรุ่น (Models) ที่ใช้ในกระบวนการนี้</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-                                ${modelCheckboxes}
-                            </div>
-                        </div>
-
-                        <!-- Stations Table Editor -->
-                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและกระบวนการทำงาน</h3>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-3.5">Station</th>
-                                            <th class="p-3.5">Process 1</th>
-                                            <th class="p-3.5">Process 2</th>
-                                            <th class="p-3.5">Process 3</th>
-                                            <th class="p-3.5 text-center">จัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-sm divide-y divide-gray-800/60">
-                                        ${setupRows}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-        }
-
-        function updateSetupRow(index, field, value) {
-            appState[currentTab].data[index][field] = value;
-        }
-
-        function updateProductGroup(val) {
-            appState[currentTab].productGroup = val;
-        }
-
-        function updateWorkingTime(field, val) {
-            appState[currentTab][field] = val;
-        }
-
-        function addStation() {
-            const stName = "ST0" + (appState[currentTab].data.length + 1);
-            appState[currentTab].data.push({ station: stName, p1: "", p2: "", p3: "" });
-            renderView();
-        }
-
-        function removeStation(index) {
-            appState[currentTab].data.splice(index, 1);
-            renderView();
-        }
-
-        function toggleModel(modelName) {
-            const models = appState[currentTab].models;
-            const idx = models.indexOf(modelName);
-            if(idx > -1) {
-                models.splice(idx, 1);
-            } else {
-                models.push(modelName);
-            }
-        }
-
-        window.onload = function() {
-            renderFilters();
-            switchTab('back_bottom');
-        };
-    </script>
-</body>
-</html>
