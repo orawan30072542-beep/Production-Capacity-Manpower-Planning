@@ -201,7 +201,7 @@
             tempFilters.forEach((f, idx) => {
                 html += `
                     <div class="flex items-center gap-2">
-                        <input type="text" value="${f}" onchange="updateTempFilter(${idx}, this.value)" class="input-dark px-3 py-1.5 rounded-lg text-xs w-full">
+                        <input type="text" value="${f}" oninput="updateTempFilter(${idx}, this.value)" class="input-dark px-3 py-1.5 rounded-lg text-xs w-full">
                         <button onclick="removeTempFilter(${idx})" class="bg-red-950 text-red-400 border border-red-800 px-3 py-1.5 rounded-lg text-xs">ลบ</button>
                     </div>
                 `;
@@ -305,10 +305,10 @@
                 state.data.forEach((item, index) => {
                     setupRows += `
                         <tr class="hover:bg-gray-800/40 transition">
-                            <td class="p-3 font-semibold text-white"><input type="text" value="${item.station}" onchange="updateSetupRow(${index}, 'station', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20"></td>
-                            <td class="p-3"><input type="text" value="${item.p1 || ''}" onchange="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3"><input type="text" value="${item.p2 || ''}" onchange="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3"><input type="text" value="${item.p3 || ''}" onchange="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
+                            <td class="p-3 font-semibold text-white"><input type="text" value="${item.station || ''}" oninput="updateSetupRow(${index}, 'station', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20"></td>
+                            <td class="p-3"><input type="text" value="${item.p1 || ''}" oninput="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
+                            <td class="p-3"><input type="text" value="${item.p2 || ''}" oninput="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
+                            <td class="p-3"><input type="text" value="${item.p3 || ''}" oninput="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
                             <td class="p-3 text-center"><button onclick="removeStation(${index})" class="bg-red-950 text-red-400 border border-red-800 px-2 py-1 rounded text-xs">ลบ</button></td>
                         </tr>
                     `;
@@ -348,25 +348,25 @@
                             <div class="custom-card p-6 rounded-xl space-y-2">
                                 <h3 class="text-sm font-bold text-white">Product ใหญ่ (Product Group)</h3>
                                 <p class="text-xs text-gray-400">ระบุชื่อผลิตภัณฑ์หลัก</p>
-                                <input type="text" value="${state.productGroup || ''}" onchange="updateProductGroup(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate">
+                                <input type="text" value="${state.productGroup || ''}" oninput="updateProductGroup(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate">
                             </div>
                             <div class="custom-card p-6 rounded-xl space-y-2">
                                 <h3 class="text-sm font-bold text-white">⏱️ เวลาการทำงาน (Working Time)</h3>
                                 <div class="grid grid-cols-2 gap-2 mt-1">
                                     <div>
                                         <label class="text-[10px] text-gray-400">เวลาทำงาน (ชม./วัน)</label>
-                                        <input type="number" step="0.5" value="${state.workingHours || '8.0'}" onchange="updateWorkingTime('workingHours', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
+                                        <input type="number" step="0.5" value="${state.workingHours || '8.0'}" oninput="updateWorkingTime('workingHours', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-gray-400">เวลาพัก (นาที)</label>
-                                        <input type="number" value="${state.breakTime || '60'}" onchange="updateWorkingTime('breakTime', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
+                                        <input type="number" value="${state.breakTime || '60'}" oninput="updateWorkingTime('breakTime', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
                                     </div>
                                 </div>
                             </div>
                             <div class="custom-card p-6 rounded-xl space-y-2">
                                 <h3 class="text-sm font-bold text-white">⚡ Takt Time / เป้าหมาย</h3>
                                 <p class="text-xs text-gray-400">กำหนดรอบเวลามาตรฐาน (วินาที)</p>
-                                <input type="number" step="0.1" value="${state.taktTime || ''}" onchange="updateWorkingTime('taktTime', this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-yellow-400 mt-1" placeholder="เช่น 36.6">
+                                <input type="number" step="0.1" value="${state.taktTime || ''}" oninput="updateWorkingTime('taktTime', this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-yellow-400 mt-1" placeholder="เช่น 36.6">
                             </div>
                         </div>
 
