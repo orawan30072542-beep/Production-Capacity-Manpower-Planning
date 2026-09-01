@@ -113,13 +113,13 @@
             const takt = (stationsCount > 0 && maxWt > 0) ? maxWt.toFixed(2) : (state.cycle || "36.6");
 
             if(currentMainView === 'dashboard') {
-                let modelBadges = '';
+                let modelBadgesSmall = '';
                 if(state.models && state.models.length > 0) {
                     state.models.forEach(m => {
-                        modelBadges += `<span class="bg-gray-800 text-yellow-400 border border-gray-700 px-3 py-1.5 rounded-lg text-sm font-semibold">${m}</span>`;
+                        modelBadgesSmall += `<span class="bg-gray-800/80 text-yellow-400/90 border border-gray-700/60 px-2.5 py-1 rounded-md text-xs font-medium">${m}</span>`;
                     });
                 } else {
-                    modelBadges = `<span class="text-gray-500 text-sm">ยังไม่ได้เลือกรุ่น</span>`;
+                    modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
                 }
 
                 container.innerHTML = `
@@ -136,21 +136,20 @@
                         </div>
 
                         <!-- Dashboard Minimal Cards -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <!-- Product Group Card (Highlighted with large font & card styling matching models) -->
-                            <div class="custom-card p-6 rounded-2xl space-y-3 flex flex-col justify-between">
-                                <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
-                                <div class="py-2">
-                                    <span class="bg-blue-950/80 text-blue-300 border border-blue-800 px-4 py-2 rounded-xl text-lg font-bold inline-block shadow-inner">${state.productGroup || '-'}</span>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Product Group & Models Combined Card -->
+                            <div class="custom-card p-6 rounded-2xl space-y-4 flex flex-col justify-between">
+                                <div>
+                                    <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
+                                    <div class="mt-2">
+                                        <span class="bg-blue-950/80 text-blue-300 border border-blue-800 px-3.5 py-1.5 rounded-xl text-base font-bold inline-block shadow-inner">${state.productGroup || '-'}</span>
+                                    </div>
                                 </div>
-                                <p class="text-xs text-gray-500">กลุ่มผลิตภัณฑ์หลักของไลน์ผลิตนี้</p>
-                            </div>
-
-                            <!-- Models Card -->
-                            <div class="custom-card p-6 rounded-2xl space-y-3">
-                                <p class="text-xs text-gray-400 font-medium">รุ่นที่ผลิต (Models)</p>
-                                <div class="flex flex-wrap gap-2 pt-1">
-                                    ${modelBadges}
+                                <div class="pt-3 border-t border-gray-800/80 space-y-2">
+                                    <p class="text-xs text-gray-400 font-medium">รุ่นที่ผลิต (Models)</p>
+                                    <div class="flex flex-wrap gap-1.5">
+                                        ${modelBadgesSmall}
+                                    </div>
                                 </div>
                             </div>
 
