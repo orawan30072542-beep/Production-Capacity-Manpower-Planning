@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manpower & Production Capacity Dashboard - Multi-Page</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- เปลี่ยนมาใช้ฟอนต์ Inter (สไตล์ Google Sans / Modern UI) -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0b0f19; color: #e5e7eb; }
@@ -18,7 +17,6 @@
 
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header -->
         <header class="flex flex-col md:flex-row justify-between items-center custom-card p-6 rounded-2xl shadow-xl">
             <div>
                 <div class="flex items-center gap-2">
@@ -33,10 +31,9 @@
             </div>
         </header>
 
-        <!-- Navigation Tabs for Lines -->
         <nav class="flex flex-wrap items-center gap-2 custom-card p-3 rounded-xl overflow-x-auto">
-            <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2" data-target="press"><span>Press Machine</span></button>
-            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="back_bottom"><span>Back Plate & Bottom Plate</span></button>
+            <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="press"><span>Press Machine</span></button>
+            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2" data-target="back_bottom"><span>Back Plate & Bottom Plate</span></button>
             <button onclick="switchTab('frame_glass')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="frame_glass"><span>Frame & Glass Door</span></button>
             <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_a"><span>Door A</span></button>
             <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_b"><span>Door B</span></button>
@@ -45,7 +42,6 @@
             <button onclick="switchTab('door_in_door')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_in_door"><span>Door In Door</span></button>
         </nav>
 
-        <!-- Sub Filter Bar -->
         <div id="sub-filter-bar" class="flex flex-wrap items-center justify-between gap-2 custom-card px-4 py-3 rounded-xl text-sm">
             <div id="filter-buttons-container" class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
@@ -55,12 +51,10 @@
             </button>
         </div>
 
-        <!-- Main Dynamic App Container -->
         <div id="app-container"></div>
 
     </div>
 
-    <!-- Filter Editor Modal -->
     <div id="filter-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
         <div class="custom-card p-6 rounded-2xl w-full max-w-lg space-y-4 shadow-2xl border border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
@@ -84,7 +78,7 @@
             back_bottom: { 
                 name: "Back Plate & Bottom Plate", 
                 productGroup: "Bottom Plate & Back Plate", 
-                workingHours: "8.0", 
+                workingHours: "11.0", 
                 breakTime: "60", 
                 taktTime: "36.6", 
                 models: ["159C", "159F"], 
@@ -217,7 +211,50 @@
                     modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
                 }
 
-                const currentDataCount = (state.dataByModel && state.dataByModel[state.activeModel]) ? state.dataByModel[state.activeModel].length : 0;
+                if (!state.dataByModel) state.dataByModel = {};
+                if (!state.dataByModel[state.activeModel]) state.dataByModel[state.activeModel] = [];
+                const activeModelData = state.dataByModel[state.activeModel];
+
+                let dashboardRows = '';
+                activeModelData.forEach((item) => {
+                    const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
+                    const cycleTime = wtTotal + (Number(item.loss)||0);
+                    dashboardRows += `
+                        <tr class="hover:bg-gray-800/40 transition">
+                            <td class="p-3 font-semibold text-white">${item.station || '-'}</td>
+                            <td class="p-3 text-gray-300">${item.p1 || '-'}</td>
+                            <td class="p-3 text-gray-300">${item.p2 || '-'}</td>
+                            <td class="p-3 text-gray-300">${item.p3 || '-'}</td>
+                            <td class="p-3 text-center text-gray-300">${item.wt1 || '-'}</td>
+                            <td class="p-3 text-center text-gray-300">${item.wt2 || '-'}</td>
+                            <td class="p-3 text-center text-gray-300">${item.wt3 || '-'}</td>
+                            <td class="p-3 text-center font-bold text-white">${wtTotal > 0 ? wtTotal.toFixed(2) : '-'}</td>
+                            <td class="p-3 text-center text-red-400">${item.loss ? Number(item.loss).toFixed(2) : '-'}</td>
+                            <td class="p-3 text-center font-bold text-yellow-400">${cycleTime > 0 ? cycleTime.toFixed(2) : '-'}</td>
+                        </tr>
+                    `;
+                });
+
+                // จำลองตาราง Order & Capacity Matrix รายวันตามภาพตัวอย่าง
+                const dates = ["20 ส.ค.", "21 ส.ค.", "22 ส.ค.", "23 ส.ค.", "24 ส.ค.", "25 ส.ค.", "26 ส.ค.", "27 ส.ค.", "28 ส.ค.", "29 ส.ค.", "30 ส.ค.", "31 ส.ค.", "1 ก.ย.", "2 ก.ย.", "3 ก.ย.", "4 ก.ย.", "5 ก.ย."];
+                let dateHeaderHtml = '';
+                let wtHeaderHtml = '';
+                let shiftHeaderHtml = '';
+                let effHeaderHtml = '';
+                let lineARows = '';
+                let lineBRows = '';
+
+                dates.forEach((d, idx) => {
+                    dateHeaderHtml += `<th class="p-2 text-center border border-gray-800 text-[11px] bg-gray-900">${d}</th>`;
+                    wtHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">11</td>`;
+                    shiftHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">2</td>`;
+                    effHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">100</td>`;
+                    
+                    const baseValA = 2000 + (idx * 50);
+                    const baseValB = 2700 + (idx * 30);
+                    lineARows += `<td class="p-2 text-center border border-gray-800 text-xs"><div class="font-bold text-white">${baseValA}</div><div class="text-[10px] text-blue-400">94</div></td>`;
+                    lineBRows += `<td class="p-2 text-center border border-gray-800 text-xs"><div class="font-bold text-white">${baseValB}</div><div class="text-[10px] text-blue-400">125</div></td>`;
+                });
 
                 container.innerHTML = `
                     <div class="space-y-6">
@@ -266,9 +303,86 @@
                                 <div class="flex items-baseline gap-2 pt-2">
                                     <span class="text-xl font-bold text-blue-400">จัดสรรครบถ้วนตามสถานี</span>
                                 </div>
-                                <p class="text-xs text-gray-500">อ้างอิงจากรุ่น ${state.activeModel} (${currentDataCount} สถานี)</p>
+                                <p class="text-xs text-gray-500">อ้างอิงจากรุ่น ${state.activeModel} (${activeModelData.length} สถานี)</p>
                             </div>
                         </div>
+
+                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
+                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                                <h3 class="text-base font-bold text-white">ตารางสรุปกระบวนการและเวลาการทำงาน</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
+                                            <th class="p-3">Station</th>
+                                            <th class="p-3">Process 1</th>
+                                            <th class="p-3">Process 2</th>
+                                            <th class="p-3">Process 3</th>
+                                            <th class="p-3 text-center">WT 1</th>
+                                            <th class="p-3 text-center">WT 2</th>
+                                            <th class="p-3 text-center">WT 3</th>
+                                            <th class="p-3 text-center">WT Total</th>
+                                            <th class="p-3 text-center">Loss</th>
+                                            <th class="p-3 text-center">Cycle Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-gray-800/60">
+                                        ${dashboardRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
+                            <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div>
+                                    <h3 class="text-base font-bold text-white">สรุปยอดผลิตรายวัน — ตาม Sub-line</h3>
+                                    <p class="text-xs text-gray-400 mt-0.5">แยกยอดตามไลน์ย่อยของ "${state.name}" ตามการเลือก Sub-line ในตาราง Order & Capacity</p>
+                                </div>
+                                <div class="flex items-center gap-3 bg-gray-900 px-4 py-2 rounded-xl border border-gray-800 text-xs">
+                                    <div>WT (ชม./กะ): <span class="font-bold text-blue-400">11</span></div>
+                                    <div>×</div>
+                                    <div>กะ (Shift): <span class="font-bold text-blue-400">2</span></div>
+                                    <div>×</div>
+                                    <div>Efficiency (%): <span class="font-bold text-blue-400">100</span></div>
+                                    <div>= <span class="font-bold text-yellow-400 text-sm">22.0 ชม./วัน</span></div>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full border-collapse border border-gray-800">
+                                    <thead>
+                                        <tr class="bg-gray-900 text-gray-300 text-xs">
+                                            <th class="p-2 border border-gray-800 text-left min-w-[160px]">วันที่</th>
+                                            ${dateHeaderHtml}
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-xs">
+                                        <tr class="hover:bg-gray-800/30">
+                                            <td class="p-2 border border-gray-800 font-semibold text-gray-300 bg-gray-900/40">WT (ชม./กะ)</td>
+                                            ${wtHeaderHtml}
+                                        </tr>
+                                        <tr class="hover:bg-gray-800/30">
+                                            <td class="p-2 border border-gray-800 font-semibold text-gray-300 bg-gray-900/40">กะ (Shift)</td>
+                                            ${shiftHeaderHtml}
+                                        </tr>
+                                        <tr class="hover:bg-gray-800/30 border-b-2 border-gray-700">
+                                            <td class="p-2 border border-gray-800 font-semibold text-gray-300 bg-gray-900/40">Efficiency (%)</td>
+                                            ${effHeaderHtml}
+                                        </tr>
+                                        <tr class="hover:bg-gray-800/30">
+                                            <td class="p-2 border border-gray-800 font-bold text-blue-400 bg-gray-900/40">Order Back plate #A</td>
+                                            ${lineARows}
+                                        </tr>
+                                        <tr class="hover:bg-gray-800/30">
+                                            <td class="p-2 border border-gray-800 font-bold text-blue-400 bg-gray-900/40">Order Back plate #B</td>
+                                            ${lineBRows}
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
                 `;
             } else {
@@ -284,10 +398,10 @@
                             <td class="p-3"><input type="text" value="${item.p1 || ''}" onchange="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full" placeholder="Process 1"></td>
                             <td class="p-3"><input type="text" value="${item.p2 || ''}" onchange="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full" placeholder="Process 2"></td>
                             <td class="p-3"><input type="text" value="${item.p3 || ''}" onchange="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full" placeholder="Process 3"></td>
-                            <td class="p-3"><input type="number" step="0.01" value="${item.wt1 || 0}" onchange="updateSetupRow(${index}, 'wt1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
-                            <td class="p-3"><input type="number" step="0.01" value="${item.wt2 || 0}" onchange="updateSetupRow(${index}, 'wt2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
-                            <td class="p-3"><input type="number" step="0.01" value="${item.wt3 || 0}" onchange="updateSetupRow(${index}, 'wt3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
-                            <td class="p-3"><input type="number" step="0.01" value="${item.loss || 0}" onchange="updateSetupRow(${index}, 'loss', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.wt1 !== undefined ? item.wt1 : 0}" onchange="updateSetupRow(${index}, 'wt1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.wt2 !== undefined ? item.wt2 : 0}" onchange="updateSetupRow(${index}, 'wt2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.wt3 !== undefined ? item.wt3 : 0}" onchange="updateSetupRow(${index}, 'wt3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.loss !== undefined ? item.loss : 0}" onchange="updateSetupRow(${index}, 'loss', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
                             <td class="p-3 text-center"><button onclick="removeStation(${index})" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-1 rounded text-xs">ลบ</button></td>
                         </tr>
                     `;
@@ -329,7 +443,6 @@
                             </div>
                         </div>
 
-                        <!-- Product Group, Working Time & Manpower Settings -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="custom-card p-6 rounded-xl space-y-2">
                                 <h3 class="text-sm font-bold text-white">Product ใหญ่ (Product Group)</h3>
@@ -356,16 +469,14 @@
                             </div>
                         </div>
 
-                        <!-- Model Selection Section -->
                         <div class="custom-card p-6 rounded-xl space-y-3">
                             <h3 class="text-sm font-bold text-white">เลือกรุ่น (Models) ที่ใช้ในกระบวนการนี้</h3>
                             <div class="grid grid-cols-2 md:grid-cols-5 gap-3">${modelCheckboxes}</div>
                         </div>
 
-                        <!-- Stations Table Editor with Model Sub-Tabs -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                             <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและเวลา (แยกตามรุ่นที่เลือก)</h3>
+                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและเวลาการทำงาน (WT1, WT2, WT3, Loss)</h3>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="text-xs text-gray-400">เลือกรุ่นเพื่อแก้ไขข้อมูล:</span>
                                     <div class="flex gap-1.5 flex-wrap">${modelTabsForSetup}</div>
@@ -401,7 +512,7 @@
             const state = appState[currentTab];
             const activeList = state.dataByModel[state.activeModel];
             if(['wt1', 'wt2', 'wt3', 'loss'].includes(field)) {
-                activeList[index][field] = parseFloat(value) || 0;
+                activeList[index][field] = value === "" ? 0 : parseFloat(value);
             } else {
                 activeList[index][field] = value;
             }
