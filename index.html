@@ -487,8 +487,21 @@
         }
 
         window.onload = function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const processParam = urlParams.get('process');
+            
+            if (processParam) {
+                const foundKey = Object.keys(appState).find(key => 
+                    appState[key].name.toLowerCase() === processParam.toLowerCase() || key.toLowerCase() === processParam.toLowerCase()
+                );
+                
+                if (foundKey) {
+                    currentTab = foundKey;
+                }
+            }
+            
             renderFilters();
-            switchTab('back_bottom');
+            switchTab(currentTab);
         };
     </script>
 </body>
