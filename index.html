@@ -337,7 +337,7 @@
                 if (!state.dataByModel[state.activeModel]) state.dataByModel[state.activeModel] = [];
                 const activeModelData = state.dataByModel[state.activeModel];
 
-                // คำนวณ Lead Time รวมของรุ่นปัจจุบัน (ผลรวม Cycle Time ทุกสถานีในรุ่นนั้น)
+                // คำนวณ Lead Time รวมของรุ่นปัจจุบัน
                 let totalLeadTime = 0;
                 activeModelData.forEach(item => {
                     const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
@@ -369,25 +369,36 @@
                     });
                 }
 
-                const dates = ["20 ส.ค.", "21 ส.ค.", "22 ส.ค.", "23 ส.ค.", "24 ส.ค.", "25 ส.ค.", "26 ส.ค.", "27 ส.ค.", "28 ส.ค.", "29 ส.ค.", "30 ส.ค.", "31 ส.ค.", "1 ก.ย.", "2 ก.ย.", "3 ก.ย.", "4 ก.ย.", "5 ก.ย."];
-                let dateHeaderHtml = '';
-                let wtHeaderHtml = '';
-                let shiftHeaderHtml = '';
-                let effHeaderHtml = '';
-                let lineARows = '';
-                let lineBRows = '';
+                // สร้างตารางสรุปข้อมูลทุกรุ่น (Model Summary Table)
+                let modelSummaryRows = '';
+                if(state.models && state.models.length > 0) {
+                    state.models.forEach(m => {
+                        const mData = state.dataByModel[m] || [];
+                        let mLeadTime = 0;
+                        mData.forEach(item => {
+                            const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
+                            mLeadTime += wtTotal + (Number(item.loss)||0);
+                        });
+                        const mTakt = Number(state.taktTime) || 45.0;
+                        const mCapacity = mTakt > 0 ? (3600 / mTakt).toFixed(2) : '0.00';
+                        const isCurrentActive = (m === state.activeModel);
+                        const rowHighlight = isCurrentActive ? 'bg-blue-950/30 border-l-2 border-blue-500' : '';
 
-                dates.forEach((d, idx) => {
-                    dateHeaderHtml += `<th class="p-2 text-center border border-gray-800 text-[11px] bg-gray-900">${d}</th>`;
-                    wtHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">${state.workingHours || 8}</td>`;
-                    shiftHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">2</td>`;
-                    effHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">100</td>`;
-                    
-                    const baseValA = 1500 + (idx * 40);
-                    const baseValB = 2100 + (idx * 35);
-                    lineARows += `<td class="p-2 text-center border border-gray-800 text-xs"><div class="font-bold text-white">${baseValA}</div><div class="text-[10px] text-blue-400">85</div></td>`;
-                    lineBRows += `<td class="p-2 text-center border border-gray-800 text-xs"><div class="font-bold text-white">${baseValB}</div><div class="text-[10px] text-blue-400">110</div></td>`;
-                });
+                        modelSummaryRows += `
+                            <tr class="hover:bg-gray-800/40 transition ${rowHighlight}">
+                                <td class="p-3 font-bold text-white flex items-center gap-2">
+                                    <span>${m}</span>
+                                    ${isCurrentActive ? '<span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded">กำลังแสดง</span>' : ''}
+                                </td>
+                                <td class="p-3 text-emerald-400 font-semibold">${mLeadTime.toFixed(2)} วินาที <span class="text-xs text-gray-400">(${(mLeadTime / 60).toFixed(2)} นาที)</span></td>
+                                <td class="p-3 text-yellow-400 font-semibold">${mTakt.toFixed(2)} วินาที</td>
+                                <td class="p-3 text-blue-300 font-bold">${mCapacity} ชิ้น/ชม.</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    modelSummaryRows = `<tr><td colspan="4" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีการเลือกรุ่นในกระบวนการนี้</td></tr>`;
+                }
 
                 container.innerHTML = `
                     <div class="space-y-6">
@@ -480,43 +491,26 @@
                             </div>
                         </div>
 
-                        <!-- สรุปยอดผลิตรายวัน — ตาม Sub-line -->
+                        <!-- ตารางสรุปเปรียบเทียบแต่ละรุ่น (Model Performance Summary Table) -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                             <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
-                                    <h3 class="text-base font-bold text-white">สรุปยอดผลิตรายวัน — ตาม Sub-line</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">แยกยอดตามไลน์ย่อยของ "${state.name}"</p>
+                                    <h3 class="text-base font-bold text-white">ตารางสรุปข้อมูลตามรุ่น (Model Summary)</h3>
+                                    <p class="text-xs text-gray-400 mt-0.5">แสดง Lead Time, Takt Time และ Capacity (3600 / Takt Time) ของแต่ละรุ่นในไลน์ ${state.name}</p>
                                 </div>
                             </div>
                             <div class="overflow-x-auto">
-                                <table class="w-full border-collapse border border-gray-800">
+                                <table class="w-full text-left border-collapse">
                                     <thead>
-                                        <tr class="bg-gray-900 text-gray-300 text-xs">
-                                            <th class="p-2 border border-gray-800 text-left min-w-[160px]">วันที่</th>
-                                            ${dateHeaderHtml}
+                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
+                                            <th class="p-3">รุ่น (Model)</th>
+                                            <th class="p-3">Lead Time</th>
+                                            <th class="p-3">Takt Time</th>
+                                            <th class="p-3">Capacity ที่ทำได้ (3600 / Takt Time)</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="text-xs">
-                                        <tr class="hover:bg-gray-800/30">
-                                            <td class="p-2 border border-gray-800 font-semibold text-gray-300 bg-gray-900/40">WT (ชม./กะ)</td>
-                                            ${wtHeaderHtml}
-                                        </tr>
-                                        <tr class="hover:bg-gray-800/30">
-                                            <td class="p-2 border border-gray-800 font-semibold text-gray-300 bg-gray-900/40">กะ (Shift)</td>
-                                            ${shiftHeaderHtml}
-                                        </tr>
-                                        <tr class="hover:bg-gray-800/30 border-b-2 border-gray-700">
-                                            <td class="p-2 border border-gray-800 font-semibold text-gray-300 bg-gray-900/40">Efficiency (%)</td>
-                                            ${effHeaderHtml}
-                                        </tr>
-                                        <tr class="hover:bg-gray-800/30">
-                                            <td class="p-2 border border-gray-800 font-bold text-blue-400 bg-gray-900/40">Sub-line #1</td>
-                                            ${lineARows}
-                                        </tr>
-                                        <tr class="hover:bg-gray-800/30">
-                                            <td class="p-2 border border-gray-800 font-bold text-blue-400 bg-gray-900/40">Sub-line #2</td>
-                                            ${lineBRows}
-                                        </tr>
+                                    <tbody class="text-sm divide-y divide-gray-800/60">
+                                        ${modelSummaryRows}
                                     </tbody>
                                 </table>
                             </div>
@@ -791,7 +785,6 @@
                 activeFilter = appState[currentTab].filters[0] || '';
             }
             renderFilters();
-            closeCardEditor = closeFilterEditor();
             closeFilterEditor();
         });
 
