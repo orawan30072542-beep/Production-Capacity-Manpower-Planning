@@ -102,7 +102,7 @@
             door_in_door: { name: "Door In Door", productGroup: "DID Assembly", workingHours: "8.0", breakTime: "60", taktTime: "65", models: ["DID Model"], filters: ["All stations", "Assembly"], data: [] }
         };
 
-        let currentTab = 'press';
+        let currentTab = 'back_bottom';
         let currentMainView = 'dashboard';
         let activeFilter = 'All stations';
         let tempFilters = [];
@@ -208,36 +208,6 @@
                     modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
                 }
 
-                // Render Table like user image in Dashboard preview
-                let dashboardRows = '';
-                if(state.data && state.data.length > 0) {
-                    state.data.forEach(item => {
-                        const wt1 = parseFloat(item.wt1) || 0;
-                        const wt2 = parseFloat(item.wt2) || 0;
-                        const wt3 = parseFloat(item.wt3) || 0;
-                        const wtTotal = wt1 + wt2 + wt3;
-                        const loss = parseFloat(item.loss) || 0;
-                        const cycleTime = wtTotal + loss;
-
-                        dashboardRows += `
-                            <tr class="hover:bg-gray-800/40 transition border-b border-gray-800/60 text-xs">
-                                <td class="p-3.5 font-semibold text-white">${item.station || '-'}</td>
-                                <td class="p-3.5 text-gray-300">${item.p1 || '-'}</td>
-                                <td class="p-3.5 text-gray-300">${item.p2 || '-'}</td>
-                                <td class="p-3.5 text-gray-300">${item.p3 || '-'}</td>
-                                <td class="p-3.5 text-center text-gray-300">${wt1 > 0 ? wt1.toFixed(2) : '-'}</td>
-                                <td class="p-3.5 text-center text-gray-300">${wt2 > 0 ? wt2.toFixed(2) : '-'}</td>
-                                <td class="p-3.5 text-center text-gray-300">${wt3 > 0 ? wt3.toFixed(2) : '-'}</td>
-                                <td class="p-3.5 text-center font-bold text-white">${wtTotal > 0 ? wtTotal.toFixed(2) : '-'}</td>
-                                <td class="p-3.5 text-center text-gray-400">${loss > 0 ? loss.toFixed(2) : '-'}</td>
-                                <td class="p-3.5 text-center font-bold text-yellow-400">${cycleTime > 0 ? cycleTime.toFixed(2) : '-'}</td>
-                            </tr>
-                        `;
-                    });
-                } else {
-                    dashboardRows = `<tr><td colspan="10" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูลสถานี กรุณาเพิ่มข้อมูลในหน้าตั้งค่า</td></tr>`;
-                }
-
                 container.innerHTML = `
                     <div class="space-y-6">
                         <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-blue-500">
@@ -286,34 +256,6 @@
                                     <span class="text-xl font-bold text-blue-400">จัดสรรครบถ้วนตามสถานี</span>
                                 </div>
                                 <p class="text-xs text-gray-500">อ้างอิงจากสถานีปฏิบัติงานในไลน์ (${state.data.length} สถานี)</p>
-                            </div>
-                        </div>
-
-                        <!-- Data Table Preview -->
-                        <div class="custom-card rounded-2xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                                <h3 class="text-base font-bold text-white">ตารางสรุปกระบวนการและเวลาการทำงาน</h3>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-gray-900/60 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-3.5">Station</th>
-                                            <th class="p-3.5">Process 1</th>
-                                            <th class="p-3.5">Process 2</th>
-                                            <th class="p-3.5">Process 3</th>
-                                            <th class="p-3.5 text-center">WT 1</th>
-                                            <th class="p-3.5 text-center">WT 2</th>
-                                            <th class="p-3.5 text-center">WT 3</th>
-                                            <th class="p-3.5 text-center">WT Total</th>
-                                            <th class="p-3.5 text-center">Loss</th>
-                                            <th class="p-3.5 text-center">Cycle Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-800/60">
-                                        ${dashboardRows}
-                                    </tbody>
-                                </table>
                             </div>
                         </div>
                     </div>
