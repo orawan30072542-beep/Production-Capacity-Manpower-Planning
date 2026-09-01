@@ -405,30 +405,28 @@
         function updateWorkingTime(field, val) { appState[currentTab][field] = val; }
 
         function addStation() {
-            const state = appState[currentTab];
-            
-            if (!state.activeModel || state.models.length === 0) {
-                if (state.models.length === 0) {
-                    state.models.push("Default Model");
-                }
-                state.activeModel = state.models[0];
-            }
-            
-            if (!state.dataByModel) {
-                state.dataByModel = {};
-            }
-            
-            if (!state.dataByModel[state.activeModel]) {
-                state.dataByModel[state.activeModel] = [];
-            }
-            
-            const activeList = state.dataByModel[state.activeModel];
-            const stName = "BTA0" + (activeList.length + 1);
-            activeList.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
-            
-            renderView();
-        }
-
+    const state = appState[currentTab];
+    
+    // ตรวจสอบและสร้างโครงสร้างข้อมูลรุ่นและสถานีให้พร้อม
+    if (!state.models || state.models.length === 0) {
+        state.models = ["Default Model"];
+    }
+    if (!state.activeModel || !state.models.includes(state.activeModel)) {
+        state.activeModel = state.models[0];
+    }
+    if (!state.dataByModel) {
+        state.dataByModel = {};
+    }
+    if (!state.dataByModel[state.activeModel]) {
+        state.dataByModel[state.activeModel] = [];
+    }
+    
+    const activeList = state.dataByModel[state.activeModel];
+    const stName = "BTA0" + (activeList.length + 1);
+    activeList.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
+    
+    renderView();
+}
         function removeStation(index) {
             const state = appState[currentTab];
             state.dataByModel[state.activeModel].splice(index, 1);
