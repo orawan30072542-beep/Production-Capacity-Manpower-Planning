@@ -33,13 +33,50 @@
         </header>
 
         <!-- Navigation Tabs for Lines -->
-        <nav class="flex flex-wrap gap-2 custom-card p-3 rounded-xl">
-            <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="press">Press Machine</button>
-            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow" data-target="back_bottom">Bottom plate #A (Line)</button>
-            <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_a">Door A</button>
-            <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_b">Door B</button>
-            <button onclick="switchTab('door_c')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_c">Door C</button>
+        <nav class="flex flex-wrap items-center gap-2 custom-card p-3 rounded-xl overflow-x-auto">
+            <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="press">
+                <span>Press Machine</span>
+            </button>
+            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2" data-target="back_bottom">
+                <span>Back & Bottom Plate</span>
+                <span class="bg-blue-800 text-blue-200 text-xs px-2 py-0.5 rounded-full">20</span>
+            </button>
+            <button onclick="switchTab('door_glass')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_glass">
+                <span>Door Frame & Door Glass</span>
+                <span class="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded-full border border-gray-700">6</span>
+            </button>
+            <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_a">
+                <span>Door A</span>
+                <span class="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded-full border border-gray-700">6</span>
+            </button>
+            <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_b">
+                <span>Door B</span>
+            </button>
+            <button onclick="switchTab('door_c')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_c">
+                <span>Door C</span>
+            </button>
         </nav>
+
+        <!-- Sub Filter Bar (Station / Category Filter similar to reference image) -->
+        <div id="sub-filter-bar" class="flex flex-wrap items-center gap-2 custom-card px-4 py-3 rounded-xl text-sm">
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
+            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow flex items-center gap-1.5">
+                <span>All stations</span>
+                <span class="bg-blue-800 text-blue-200 px-1.5 py-0.2 rounded-full text-[10px]">20</span>
+            </button>
+            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
+                <span>Welding (5 machines)</span>
+                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.2 rounded-full text-[10px]">2</span>
+            </button>
+            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
+                <span>Back plate</span>
+                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.2 rounded-full text-[10px]">10</span>
+            </button>
+            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
+                <span>Bottom plate</span>
+                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.2 rounded-full text-[10px]">8</span>
+            </button>
+        </div>
 
         <!-- Main Dynamic App Container -->
         <div id="app-container"></div>
@@ -50,7 +87,7 @@
         const appState = {
             press: { name: "Press Machine", productGroup: "Press Panel", data: [], models: ["159C", "159F"], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25, manpower: 4 },
             back_bottom: { 
-                name: "Bottom plate #A — One Door", 
+                name: "Back & Bottom Plate", 
                 productGroup: "Bottom Plate (One Door)",
                 models: ["159C", "159F", "199C", "199F"],
                 data: [
@@ -66,6 +103,7 @@
                 ],
                 totalPlan: 2920, totalActual: 2935, hours: 8, manpower: 9
             },
+            door_glass: { name: "Door Frame & Door Glass", productGroup: "Door Assembly", models: ["TD 469", "SBS 550"], data: [], totalPlan: 900, totalActual: 910, hours: 8, cycle: 32, manpower: 6 },
             door_a: { name: "Door A", productGroup: "Refrigerator Door A", models: ["TD 469"], data: [], totalPlan: 800, totalActual: 800, hours: 8, cycle: 35, manpower: 5 },
             door_b: { name: "Door B", productGroup: "Refrigerator Door B", models: ["SBS 550"], data: [], totalPlan: 850, totalActual: 860, hours: 8, cycle: 34, manpower: 6 },
             door_c: { name: "Door C", productGroup: "Refrigerator Door C", models: ["BM23"], data: [], totalPlan: 750, totalActual: 730, hours: 8, cycle: 38, manpower: 5 }
@@ -79,9 +117,11 @@
             if(view === 'dashboard') {
                 document.getElementById('nav-btn-dashboard').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow";
                 document.getElementById('nav-btn-setup').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white";
+                document.getElementById('sub-filter-bar').style.display = 'flex';
             } else {
                 document.getElementById('nav-btn-setup').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow";
                 document.getElementById('nav-btn-dashboard').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white";
+                document.getElementById('sub-filter-bar').style.display = 'none';
             }
             renderView();
         }
@@ -90,9 +130,9 @@
             currentTab = tabKey;
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 if(btn.getAttribute('data-target') === tabKey) {
-                    btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow";
+                    btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2";
                 } else {
-                    btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white";
+                    btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2";
                 }
             });
             renderView();
