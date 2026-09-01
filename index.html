@@ -54,20 +54,14 @@
             </button>
         </nav>
 
-        <!-- Sub Filter Bar (Station / Category Filter similar to reference image) -->
-        <div id="sub-filter-bar" class="flex flex-wrap items-center gap-2 custom-card px-4 py-3 rounded-xl text-sm">
-            <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
-            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow flex items-center gap-1.5">
-                <span>All stations</span>
-            </button>
-            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
-                <span>Welding</span>
-            </button>
-            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
-                <span>Back plate</span>
-            </button>
-            <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
-                <span>Bottom plate</span>
+        <!-- Sub Filter Bar (Station / Category Filter with Editable capability) -->
+        <div id="sub-filter-bar" class="flex flex-wrap items-center justify-between gap-2 custom-card px-4 py-3 rounded-xl text-sm">
+            <div id="filter-buttons-container" class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
+                <!-- Rendered dynamically -->
+            </div>
+            <button onclick="openFilterEditor()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1">
+                <span>✏️ จัดการปุ่มหมวดหมู่</span>
             </button>
         </div>
 
@@ -76,34 +70,64 @@
 
     </div>
 
+    <!-- Filter Editor Modal -->
+    <div id="filter-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+        <div class="custom-card p-6 rounded-2xl w-full max-w-lg space-y-4 shadow-2xl border border-gray-700">
+            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
+                <h3 class="text-base font-bold text-white">แก้ไขปุ่มหมวดหมู่สถานี (Sub Filters)</h3>
+                <button onclick="closeFilterEditor()" class="text-gray-400 hover:text-white text-sm">✕</button>
+            </div>
+            <div id="modal-filter-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                <!-- Editable rows injected via JS -->
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t border-gray-800">
+                <button onclick="addFilterItem()" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700">
+                    ➕ เพิ่มหมวดหมู่
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="closeFilterEditor()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-semibold">ยกเลิก</button>
+                    <button onclick="saveFilterItems()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const appState = {
-            press: { name: "Press Machine", productGroup: "Press Panel", data: [], models: ["159C", "159F"], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25, manpower: 4 },
+            press: { 
+                name: "Press Machine", 
+                productGroup: "Press Panel", 
+                models: ["159C", "159F"], 
+                filters: ["All stations", "Press Line 1", "Press Line 2"],
+                data: [] 
+            },
             back_bottom: { 
                 name: "Back & Bottom Plate", 
                 productGroup: "Bottom Plate (One Door)",
                 models: ["159C", "159F", "199C", "199F"],
+                filters: ["All stations", "Welding", "Back plate", "Bottom plate"],
                 data: [
-                    { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
-                    { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
-                    { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปเหนียวด้านข้าง", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 },
-                    { station: "BTA04", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปเหนียวด้านข้าง", wt1: 7.68, wt2: 4.25, wt3: 8.62, loss: 0 },
-                    { station: "BTA05", p1: "ติดเทปด้านข้าง", p2: "", p3: "", wt1: 12.15, wt2: 0, wt3: 0, loss: 0 },
-                    { station: "BTA06", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปปิดรู Suction", wt1: 9.60, wt2: 8.60, wt3: 18.40, loss: 0 },
-                    { station: "BTA07", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปปิดรู Suction", wt1: 5.80, wt2: 10.10, wt3: 6.90, loss: 0 },
-                    { station: "BTA08", p1: "ติด Seal", p2: "", p3: "", wt1: 15.80, wt2: 0, wt3: 0, loss: 0 },
-                    { station: "BTA09", p1: "", p2: "", p3: "", wt1: 16.10, wt2: 0, wt3: 0, loss: 5.77 }
-                ],
-                totalPlan: 2920, totalActual: 2935, hours: 8, manpower: 9
+                    { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "" },
+                    { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "" },
+                    { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปเหนียวด้านข้าง" },
+                    { station: "BTA04", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปเหนียวด้านข้าง" },
+                    { station: "BTA05", p1: "ติดเทปด้านข้าง", p2: "", p3: "" },
+                    { station: "BTA06", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปปิดรู Suction" },
+                    { station: "BTA07", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปปิดรู Suction" },
+                    { station: "BTA08", p1: "ติด Seal", p2: "", p3: "" },
+                    { station: "BTA09", p1: "", p2: "", p3: "" }
+                ]
             },
-            door_glass: { name: "Door Frame & Door Glass", productGroup: "Door Assembly", models: ["TD 469", "SBS 550"], data: [], totalPlan: 900, totalActual: 910, hours: 8, cycle: 32, manpower: 6 },
-            door_a: { name: "Door A", productGroup: "Refrigerator Door A", models: ["TD 469"], data: [], totalPlan: 800, totalActual: 800, hours: 8, cycle: 35, manpower: 5 },
-            door_b: { name: "Door B", productGroup: "Refrigerator Door B", models: ["SBS 550"], data: [], totalPlan: 850, totalActual: 860, hours: 8, cycle: 34, manpower: 6 },
-            door_c: { name: "Door C", productGroup: "Refrigerator Door C", models: ["BM23"], data: [], totalPlan: 750, totalActual: 730, hours: 8, cycle: 38, manpower: 5 }
+            door_glass: { name: "Door Frame & Door Glass", productGroup: "Door Assembly", models: ["TD 469", "SBS 550"], filters: ["All stations", "Frame Assy", "Glass Bonding"], data: [] },
+            door_a: { name: "Door A", productGroup: "Refrigerator Door A", models: ["TD 469"], filters: ["All stations", "Main Line"], data: [] },
+            door_b: { name: "Door B", productGroup: "Refrigerator Door B", models: ["SBS 550"], filters: ["All stations", "Main Line"], data: [] },
+            door_c: { name: "Door C", productGroup: "Refrigerator Door C", models: ["BM23"], filters: ["All stations", "Main Line"], data: [] }
         };
 
         let currentTab = 'back_bottom';
         let currentMainView = 'dashboard';
+        let activeFilter = 'All stations';
+        let tempFilters = [];
 
         function switchMainView(view) {
             currentMainView = view;
@@ -121,6 +145,7 @@
 
         function switchTab(tabKey) {
             currentTab = tabKey;
+            activeFilter = 'All stations';
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 if(btn.getAttribute('data-target') === tabKey) {
                     btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2";
@@ -128,7 +153,83 @@
                     btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2";
                 }
             });
+            renderFilters();
             renderView();
+        }
+
+        function renderFilters() {
+            const state = appState[currentTab];
+            const container = document.getElementById('filter-buttons-container');
+            let html = '<span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>';
+            
+            if(state.filters && state.filters.length > 0) {
+                state.filters.forEach(f => {
+                    const isActive = (activeFilter === f);
+                    const btnClass = isActive 
+                        ? "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow flex items-center gap-1.5"
+                        : "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5";
+                    html += `<button onclick="selectFilter('${f}')" class="${btnClass}"><span>${f}</span></button>`;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function selectFilter(fName) {
+            activeFilter = fName;
+            renderFilters();
+        }
+
+        function openFilterEditor() {
+            const state = appState[currentTab];
+            tempFilters = [...state.filters];
+            renderModalFilterList();
+            document.getElementById('filter-modal').classList.remove('hidden');
+        }
+
+        function closeFilterEditor() {
+            document.getElementById('filter-modal').classList.add('hidden');
+        }
+
+        function renderModalFilterList() {
+            const container = document.getElementById('modal-filter-list');
+            let html = '';
+            tempFilters.forEach((f, idx) => {
+                html += `
+                    <div class="flex items-center gap-2">
+                        <input type="text" value="${f}" onchange="updateTempFilter(${idx}, this.value)" class="input-dark px-3 py-1.5 rounded-lg text-xs w-full">
+                        <button onclick="removeTempFilter(${idx})" class="bg-red-950 text-red-400 border border-red-800 px-3 py-1.5 rounded-lg text-xs">ลบ</button>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        function updateTempFilter(idx, val) {
+            tempFilters[idx] = val;
+        }
+
+        function addTempFilter() {
+            tempFilters.push("หมวดหมู่ใหม่");
+            renderModalFilterList();
+        }
+        
+        // alias for modal button
+        function addFilterItem() {
+            addTempFilter();
+        }
+
+        function removeTempFilter(idx) {
+            tempFilters.splice(idx, 1);
+            renderModalFilterList();
+        }
+
+        function saveFilterItems() {
+            appState[currentTab].filters = [...tempFilters];
+            if(!appState[currentTab].filters.includes(activeFilter)) {
+                activeFilter = appState[currentTab].filters[0] || 'All stations';
+            }
+            renderFilters();
+            closeFilterEditor();
         }
 
         function renderView() {
@@ -151,7 +252,7 @@
                         <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-blue-500">
                             <div>
                                 <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Production Line Overview</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">${state.name}</h2>
+                                <h2 class="text-2xl font-bold text-white mt-1">${state.name} <span class="text-xs text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800/60 ml-2">แสดงผล: ${activeFilter}</span></h2>
                             </div>
                             <button onclick="switchMainView('setup')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1.5">
                                 <span>⚙️</span> ไปหน้าตั้งค่ากระบวนการ
@@ -160,7 +261,6 @@
 
                         <!-- Dashboard Minimal Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <!-- Product Group & Models Combined Card -->
                             <div class="custom-card p-6 rounded-2xl space-y-4 flex flex-col justify-between">
                                 <div>
                                     <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
@@ -176,7 +276,6 @@
                                 </div>
                             </div>
 
-                            <!-- Cycle Time & Takt Time Card -->
                             <div class="custom-card p-6 rounded-2xl space-y-2">
                                 <p class="text-xs text-gray-400 font-medium">เวลาการผลิต (Time Metrics)</p>
                                 <div class="flex justify-between items-center pt-2">
@@ -189,7 +288,6 @@
                                 </div>
                             </div>
 
-                            <!-- Manpower Card -->
                             <div class="custom-card p-6 rounded-2xl space-y-2 flex flex-col justify-between">
                                 <p class="text-xs text-gray-400 font-medium">จำนวนพนักงาน (Manpower)</p>
                                 <div class="flex items-baseline gap-2 pt-2">
@@ -322,6 +420,7 @@
         }
 
         window.onload = function() {
+            renderFilters();
             switchTab('back_bottom');
         };
     </script>
