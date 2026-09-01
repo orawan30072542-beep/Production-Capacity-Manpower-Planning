@@ -25,14 +25,15 @@
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
                     <h1 class="text-xl font-bold text-white">Manpower Planning & Production Capacity</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและติดตามยอดผลิตรายชั่วโมงแยกตาม 4 จุดงาน</p>
+                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและติดตามยอดผลิตรายชั่วโมง (แยกหน้าตั้งค่ากระบวนการและหน้าสรุปข้อมูล)</p>
             </div>
-            <div class="flex gap-3 text-sm items-center">
-                <span class="text-xs bg-blue-950 text-blue-400 border border-blue-800 px-3 py-1.5 rounded-lg">🟢 อัปเดตฟอร์มบันทึกกระบวนการและเวลาทำงานแล้ว</span>
+            <div class="flex gap-2 text-sm items-center">
+                <button onclick="switchMainView('dashboard')" id="nav-btn-dashboard" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow">📊 หน้าหลัก (Dashboard)</button>
+                <button onclick="switchMainView('setup')" id="nav-btn-setup" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white">⚙️ ตั้งค่ากระบวนการและเวลา</button>
             </div>
         </header>
 
-        <!-- Navigation Tabs -->
+        <!-- Navigation Tabs for Lines -->
         <nav class="flex flex-wrap gap-2 custom-card p-3 rounded-xl">
             <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="press">Press Machine</button>
             <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow" data-target="back_bottom">Back & Bottom Plate (4 Stations)</button>
@@ -88,6 +89,19 @@
         };
 
         let currentTab = 'back_bottom';
+        let currentMainView = 'dashboard'; // 'dashboard' or 'setup'
+
+        function switchMainView(view) {
+            currentMainView = view;
+            if(view === 'dashboard') {
+                document.getElementById('nav-btn-dashboard').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow";
+                document.getElementById('nav-btn-setup').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white";
+            } else {
+                document.getElementById('nav-btn-setup').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow";
+                document.getElementById('nav-btn-dashboard').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white";
+            }
+            renderView();
+        }
 
         function switchTab(tabKey) {
             currentTab = tabKey;
@@ -105,110 +119,169 @@
             const state = appState[currentTab];
             const container = document.getElementById('app-container');
 
-            let tableRows = '';
-            if(state.data.length > 0) {
+            if(currentMainView === 'dashboard') {
+                let tableRows = '';
+                if(state.data.length > 0) {
+                    state.data.forEach(item => {
+                        const diff = item.actual - item.plan;
+                        const statusBadge = diff >= 0 ? 
+                            `<span class="bg-green-950 text-green-400 px-2.5 py-1 rounded text-xs border border-green-800">ผ่าน (+${diff})</span>` : 
+                            `<span class="bg-red-950 text-red-400 px-2.5 py-1 rounded text-xs border border-red-800">ต่ำ (${diff})</span>`;
+                        
+                        tableRows += `
+                            <tr class="hover:bg-gray-800/40 transition">
+                                <td class="p-4 font-semibold text-white">${item.product}</td>
+                                <td class="p-4 text-gray-300">${item.model}</td>
+                                <td class="p-4 text-blue-400 font-medium">${item.type}</td>
+                                <td class="p-4 text-gray-300">${item.process || '-'}</td>
+                                <td class="p-4 text-gray-300">${item.workTime || '-'}</td>
+                                <td class="p-4 text-right font-bold text-white">${item.plan.toLocaleString()}</td>
+                                <td class="p-4 text-right text-yellow-400 font-medium">${item.ct}s</td>
+                                <td class="p-4 text-right text-green-400 font-semibold">${item.actual.toLocaleString()}</td>
+                                <td class="p-4 text-center">${statusBadge}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tableRows = `<tr><td colspan="9" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูล กรุณาอัปโหลดไฟล์ Excel หรือตั้งค่าที่หน้าจัดการ</td></tr>`;
+                }
+
+                const planPerHour = Math.round(state.totalPlan / state.hours);
+                const actualPerHour = Math.round(state.totalActual / state.hours);
+                const taktTime = state.totalPlan > 0 ? ((state.hours * 3600) / state.totalPlan).toFixed(1) : 0;
+                const maxCap = Math.floor((state.hours * 3600) / state.cycle);
+
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- Title Bar -->
+                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center border-l-4 border-blue-500 gap-4">
+                            <div>
+                                <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Current Production Line (Dashboard)</span>
+                                <h2 class="text-2xl font-bold text-white mt-1">${state.name}</h2>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input type="file" id="excel-upload" accept=".xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
+                                <button onclick="document.getElementById('excel-upload').click()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md flex items-center gap-2">
+                                    <span>📁</span> อัปโหลดไฟล์ Excel ยอดผลิต
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- KPI Cards Summary -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="custom-card p-5 rounded-xl">
+                                <p class="text-xs text-gray-400 font-medium">ยอดแผนรวม / เฉลี่ยต่อ ชม.</p>
+                                <h3 class="text-2xl font-bold text-blue-400 mt-1">${state.totalPlan.toLocaleString()} ชิ้น</h3>
+                                <p class="text-xs text-gray-500 mt-1">~ ${planPerHour.toLocaleString()} ชิ้น / ชั่วโมง</p>
+                            </div>
+                            <div class="custom-card p-5 rounded-xl">
+                                <p class="text-xs text-gray-400 font-medium">ยอดผลิตจริง / เฉลี่ยต่อ ชม.</p>
+                                <h3 class="text-2xl font-bold text-green-400 mt-1">${state.totalActual.toLocaleString()} ชิ้น</h3>
+                                <p class="text-xs text-gray-500 mt-1">~ ${actualPerHour.toLocaleString()} ชิ้น / ชั่วโมง</p>
+                            </div>
+                            <div class="custom-card p-5 rounded-xl">
+                                <p class="text-xs text-gray-400 font-medium">Takt Time คำนวณได้</p>
+                                <h3 class="text-2xl font-bold text-yellow-400 mt-1">${taktTime} วินาที</h3>
+                                <p class="text-xs text-gray-500 mt-1">ตามเวลาทำงาน ${state.hours} ชม.</p>
+                            </div>
+                            <div class="custom-card p-5 rounded-xl">
+                                <p class="text-xs text-gray-400 font-medium">กำลังผลิตสูงสุด (Max Capacity)</p>
+                                <h3 class="text-2xl font-bold text-purple-400 mt-1">${maxCap.toLocaleString()} ชิ้น</h3>
+                                <p class="text-xs text-gray-500 mt-1">อ้างอิง Cycle Time เฉลี่ย ${state.cycle}s</p>
+                            </div>
+                        </div>
+
+                        <!-- Main Table Display -->
+                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
+                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                                <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิต กระบวนการ และเวลาทำงาน</h2>
+                                <span class="text-xs text-gray-400">แสดงผล Cycle Time และ Takt Time อัตโนมัติ</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
+                                            <th class="p-4">Product ใหญ่</th>
+                                            <th class="p-4">Model ย่อย</th>
+                                            <th class="p-4">จุดงาน (Station)</th>
+                                            <th class="p-4">กระบวนการทำงาน</th>
+                                            <th class="p-4">ช่วงเวลาทำงาน</th>
+                                            <th class="p-4 text-right">ยอดแผน (Plan)</th>
+                                            <th class="p-4 text-right">Cycle Time</th>
+                                            <th class="p-4 text-right">ยอดจริง (Actual)</th>
+                                            <th class="p-4 text-center">สถานะ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-gray-800/60">
+                                        ${tableRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Setup View
+                let setupRows = '';
                 state.data.forEach((item, index) => {
-                    const diff = item.actual - item.plan;
-                    const statusBadge = diff >= 0 ? 
-                        `<span class="bg-green-950 text-green-400 px-2 py-0.5 rounded text-xs border border-green-800">ผ่าน (+${diff})</span>` : 
-                        `<span class="bg-red-950 text-red-400 px-2 py-0.5 rounded text-xs border border-red-800">ต่ำ (${diff})</span>`;
-                    
-                    tableRows += `
+                    setupRows += `
                         <tr class="hover:bg-gray-800/40 transition">
-                            <td class="p-3 font-semibold text-white">${item.product}</td>
-                            <td class="p-3 text-gray-300">${item.model}</td>
-                            <td class="p-3 text-blue-400 font-medium">${item.type}</td>
-                            <td class="p-3"><input type="text" value="${item.process || ''}" onchange="updateItemField(${index}, 'process', this.value)" class="input-dark px-2.5 py-1 rounded text-xs w-full" placeholder="ระบุขั้นตอน"></td>
-                            <td class="p-3"><input type="text" value="${item.workTime || ''}" onchange="updateItemField(${index}, 'workTime', this.value)" class="input-dark px-2.5 py-1 rounded text-xs w-full" placeholder="08:00 - 17:00"></td>
-                            <td class="p-3 text-right font-bold text-white">${item.plan.toLocaleString()}</td>
-                            <td class="p-3 text-right text-gray-300">${item.ct}s</td>
-                            <td class="p-3 text-right text-green-400 font-semibold">${item.actual.toLocaleString()}</td>
-                            <td class="p-3 text-center">${statusBadge}</td>
+                            <td class="p-4 font-semibold text-white">${item.product}</td>
+                            <td class="p-4 text-gray-300">${item.model}</td>
+                            <td class="p-4 text-blue-400">${item.type}</td>
+                            <td class="p-4"><input type="text" value="${item.process || ''}" onchange="updateSetupField(${index}, 'process', this.value)" class="input-dark px-3 py-2 rounded text-sm w-full" placeholder="ระบุขั้นตอนการทำงาน"></td>
+                            <td class="p-4"><input type="text" value="${item.workTime || ''}" onchange="updateSetupField(${index}, 'workTime', this.value)" class="input-dark px-3 py-2 rounded text-sm w-full" placeholder="08:00 - 17:00"></td>
+                            <td class="p-4"><input type="number" value="${item.ct || 30}" onchange="updateSetupField(${index}, 'ct', parseFloat(this.value))" class="input-dark px-3 py-2 rounded text-sm w-24 text-right"></td>
                         </tr>
                     `;
                 });
-            } else {
-                tableRows = `<tr><td colspan="9" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูล กรุณาอัปโหลดไฟล์ Excel เพื่อเริ่มต้นใช้งาน</td></tr>`;
-            }
 
-            const planPerHour = Math.round(state.totalPlan / state.hours);
-            const actualPerHour = Math.round(state.totalActual / state.hours);
-            const taktTime = state.totalPlan > 0 ? ((state.hours * 3600) / state.totalPlan).toFixed(1) : 0;
-            const maxCap = Math.floor((state.hours * 3600) / state.cycle);
-
-            container.innerHTML = `
-                <div class="space-y-6">
-                    <!-- Title Bar -->
-                    <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center border-l-4 border-blue-500 gap-4">
-                        <div>
-                            <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Current Production Line</span>
-                            <h2 class="text-2xl font-bold text-white mt-1">${state.name}</h2>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <input type="file" id="excel-upload" accept=".xlsx, .xls" class="hidden" onchange="handleExcelUpload(event)">
-                            <button onclick="document.getElementById('excel-upload').click()" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md flex items-center gap-2">
-                                <span>📁</span> อัปโหลดไฟล์ Excel ยอดผลิต
+                container.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="custom-card p-6 rounded-2xl flex justify-between items-center border-l-4 border-yellow-500">
+                            <div>
+                                <span class="text-xs uppercase tracking-wider text-yellow-400 font-semibold">Settings Page</span>
+                                <h2 class="text-2xl font-bold text-white mt-1">ตั้งค่ากระบวนการทำงานและเวลาทำงาน (${state.name})</h2>
+                            </div>
+                            <button onclick="switchMainView('dashboard')" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md">
+                                📊 บันทึกและกลับสู่หน้าหลัก
                             </button>
                         </div>
-                    </div>
 
-                    <!-- KPI Cards Summary -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="custom-card p-5 rounded-xl">
-                            <p class="text-xs text-gray-400 font-medium">ยอดแผนรวม / เฉลี่ยต่อ ชม.</p>
-                            <h3 class="text-2xl font-bold text-blue-400 mt-1">${state.totalPlan.toLocaleString()} ชิ้น</h3>
-                            <p class="text-xs text-gray-500 mt-1">~ ${planPerHour.toLocaleString()} ชิ้น / ชั่วโมง</p>
-                        </div>
-                        <div class="custom-card p-5 rounded-xl">
-                            <p class="text-xs text-gray-400 font-medium">ยอดผลิตจริง / เฉลี่ยต่อ ชม.</p>
-                            <h3 class="text-2xl font-bold text-green-400 mt-1">${state.totalActual.toLocaleString()} ชิ้น</h3>
-                            <p class="text-xs text-gray-500 mt-1">~ ${actualPerHour.toLocaleString()} ชิ้น / ชั่วโมง</p>
-                        </div>
-                        <div class="custom-card p-5 rounded-xl">
-                            <p class="text-xs text-gray-400 font-medium">Takt Time คำนวณได้</p>
-                            <h3 class="text-2xl font-bold text-yellow-400 mt-1">${taktTime} วินาที</h3>
-                            <p class="text-xs text-gray-500 mt-1">ตามเวลาทำงาน ${state.hours} ชม.</p>
-                        </div>
-                        <div class="custom-card p-5 rounded-xl">
-                            <p class="text-xs text-gray-400 font-medium">กำลังผลิตสูงสุด (Max Capacity)</p>
-                            <h3 class="text-2xl font-bold text-purple-400 mt-1">${maxCap.toLocaleString()} ชิ้น</h3>
-                            <p class="text-xs text-gray-500 mt-1">อ้างอิง Cycle Time เฉลี่ย ${state.cycle}s</p>
-                        </div>
-                    </div>
-
-                    <!-- Detail Table: Product & Model Breakdown with Process & Work Time -->
-                    <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                        <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                            <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิต กระบวนการ และเวลาทำงานแต่ละจุดสถานี</h2>
-                            <span class="text-xs text-gray-400">สามารถแก้ไขข้อมูลกระบวนการและเวลาทำงานได้โดยตรง</span>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                        <th class="p-3">Product ใหญ่</th>
-                                        <th class="p-3">Model ย่อย</th>
-                                        <th class="p-3">จุดงาน (Station)</th>
-                                        <th class="p-3">กระบวนการทำงาน (Process)</th>
-                                        <th class="p-3">ช่วงเวลาทำงาน (Work Time)</th>
-                                        <th class="p-3 text-right">ยอดแผน (Plan)</th>
-                                        <th class="p-3 text-right">Cycle Time (s)</th>
-                                        <th class="p-3 text-right">ยอดจริง (Actual)</th>
-                                        <th class="p-3 text-center">สถานะ</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-sm divide-y divide-gray-800/60">
-                                    ${tableRows}
-                                </tbody>
-                            </table>
+                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
+                            <div class="p-6 border-b border-gray-800">
+                                <h2 class="text-base font-bold text-white">ตารางกรอกข้อมูลกระบวนการและเวลาทำงานรายจุดสถานี</h2>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
+                                            <th class="p-4">Product ใหญ่</th>
+                                            <th class="p-4">Model ย่อย</th>
+                                            <th class="p-4">จุดงาน (Station)</th>
+                                            <th class="p-4">กระบวนการทำงาน (Process)</th>
+                                            <th class="p-4">ช่วงเวลาทำงาน (Work Time)</th>
+                                            <th class="p-4">Cycle Time (s)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm divide-y divide-gray-800/60">
+                                        ${setupRows}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            }
         }
 
-        function updateItemField(index, field, value) {
+        function updateSetupField(index, field, value) {
             appState[currentTab].data[index][field] = value;
+            if(field === 'ct') {
+                let totalCt = 0;
+                appState[currentTab].data.forEach(d => totalCt += d.ct);
+                appState[currentTab].cycle = Math.round(totalCt / appState[currentTab].data.length);
+            }
         }
 
         function handleExcelUpload(event) {
@@ -272,7 +345,7 @@
                     appState[currentTab].hours = hours;
 
                     renderView();
-                    alert('ประมวลผลและอัปโหลดข้อมูลจากไฟล์ Excel สำเร็จ!');
+                    alert('อัปโหลดและประมวลผลไฟล์ Excel สำเร็จ!');
                 } catch(error) {
                     console.error(error);
                     alert('เกิดข้อผิดพลาดในการอ่านไฟล์ Excel กรุณาตรวจสอบรูปแบบหัวตาราง');
