@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manpower & Production Capacity Dashboard - Multi-Page</title>
+    <title>Manpower & Production Capacity Dashboard - Modern UI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -17,461 +17,432 @@
 
     <div class="max-w-7xl mx-auto space-y-6">
         
-        <!-- Header -->
+        <!-- Header Top Bar -->
         <header class="flex flex-col md:flex-row justify-between items-center custom-card p-6 rounded-2xl shadow-xl">
             <div>
                 <div class="flex items-center gap-2">
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
                     <h1 class="text-xl font-bold text-white">Manpower Planning & Production Capacity</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">ระบบแดชบอร์ดสรุปยอดผลิตและตั้งค่ากระบวนการผลิต (รองรับ Multi-Part Order)</p>
+                <p class="text-xs text-gray-400 mt-1">ระบบบริหารจัดการกระบวนการผลิตและตั้งค่าสถานีงานตามรุ่นสินค้า</p>
             </div>
-            <div class="flex gap-2 text-sm items-center">
-                <button id="nav-btn-dashboard" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow cursor-pointer">📊 หน้าหลัก (Dashboard)</button>
-                <button id="nav-btn-setup" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white cursor-pointer">⚙️ ตั้งค่ากระบวนการและรุ่น</button>
+            <div class="flex gap-2 text-sm items-center mt-4 md:mt-0">
+                <button id="btn-add-new-card" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow transition cursor-pointer flex items-center gap-1.5">
+                    <span>➕</span> เพิ่มรายการพาร์ท/สถานีใหม่
+                </button>
             </div>
         </header>
 
-        <!-- Navigation Tabs for Lines -->
-        <nav class="flex flex-wrap items-center gap-2 custom-card p-3 rounded-xl overflow-x-auto">
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2 cursor-pointer" data-target="press"><span>Press Machine</span></button>
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="back_bottom"><span>Back Plate & Bottom Plate</span></button>
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="frame_glass"><span>Frame & Glass Door</span></button>
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_a"><span>Door A</span></button>
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_b"><span>Door B</span></button>
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_c"><span>Door C</span></button>
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="gasket"><span>Gasket</span></button>
-            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_in_door"><span>Door In Door</span></button>
+        <!-- Filter Navigation Tabs (STATION / CATEGORIES) -->
+        <nav class="flex flex-wrap items-center justify-between gap-4 custom-card p-4 rounded-xl">
+            <div id="filter-tabs-container" class="flex flex-wrap items-center gap-2">
+                <!-- Dynamically rendered filter buttons -->
+            </div>
+            <div class="relative w-full md:w-72">
+                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                <input type="text" id="global-search" placeholder="Search process, model, or plan..." class="input-dark w-full pl-9 pr-4 py-1.5 rounded-lg text-xs">
+            </div>
         </nav>
 
-        <!-- Sub Filter Bar -->
-        <div id="sub-filter-bar" class="flex flex-wrap items-center justify-between gap-2 custom-card px-4 py-3 rounded-xl text-sm">
-            <div id="filter-buttons-container" class="flex flex-wrap items-center gap-2">
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
-            </div>
-            <button id="btn-open-filter-editor" class="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1 cursor-pointer">
-                <span>✏️ จัดการปุ่มหมวดหมู่</span>
-            </button>
+        <!-- Main Content Container (List of Production Cards / Setup Views) -->
+        <div id="main-content-container" class="space-y-6">
+            <!-- Rendered dynamically -->
         </div>
 
-        <!-- Main Dynamic App Container -->
-        <div id="app-container"></div>
-
-    </div>
-
-    <!-- Filter Editor Modal -->
-    <div id="filter-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
-        <div class="custom-card p-6 rounded-2xl w-full max-w-lg space-y-4 shadow-2xl border border-gray-700">
-            <div class="flex justify-between items-center border-b border-gray-800 pb-3">
-                <h3 class="text-base font-bold text-white">แก้ไขปุ่มหมวดหมู่สถานี (Sub Filters)</h3>
-                <button id="btn-close-filter-editor" class="text-gray-400 hover:text-white text-sm cursor-pointer">✕</button>
-            </div>
-            <div id="modal-filter-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
-            <div class="flex justify-between items-center pt-2 border-t border-gray-800">
-                <button id="btn-add-filter-item" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 cursor-pointer">➕ เพิ่มหมวดหมู่</button>
-                <div class="flex gap-2">
-                    <button id="btn-cancel-filter" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer">ยกเลิก</button>
-                    <button id="btn-save-filter" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow cursor-pointer">บันทึก</button>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
-        const appState = {
-            press: { 
-                name: "Press Machine", 
-                productGroup: "Press Panel", 
-                workingHours: "11.0", 
-                breakTime: "60", 
-                taktTime: "45.0", 
-                models: ["159C", "199C"], 
-                activeModel: "159C", 
-                filters: ["Press Line 1", "Press Line 2"], 
-                dataByModel: { 
-                    "159C": [
-                        { station: "PR01", part: "Back Plate", p1: "ป้อนเหล็กแผ่นเข้าเครื่อง Punching", p2: "ตรวจสอบรอยพับขอบ", p3: "", wt1: 15.40, wt2: 12.10, wt3: 0, loss: 1.50 },
-                        { station: "PR02", part: "Bottom Plate", p1: "ขึ้นรูปโครงสร้างชิ้นงานด้วยแม่พิมพ์ Press", p2: "เช็คขนาดด้วย Go/No-Go Gauge", p3: "", wt1: 22.50, wt2: 8.30, wt3: 0, loss: 2.10 }
-                    ],
-                    "199C": [
-                        { station: "PR01", part: "Back Plate", p1: "เซ็ตแม่พิมพ์รุ่น 199C", p2: "ทดสอบปั๊มชิ้นงานชิ้นแรก", p3: "", wt1: 18.20, wt2: 14.00, wt3: 0, loss: 2.00 }
-                    ]
-                } 
+        // สมมติฐานข้อมูลหลักของระบบ (รองรับ Back plate และ Bottom plate)
+        let appData = [
+            {
+                id: "card_1",
+                title: "Back Plate #B",
+                partType: "Back plate", // Back plate หรือ Bottom plate
+                lineTag: "B line",
+                customTags: ["Custom", "Edited"],
+                models: ["T DOOR H Metal", "T DOOR H Metal WD", "T DOOR H Glass", "T DOOR H Glass WD"],
+                takt: 20.0,
+                stations: [
+                    {
+                        station: "BP01",
+                        processes: [
+                            { name: "ประกอบ Cover", wt: 12.56 },
+                            { name: "ติด Injection Hold 1 PC.", wt: 7.72 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP02",
+                        processes: [
+                            { name: "ยึดสกรู Cover 2 PC.", wt: 8.96 },
+                            { name: "ติด Injection Hold 1 PC.", wt: 7.46 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP03",
+                        processes: [
+                            { name: "ติดเทปใส Injection Hold 1 PC.", wt: 8.26 },
+                            { name: "ติด Seal รูระบาย 5 PC", wt: 6.73 },
+                            { name: "ติด Seal รูระบาย 3 PC", wt: 23.93 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP04",
+                        processes: [
+                            { name: "ติดเทปใส Injection Hold 1 PC.", wt: 4.57 },
+                            { name: "ติด REINF 1 PC+ติด AL Tape", wt: 21.92 },
+                            { name: "ติดเทปใส Cover BOX 3 PC", wt: 21.40 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP05",
+                        processes: [
+                            { name: "ติด Seal รูระบาย 2 PC", wt: 19.10 },
+                            { name: "ติดเทปเหนียว Cover BOX 4 PC", wt: 40.14 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP06",
+                        processes: [
+                            { name: "วางท่อ Hot Line", wt: 16.75 },
+                            { name: "ติดเทปล็อกท่อ 1 PC", wt: 9.12 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP07",
+                        processes: [
+                            { name: "ติด Seal ต่ำ 2 pcs.", wt: 13.76 },
+                            { name: "ติดเทปล็อกท่อ 1 PC", wt: 9.12 },
+                            { name: "ติด AL tape 3 PC", wt: 32.95 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP08",
+                        processes: [
+                            { name: "ติด AL tape 6 PC", wt: 57.51 }
+                        ],
+                        loss: 0
+                    },
+                    {
+                        station: "BP09",
+                        processes: [
+                            { name: "ยก Back Plate ไปที่รถเข็น", wt: 15.23 }
+                        ],
+                        loss: 0
+                    }
+                ],
+                isEditing: false
             },
-            back_bottom: { 
-                name: "Back Plate & Bottom Plate", 
-                productGroup: "Bottom Plate & Back Plate", 
-                workingHours: "11.0", 
-                breakTime: "60", 
-                taktTime: "36.6", 
-                models: ["159C", "159F"], 
-                activeModel: "159C",
-                filters: ["Welding", "Back plate", "Bottom plate"], 
-                dataByModel: { 
-                    "159C": [
-                        { station: "BTA01", part: "Back Plate", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
-                        { station: "BTA02", part: "Bottom Plate", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
-                        { station: "BTA03", part: "Back Plate", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 }
-                    ],
-                    "159F": [
-                        { station: "BTF01", part: "Back Plate", p1: "เชื่อมจุดยึดโครงฐานล่างรุ่น F", p2: "เจียรแต่งแนวเชื่อม", p3: "", wt1: 16.50, wt2: 9.20, wt3: 0, loss: 1.80 }
-                    ]
-                } 
-            },
-            frame_glass: { 
-                name: "Frame & Glass Door", 
-                productGroup: "Door Assembly", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "60.0", 
-                models: ["TD 469"], 
-                activeModel: "TD 469", 
-                filters: ["Frame Assy"], 
-                dataByModel: { 
-                    "TD 469": [
-                        { station: "FG01", part: "Frame", p1: "ประกอบมุมอลูมิเนียม Frame", p2: "ยิงสกรูล็อกมุม", p3: "", wt1: 25.00, wt2: 18.50, wt3: 0, loss: 2.00 },
-                        { station: "FG02", part: "Glass Door", p1: "วางกระจกนิรภัยลงบน Frame", p2: "ยาแนวซิลิโคนขอบกระจก", p3: "", wt1: 30.20, wt2: 15.00, wt3: 0, loss: 3.50 }
-                    ] 
-                } 
-            },
-            door_a: { 
-                name: "Door A", 
-                productGroup: "Refrigerator Door A", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "50.0", 
-                models: ["TD 469"], 
-                activeModel: "TD 469", 
-                filters: ["Main Line"], 
-                dataByModel: { 
-                    "TD 469": [
-                        { station: "DA01", part: "Door A", p1: "ประกอบแผ่นโฟมฉนวนกันความร้อน", p2: "ประกอบชุดมือจับประตู (Handle)", p3: "", wt1: 20.00, wt2: 15.50, wt3: 0, loss: 1.20 }
-                    ] 
-                } 
-            },
-            door_b: { 
-                name: "Door B", 
-                productGroup: "Refrigerator Door B", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "55.0", 
-                models: ["SBS 550"], 
-                activeModel: "SBS 550", 
-                filters: ["Main Line"], 
-                dataByModel: { 
-                    "SBS 550": [
-                        { station: "DB01", part: "Door B", p1: "ประกอบชุดบานพับประตูคู่ (Hinge)", p2: "ปรับตั้งศูนย์บานประตู", p3: "", wt1: 24.10, wt2: 19.30, wt3: 0, loss: 2.20 }
-                    ] 
-                } 
-            },
-            door_c: { 
-                name: "Door C", 
-                productGroup: "Refrigerator Door C", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "50.0", 
-                models: ["BM23"], 
-                activeModel: "BM23", 
-                filters: ["Main Line"], 
-                dataByModel: { 
-                    "BM23": [
-                        { station: "DC01", part: "Door C", p1: "ประกอบแผงควบคุมหน้าจอ Digital", p2: "เชื่อมต่อสายไฟภายในบานประตู", p3: "", wt1: 22.00, wt2: 16.40, wt3: 0, loss: 1.50 }
-                    ] 
-                } 
-            },
-            gasket: { 
-                name: "Gasket", 
-                productGroup: "Gasket Profile", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "40.0", 
-                models: ["Gasket Standard"], 
-                activeModel: "Gasket Standard", 
-                filters: ["Cutting"], 
-                dataByModel: { 
-                    "Gasket Standard": [
-                        { station: "GK01", part: "Gasket", p1: "ตัดยางขอบประตูตามความยาวแบบ", p2: "เชื่อมมุมยางด้วยความร้อน", p3: "สอดแม่เหล็กเส้นเข้าขอบยาง", wt1: 12.00, wt2: 14.50, wt3: 10.10, loss: 1.00 }
-                    ] 
-                } 
-            },
-            door_in_door: { 
-                name: "Door In Door", 
-                productGroup: "DID Assembly", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "65.0", 
-                models: ["DID Model"], 
-                activeModel: "DID Model", 
-                filters: ["Assembly"], 
-                dataByModel: { 
-                    "DID Model": [
-                        { station: "DID01", part: "Door in Door", p1: "ประกอบกลไกบานพับย่อย Door-in-Door", p2: "ประกอบกระจกชั้นนอกและชั้นใน", p3: "", wt1: 35.00, wt2: 22.50, wt3: 0, loss: 3.00 }
-                    ] 
-                } 
+            {
+                id: "card_2",
+                title: "Bottom Plate #A",
+                partType: "Bottom plate",
+                lineTag: "B line",
+                customTags: ["Standard"],
+                models: ["T DOOR H Metal", "T DOOR H Glass"],
+                takt: 25.0,
+                stations: [
+                    {
+                        station: "BT01",
+                        processes: [
+                            { name: "ประกอบโครงฐานล่าง", wt: 15.20 },
+                            { name: "ยิงจุดเชื่อมกันโคลง", wt: 10.50 }
+                        ],
+                        loss: 1.2
+                    },
+                    {
+                        station: "BT02",
+                        processes: [
+                            { name: "ทาน้ำުރกันสนิมขอบ", wt: 18.40 },
+                            { name: "ตรวจสอบรอยรั่ว", wt: 12.00 }
+                        ],
+                        loss: 0.8
+                    }
+                ],
+                isEditing: false
             }
-        };
+        ];
 
-        let currentTab = 'press';
-        let currentMainView = 'dashboard';
-        let activeFilter = appState[currentTab].filters[0] || '';
-        let tempFilters = [];
+        let activeFilter = 'All stations';
+        let searchQuery = '';
 
-        function switchMainView(view) {
-            currentMainView = view;
-            const btnDash = document.getElementById('nav-btn-dashboard');
-            const btnSetup = document.getElementById('nav-btn-setup');
-            const filterBar = document.getElementById('sub-filter-bar');
-
-            if(view === 'dashboard') {
-                btnDash.className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow cursor-pointer";
-                btnSetup.className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white cursor-pointer";
-                filterBar.style.display = 'flex';
-            } else {
-                btnSetup.className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow cursor-pointer";
-                btnDash.className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white cursor-pointer";
-                filterBar.style.display = 'none';
-            }
-            renderView();
-        }
-
-        function switchTab(tabKey) {
-            currentTab = tabKey;
-            const state = appState[currentTab];
-            activeFilter = state.filters[0] || '';
-            if(state.models && !state.models.includes(state.activeModel)) {
-                state.activeModel = state.models[0] || '';
-            }
-            
-            document.querySelectorAll('.line-tab-btn').forEach(btn => {
-                if(btn.getAttribute('data-target') === tabKey) {
-                    btn.className = "line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2 cursor-pointer";
-                } else {
-                    btn.className = "line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer";
-                }
-            });
+        function renderApp() {
             renderFilters();
-            renderView();
+            renderContent();
         }
 
         function renderFilters() {
-            const state = appState[currentTab];
-            const container = document.getElementById('filter-buttons-container');
-            let html = '<span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>';
+            const container = document.getElementById('filter-tabs-container');
             
-            if(state.filters && state.filters.length > 0) {
-                state.filters.forEach(f => {
-                    const isActive = (activeFilter === f);
-                    const btnClass = isActive 
-                        ? "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow flex items-center gap-1.5 cursor-pointer filter-item-btn"
-                        : "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5 cursor-pointer filter-item-btn";
-                    html += `<button data-filter="${f}" class="${btnClass}"><span>${f}</span></button>`;
-                });
-            }
-            container.innerHTML = html;
+            // นับจำนวนสถานีทั้งหมดและแยกตามพาร์ท
+            let totalStationsCount = 0;
+            let backPlateCount = 0;
+            let bottomPlateCount = 0;
 
-            container.querySelectorAll('.filter-item-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    activeFilter = this.getAttribute('data-filter');
-                    renderFilters();
-                });
+            appData.forEach(item => {
+                totalStationsCount += item.stations.length;
+                if(item.partType.toLowerCase().includes('back')) backPlateCount += item.stations.length;
+                if(item.partType.toLowerCase().includes('bottom')) bottomPlateCount += item.stations.length;
             });
-        }
 
-        function openFilterEditor() {
-            const state = appState[currentTab];
-            tempFilters = [...state.filters];
-            renderModalFilterList();
-            document.getElementById('filter-modal').classList.remove('hidden');
-        }
+            const filters = [
+                { name: 'All stations', count: totalStationsCount },
+                { name: 'Welding (5 machines)', count: 2 }, // ตัวอย่างหมวดหมู่ย่อย
+                { name: 'Back plate', count: backPlateCount },
+                { name: 'Bottom plate', count: bottomPlateCount }
+            ];
 
-        function closeFilterEditor() {
-            document.getElementById('filter-modal').classList.add('hidden');
-        }
-
-        function renderModalFilterList() {
-            const container = document.getElementById('modal-filter-list');
             let html = '';
-            tempFilters.forEach((f, idx) => {
-                html += `
-                    <div class="flex items-center gap-2">
-                        <input type="text" value="${f}" data-index="${idx}" class="input-dark px-3 py-1.5 rounded-lg text-xs w-full temp-filter-input">
-                        <button data-remove="${idx}" class="bg-red-950 text-red-400 border border-red-800 px-3 py-1.5 rounded-lg text-xs cursor-pointer remove-temp-btn">ลบ</button>
-                    </div>
-                `;
+            filters.forEach(f => {
+                const isActive = (activeFilter === f.name);
+                const btnClass = isActive 
+                    ? "px-4 py-2 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow flex items-center gap-1.5 cursor-pointer"
+                    : "px-4 py-2 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5 cursor-pointer";
+                html += `<button onclick="setFilter('${f.name}')" class="${btnClass}"><span>${f.name}</span> <span class="bg-black/30 px-2 py-0.5 rounded-full text-[10px]">${f.count}</span></button>`;
             });
+
             container.innerHTML = html;
-
-            container.querySelectorAll('.temp-filter-input').forEach(input => {
-                input.addEventListener('input', function() {
-                    const idx = parseInt(this.getAttribute('data-index'));
-                    tempFilters[idx] = this.value;
-                });
-            });
-
-            container.querySelectorAll('.remove-temp-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const idx = parseInt(this.getAttribute('data-remove'));
-                    tempFilters.splice(idx, 1);
-                    renderModalFilterList();
-                });
-            });
         }
 
-        function renderView() {
-            const state = appState[currentTab];
-            const container = document.getElementById('app-container');
+        function setFilter(filterName) {
+            activeFilter = filterName;
+            renderApp();
+        }
 
-            if(currentMainView === 'dashboard') {
-                let modelBadgesSmall = '';
-                if(state.models && state.models.length > 0) {
-                    state.models.forEach(m => {
-                        const isActive = (state.activeModel === m);
-                        const activeStyle = isActive ? "bg-blue-600 text-white border-blue-500 shadow" : "bg-gray-800/80 text-yellow-400/90 border-gray-700/60 hover:bg-gray-700";
-                        modelBadgesSmall += `<button data-model="${m}" class="${activeStyle} px-2.5 py-1 rounded-md text-xs font-medium border transition cursor-pointer model-dash-btn">${m}</button>`;
-                    });
-                } else {
-                    modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
+        document.getElementById('global-search').addEventListener('input', function(e) {
+            searchQuery = e.target.value.toLowerCase();
+            renderContent();
+        });
+
+        function renderContent() {
+            const container = document.getElementById('main-content-container');
+            let html = '';
+
+            // กรองข้อมูลตาม Filter และ Search Query
+            let filteredData = appData.filter(item => {
+                // Filter Tab Match
+                let matchFilter = true;
+                if(activeFilter === 'Back plate' && !item.partType.toLowerCase().includes('back')) matchFilter = false;
+                if(activeFilter === 'Bottom plate' && !item.partType.toLowerCase().includes('bottom')) matchFilter = false;
+                
+                // Search Query Match
+                let matchSearch = true;
+                if(searchQuery) {
+                    const matchTitle = item.title.toLowerCase().includes(searchQuery);
+                    const matchModel = item.models.some(m => m.toLowerCase().includes(searchQuery));
+                    const matchProcess = item.stations.some(s => s.processes.some(p => p.name.toLowerCase().includes(searchQuery)));
+                    matchSearch = (matchTitle || matchModel || matchProcess);
                 }
 
-                if (!state.dataByModel) state.dataByModel = {};
-                if (!state.dataByModel[state.activeModel]) state.dataByModel[state.activeModel] = [];
-                const activeModelData = state.dataByModel[state.activeModel];
+                return matchFilter && matchSearch;
+            });
 
-                let totalLeadTime = 0;
-                activeModelData.forEach(item => {
-                    const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
-                    const cycleTime = wtTotal + (Number(item.loss)||0);
-                    totalLeadTime += cycleTime;
+            if(filteredData.length === 0) {
+                container.innerHTML = `<div class="custom-card p-12 text-center text-gray-500 rounded-xl text-sm">ไม่พบข้อมูลที่ตรงกับการค้นหา</div>`;
+                return;
+            }
+
+            filteredData.forEach(item => {
+                // คำนวณค่าสถิติต่างๆ
+                let totalStations = item.stations.length;
+                let maxCycleTime = 0;
+                let totalCycleSum = 0;
+
+                item.stations.forEach(s => {
+                    let sTime = s.processes.reduce((acc, curr) => acc + (Number(curr.wt) || 0), 0) + (Number(s.loss) || 0);
+                    if(sTime > maxCycleTime) maxCycleTime = sTime;
+                    totalCycleSum += sTime;
                 });
 
-                let dashboardRows = '';
-                if(activeModelData.length === 0) {
-                    dashboardRows = `<tr><td colspan="11" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีข้อมูลสถานีในรุ่นนี้ ไปที่หน้า "ตั้งค่ากระบวนการและรุ่น" เพื่อเพิ่มข้อมูล</td></tr>`;
-                } else {
-                    activeModelData.forEach((item) => {
-                        const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
-                        const cycleTime = wtTotal + (Number(item.loss)||0);
-                        dashboardRows += `
-                            <tr class="hover:bg-gray-800/40 transition">
-                                <td class="p-3 font-semibold text-white">${item.station || '-'}</td>
-                                <td class="p-3"><span class="bg-gray-800 text-blue-300 border border-gray-700 px-2.5 py-1 rounded-full text-xs font-medium">${item.part || 'Back Plate'}</span></td>
-                                <td class="p-3 text-gray-300">${item.p1 || '-'}</td>
-                                <td class="p-3 text-gray-300">${item.p2 || '-'}</td>
-                                <td class="p-3 text-gray-300">${item.p3 || '-'}</td>
-                                <td class="p-3 text-center text-gray-300">${item.wt1 || '-'}</td>
-                                <td class="p-3 text-center text-gray-300">${item.wt2 || '-'}</td>
-                                <td class="p-3 text-center text-gray-300">${item.wt3 || '-'}</td>
-                                <td class="p-3 text-center font-bold text-white">${wtTotal > 0 ? wtTotal.toFixed(2) : '-'}</td>
-                                <td class="p-3 text-center text-red-400">${item.loss ? Number(item.loss).toFixed(2) : '-'}</td>
-                                <td class="p-3 text-center font-bold text-yellow-400">${cycleTime > 0 ? cycleTime.toFixed(2) : '-'}</td>
-                            </tr>
-                        `;
-                    });
-                }
+                let balance = (totalStations > 0 && maxCycleTime > 0) ? Math.round((totalCycleSum / (totalStations * maxCycleTime)) * 100) : 0;
 
-                let modelSummaryRows = '';
-                if(state.models && state.models.length > 0) {
-                    state.models.forEach(m => {
-                        const mData = state.dataByModel[m] || [];
-                        let mLeadTime = 0;
-                        mData.forEach(item => {
-                            const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
-                            mLeadTime += wtTotal + (Number(item.loss)||0);
+                if(item.isEditing) {
+                    // === โหมดแก้ไข (Editing View - คล้ายภาพที่ 3) ===
+                    let stationEditorHtml = '';
+                    item.stations.forEach((s, sIdx) => {
+                        let sTime = s.processes.reduce((acc, curr) => acc + (Number(curr.wt) || 0), 0) + (Number(s.loss) || 0);
+                        let processRowsHtml = '';
+                        s.processes.forEach((p, pIdx) => {
+                            processRowsHtml += `
+                                <div class="flex items-center gap-3 bg-gray-900/60 p-2.5 rounded-lg border border-gray-800">
+                                    <span class="text-xs text-gray-400 w-6">${pIdx + 1}.</span>
+                                    <input type="text" value="${p.name}" oninput="updateProcessName('${item.id}', ${sIdx}, ${pIdx}, this.value)" class="input-dark px-3 py-1.5 rounded text-xs flex-1" placeholder="ชื่อกระบวนการทำงาน">
+                                    <input type="number" step="0.01" value="${p.wt}" oninput="updateProcessWt('${item.id}', ${sIdx}, ${pIdx}, this.value)" class="input-dark px-3 py-1.5 rounded text-xs w-20 text-center font-bold text-white">
+                                    <span class="text-xs text-gray-400">s</span>
+                                    <button onclick="removeProcess('${item.id}', ${sIdx}, ${pIdx})" class="text-red-400 hover:text-red-300 text-xs px-2 py-1 cursor-pointer">✕</button>
+                                </div>
+                            `;
                         });
-                        const mTakt = Number(state.taktTime) || 45.0;
-                        const mCapacity = mTakt > 0 ? (3600 / mTakt).toFixed(2) : '0.00';
-                        const isCurrentActive = (m === state.activeModel);
-                        const rowHighlight = isCurrentActive ? 'bg-blue-950/30 border-l-2 border-blue-500' : '';
 
-                        modelSummaryRows += `
-                            <tr class="hover:bg-gray-800/40 transition ${rowHighlight}">
-                                <td class="p-3 font-bold text-white flex items-center gap-2">
-                                    <span>${m}</span>
-                                    ${isCurrentActive ? '<span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded">กำลังแสดง</span>' : ''}
-                                </td>
-                                <td class="p-3 text-emerald-400 font-semibold">${mLeadTime.toFixed(2)} วินาที <span class="text-xs text-gray-400">(${(mLeadTime / 60).toFixed(2)} นาที)</span></td>
-                                <td class="p-3 text-yellow-400 font-semibold">${mTakt.toFixed(2)} วินาที</td>
-                                <td class="p-3 text-blue-300 font-bold">${mCapacity} ชิ้น/ชม.</td>
+                        stationEditorHtml += `
+                            <div class="custom-card p-4 rounded-xl space-y-3 border border-gray-800">
+                                <div class="flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <input type="text" value="${s.station}" oninput="updateStationName('${item.id}', ${sIdx}, this.value)" class="input-dark px-3 py-1 rounded text-xs font-bold w-24 text-white">
+                                        <span class="text-xs text-yellow-400 font-medium">Cycle ${sTime.toFixed(2)} s</span>
+                                    </div>
+                                    <button onclick="removeStation('${item.id}', ${sIdx})" class="text-red-400 hover:text-red-300 text-xs cursor-pointer">🗑️ ลบสถานี</button>
+                                </div>
+                                <div class="space-y-2 pl-2">
+                                    ${processRowsHtml}
+                                </div>
+                                <div class="flex justify-between items-center pt-2">
+                                    <button onclick="addProcess('${item.id}', ${sIdx})" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition border border-gray-700 cursor-pointer flex items-center gap-1">
+                                        <span>➕</span> Add process
+                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs text-gray-400">Loss (s)</span>
+                                        <input type="number" step="0.01" value="${s.loss || 0}" oninput="updateStationLoss('${item.id}', ${sIdx}, this.value)" class="input-dark px-2.5 py-1 rounded text-xs w-16 text-center">
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    let modelTagsEditHtml = '';
+                    item.models.forEach((m, mIdx) => {
+                        modelTagsEditHtml += `
+                            <span class="bg-amber-950/60 text-amber-300 border border-amber-800/80 px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1.5">
+                                ${m} <button onclick="removeModel('${item.id}', ${mIdx})" class="text-amber-400 hover:text-white cursor-pointer font-bold">×</button>
+                            </span>
+                        `;
+                    });
+
+                    html += `
+                        <div class="custom-card rounded-2xl p-6 space-y-6 shadow-2xl border-2 border-blue-600/50">
+                            <!-- Top Edit Bar -->
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-gray-800">
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    <input type="text" value="${item.title}" oninput="updateCardTitle('${item.id}', this.value)" class="input-dark px-3 py-1.5 rounded-lg text-sm font-bold text-white w-48">
+                                    <select oninput="updatePartType('${item.id}', this.value)" class="input-dark px-3 py-1.5 rounded-lg text-xs text-blue-400 font-semibold">
+                                        <option value="Back plate" ${item.partType === 'Back plate' ? 'selected' : ''}>Back plate</option>
+                                        <option value="Bottom plate" ${item.partType === 'Bottom plate' ? 'selected' : ''}>Bottom plate</option>
+                                    </select>
+                                    <span class="bg-emerald-950 text-emerald-400 border border-emerald-800 px-2.5 py-1 rounded text-xs font-medium">${item.lineTag}</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="cancelEdit('${item.id}')" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer">✕ Cancel</button>
+                                    <button onclick="saveEdit('${item.id}')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg text-xs font-semibold shadow cursor-pointer">💾 Save</button>
+                                </div>
+                            </div>
+
+                            <!-- Models & Metrics Edit Bar -->
+                            <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-800">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    ${modelTagsEditHtml}
+                                    <div class="flex items-center gap-1">
+                                        <input type="text" id="new_model_${item.id}" placeholder="Add model..." class="input-dark px-2.5 py-1 rounded text-xs w-32">
+                                        <button onclick="addModel('${item.id}')" class="bg-gray-800 hover:bg-gray-700 text-white px-2.5 py-1 rounded text-xs font-semibold border border-gray-700 cursor-pointer">+ Add</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4 text-xs">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-gray-400">Takt</span>
+                                        <input type="number" value="${item.takt}" oninput="updateTakt('${item.id}', this.value)" class="input-dark px-2.5 py-1 rounded text-xs w-16 text-center font-bold text-white">
+                                    </div>
+                                    <span class="text-gray-400">Bottleneck <b class="text-red-400">${maxCycleTime.toFixed(2)} s</b></span>
+                                    <span class="text-gray-400">Stations <b class="text-white">${totalStations}</b></span>
+                                    <span class="text-gray-400">Balance <b class="text-emerald-400">${balance}%</b></span>
+                                </div>
+                            </div>
+
+                            <!-- Stations Editor List -->
+                            <div class="space-y-4">
+                                ${stationEditorHtml}
+                                <button onclick="addStation('${item.id}')" class="w-full py-3 bg-gray-900 hover:bg-gray-800 border border-dashed border-gray-700 rounded-xl text-xs font-semibold text-gray-300 transition cursor-pointer flex items-center justify-center gap-2">
+                                    <span>➕</span> เพิ่มสถานีงานใหม่ (Add Station)
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                } else {
+                    // === โหมดแสดงผลปกติ (Dashboard Card View - คล้ายภาพที่ 2) ===
+                    let modelBadgesHtml = '';
+                    item.models.forEach(m => {
+                        modelBadgesHtml += `<span class="bg-amber-950/60 text-amber-300 border border-amber-800/80 px-3 py-1 rounded-md text-xs font-medium">${m}</span>`;
+                    });
+
+                    let tableRowsHtml = '';
+                    item.stations.forEach(s => {
+                        let wt1 = s.processes[0] ? s.processes[0].wt : '-';
+                        let wt2 = s.processes[1] ? s.processes[1].wt : '-';
+                        let wt3 = s.processes[2] ? s.processes[2].wt : '-';
+                        
+                        let p1 = s.processes[0] ? s.processes[0].name : '-';
+                        let p2 = s.processes[1] ? s.processes[1].name : '-';
+                        let p3 = s.processes[2] ? s.processes[2].name : '-';
+
+                        let wtTotal = (s.processes[0] ? Number(s.processes[0].wt)||0 : 0) + 
+                                      (s.processes[1] ? Number(s.processes[1].wt)||0 : 0) + 
+                                      (s.processes[2] ? Number(s.processes[2].wt)||0 : 0);
+                        let lossVal = Number(s.loss) > 0 ? Number(s.loss).toFixed(2) : '-';
+                        let cycleTime = wtTotal + (Number(s.loss)||0);
+                        let isBottleneck = (cycleTime === maxCycleTime && maxCycleTime > 0);
+                        let cycleClass = isBottleneck ? "text-red-400 font-bold" : "text-gray-200";
+
+                        tableRowsHtml += `
+                            <tr class="hover:bg-gray-800/40 transition border-b border-gray-800/60">
+                                <td class="p-3 font-bold text-white">${s.station}</td>
+                                <td class="p-3 text-gray-300">${p1}</td>
+                                <td class="p-3 text-gray-300">${p2}</td>
+                                <td class="p-3 text-gray-300">${p3}</td>
+                                <td class="p-3 text-center text-gray-300">${wt1}</td>
+                                <td class="p-3 text-center text-gray-300">${wt2}</td>
+                                <td class="p-3 text-center text-gray-300">${wt3}</td>
+                                <td class="p-3 text-center font-bold text-white">${wtTotal > 0 ? wtTotal.toFixed(2) : '-'}</td>
+                                <td class="p-3 text-center text-gray-400">${lossVal}</td>
+                                <td class="p-3 text-center ${cycleClass}">${cycleTime > 0 ? cycleTime.toFixed(2) : '-'}</td>
                             </tr>
                         `;
                     });
-                } else {
-                    modelSummaryRows = `<tr><td colspan="4" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีการเลือกรุ่นในกระบวนการนี้</td></tr>`;
-                }
 
-                container.innerHTML = `
-                    <div class="space-y-6">
-                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-blue-500">
-                            <div>
-                                <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Production Line Overview</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">${state.name} <span class="text-xs text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800/60 ml-2">แสดงผลรุ่น: ${state.activeModel || '-'}</span></h2>
-                            </div>
-                            <button id="btn-goto-setup" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1.5 cursor-pointer">
-                                <span>⚙️</span> ไปหน้าตั้งค่ากระบวนการ
-                            </button>
-                        </div>
+                    const partBadgeColor = item.partType.toLowerCase().includes('back') ? 'bg-red-950 text-red-300 border-red-800' : 'bg-emerald-950 text-emerald-300 border-emerald-800';
 
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <div class="custom-card p-6 rounded-2xl space-y-4 flex flex-col justify-between">
-                                <div>
-                                    <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
-                                    <div class="mt-2">
-                                        <span class="bg-blue-950/80 text-blue-300 border border-blue-800 px-3.5 py-1.5 rounded-xl text-base font-bold inline-block shadow-inner">${state.productGroup || '-'}</span>
-                                    </div>
+                    html += `
+                        <div class="custom-card rounded-2xl overflow-hidden shadow-xl space-y-4">
+                            <!-- Card Header Bar -->
+                            <div class="p-6 pb-4 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                                <div class="flex items-center gap-3 flex-wrap">
+                                    <h3 class="text-lg font-bold text-white">${item.title}</h3>
+                                    <span class="${partBadgeColor} border px-2.5 py-0.5 rounded text-xs font-semibold">${item.partType}</span>
+                                    <span class="bg-emerald-950/80 text-emerald-400 border border-emerald-800 px-2.5 py-0.5 rounded text-xs font-semibold">${item.lineTag}</span>
+                                    <span class="bg-gray-800 text-gray-300 px-2.5 py-0.5 rounded text-xs font-semibold">Custom</span>
+                                    <span class="bg-blue-950 text-blue-300 border border-blue-800 px-2.5 py-0.5 rounded text-xs font-semibold">Edited</span>
                                 </div>
-                                <div class="pt-3 border-t border-gray-800/80 space-y-2">
-                                    <p class="text-xs text-gray-400 font-medium">รุ่นที่ผลิต (คลิกเพื่อเปลี่ยนรุ่น)</p>
-                                    <div class="flex flex-wrap gap-1.5">${modelBadgesSmall}</div>
+                                <div class="flex items-center gap-2">
+                                    <button onclick="toggleEdit('${item.id}')" class="bg-gray-800 hover:bg-gray-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 cursor-pointer flex items-center gap-1">
+                                        <span>✏️</span> Edit
+                                    </button>
+                                    <button onclick="deleteCard('${item.id}')" class="bg-red-950/60 hover:bg-red-900 text-red-400 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition border border-red-800/60 cursor-pointer flex items-center gap-1">
+                                        <span>🗑️</span> Delete
+                                    </button>
                                 </div>
                             </div>
 
-                            <div class="custom-card p-6 rounded-2xl space-y-3">
-                                <p class="text-xs text-gray-400 font-medium">เวลาการทำงานและผลิต (Time Metrics)</p>
-                                <div class="flex justify-between items-center pt-1">
-                                    <span class="text-xs text-gray-300">เวลาทำงาน/วัน:</span>
-                                    <span class="text-sm font-bold text-white">${state.workingHours || '8.0'} ชม.</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs text-gray-300">เวลาพัก:</span>
-                                    <span class="text-sm font-bold text-white">${state.breakTime || '60'} นาที</span>
-                                </div>
-                                <div class="flex justify-between items-center border-t border-gray-800 pt-2">
-                                    <span class="text-xs text-gray-300">Takt Time:</span>
-                                    <span class="text-sm font-bold text-yellow-400">${state.taktTime || '-'} วินาที</span>
+                            <!-- Models & Summary Metrics Bar -->
+                            <div class="px-6 flex flex-wrap items-center justify-between gap-4">
+                                <div class="flex flex-wrap gap-2">${modelBadgesHtml}</div>
+                                <div class="flex items-center gap-6 text-xs">
+                                    <div>Takt <b class="text-white ml-1">${item.takt} s</b></div>
+                                    <div>Bottleneck <b class="text-red-400 ml-1">${maxCycleTime.toFixed(2)} s</b></div>
+                                    <div>Stations <b class="text-white ml-1">${totalStations}</b></div>
+                                    <div>Balance <b class="text-emerald-400 ml-1">${balance}%</b></div>
                                 </div>
                             </div>
 
-                            <div class="custom-card p-6 rounded-2xl space-y-3 border-l-4 border-emerald-500 flex flex-col justify-between">
-                                <div>
-                                    <p class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Lead Time รวมทั้งกระบวนการ</p>
-                                    <div class="mt-3 flex items-baseline gap-2">
-                                        <span class="text-3xl font-extrabold text-white">${totalLeadTime.toFixed(2)}</span>
-                                        <span class="text-xs text-gray-400">วินาที (${(totalLeadTime / 60).toFixed(2)} นาที)</span>
-                                    </div>
-                                </div>
-                                <p class="text-[11px] text-gray-400 border-t border-gray-800 pt-2">เวลารวมทุกสถานีของรุ่น <b class="text-emerald-300">${state.activeModel}</b></p>
-                            </div>
-
-                            <div class="custom-card p-6 rounded-2xl space-y-2 flex flex-col justify-between">
-                                <p class="text-xs text-gray-400 font-medium">จำนวนพนักงาน (Manpower)</p>
-                                <div class="flex items-baseline gap-2 pt-2">
-                                    <span class="text-xl font-bold text-blue-400">จัดสรรครบถ้วนตามสถานี</span>
-                                </div>
-                                <p class="text-xs text-gray-500">อ้างอิงจากรุ่น ${state.activeModel} (${activeModelData.length} สถานี)</p>
-                            </div>
-                        </div>
-
-                        <!-- ตารางสรุปกระบวนการและเวลาการทำงาน -->
-                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                                <h3 class="text-base font-bold text-white">ตารางสรุปกระบวนการและเวลาการทำงาน (${state.name})</h3>
-                            </div>
-                            <div class="overflow-x-auto">
+                            <!-- Station Table -->
+                            <div class="overflow-x-auto px-2 pb-2">
                                 <table class="w-full text-left border-collapse">
                                     <thead>
-                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
+                                        <tr class="bg-gray-900/60 text-gray-400 text-xs border-b border-gray-800">
                                             <th class="p-3">Station</th>
-                                            <th class="p-3">Part Type</th>
                                             <th class="p-3">Process 1</th>
                                             <th class="p-3">Process 2</th>
                                             <th class="p-3">Process 3</th>
@@ -484,350 +455,112 @@
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm divide-y divide-gray-800/60">
-                                        ${dashboardRows}
+                                        ${tableRowsHtml}
                                     </tbody>
                                 </table>
                             </div>
                         </div>
-
-                        <!-- ตารางสรุปข้อมูลตามรุ่น (Model Summary Table) -->
-                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                                <div>
-                                    <h3 class="text-base font-bold text-white">ตารางสรุปข้อมูลตามรุ่น (Model Summary)</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">แสดง Lead Time, Takt Time และ Capacity (3600 / Takt Time) ของแต่ละรุ่นในไลน์ ${state.name}</p>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-3">รุ่น (Model)</th>
-                                            <th class="p-3">Lead Time</th>
-                                            <th class="p-3">Takt Time</th>
-                                            <th class="p-3">Capacity ที่ทำได้ (3600 / Takt Time)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-sm divide-y divide-gray-800/60">
-                                        ${modelSummaryRows}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                    </div>
-                `;
-
-                container.querySelectorAll('.model-dash-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const mName = this.getAttribute('data-model');
-                        state.activeModel = mName;
-                        if(!state.dataByModel[mName]) state.dataByModel[mName] = [];
-                        renderView();
-                    });
-                });
-
-                document.getElementById('btn-goto-setup').addEventListener('click', () => switchMainView('setup'));
-
-            } else {
-                if (!state.dataByModel) state.dataByModel = {};
-                if (!state.dataByModel[state.activeModel]) {
-                    state.dataByModel[state.activeModel] = [];
-                }
-                const activeModelData = state.dataByModel[state.activeModel];
-                
-                let setupRows = '';
-                if (activeModelData.length === 0) {
-                    setupRows = `<tr><td colspan="10" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีสถานีในรุ่นนี้ กดปุ่ม "➕ เพิ่มรายการพาร์ท/สถานีงาน" ด้านบนเพื่อเริ่มเพิ่มข้อมูล</td></tr>`;
-                } else {
-                    activeModelData.forEach((item, index) => {
-                        const partVal = item.part || 'Back Plate';
-                        setupRows += `
-                            <tr class="hover:bg-gray-800/40 transition">
-                                <td class="p-3 font-semibold text-white"><input type="text" value="${item.station || ''}" data-index="${index}" data-field="station" class="input-dark px-2 py-1 rounded text-xs w-20 setup-input" placeholder="BTA01"></td>
-                                <td class="p-3">
-                                    <select data-index="${index}" data-field="part" class="input-dark px-2 py-1 rounded text-xs setup-input">
-                                        <option value="Back Plate" ${partVal === 'Back Plate' ? 'selected' : ''}>Back Plate</option>
-                                        <option value="Bottom Plate" ${partVal === 'Bottom Plate' ? 'selected' : ''}>Bottom Plate</option>
-                                        <option value="Frame" ${partVal === 'Frame' ? 'selected' : ''}>Frame</option>
-                                        <option value="Glass Door" ${partVal === 'Glass Door' ? 'selected' : ''}>Glass Door</option>
-                                        <option value="Other" ${partVal === 'Other' ? 'selected' : ''}>Other</option>
-                                    </select>
-                                </td>
-                                <td class="p-3"><input type="text" value="${item.p1 || ''}" data-index="${index}" data-field="p1" class="input-dark px-2 py-1 rounded text-xs w-full setup-input" placeholder="Process 1"></td>
-                                <td class="p-3"><input type="text" value="${item.p2 || ''}" data-index="${index}" data-field="p2" class="input-dark px-2 py-1 rounded text-xs w-full setup-input" placeholder="Process 2"></td>
-                                <td class="p-3"><input type="text" value="${item.p3 || ''}" data-index="${index}" data-field="p3" class="input-dark px-2 py-1 rounded text-xs w-full setup-input" placeholder="Process 3"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.wt1 !== undefined ? item.wt1 : 0}" data-index="${index}" data-field="wt1" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.wt2 !== undefined ? item.wt2 : 0}" data-index="${index}" data-field="wt2" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.wt3 !== undefined ? item.wt3 : 0}" data-index="${index}" data-field="wt3" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.loss !== undefined ? item.loss : 0}" data-index="${index}" data-field="loss" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
-                                <td class="p-3 text-center"><button data-index="${index}" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-1 rounded text-xs cursor-pointer remove-station-btn">ลบ</button></td>
-                            </tr>
-                        `;
-                    });
-                }
-
-                const allModelsList = ["159C", "159F", "199C", "199F", "TM545#212", "FUF14D", "FUF18D", "FUF22S", "TD 469", "SBS 550", "BM23", "Gasket Standard", "DID Model"];
-                let modelCheckboxes = '';
-                allModelsList.forEach(m => {
-                    const checked = state.models && state.models.includes(m) ? 'checked' : '';
-                    modelCheckboxes += `
-                        <label class="flex items-center gap-2 bg-gray-900 border border-gray-800 px-3 py-2 rounded-lg cursor-pointer text-xs">
-                            <input type="checkbox" value="${m}" ${checked} class="rounded bg-gray-800 border-gray-700 text-blue-600 model-checkbox" data-model="${m}">
-                            <span class="text-white">${m}</span>
-                        </label>
                     `;
-                });
-
-                let modelTabsForSetup = '';
-                if(state.models && state.models.length > 0) {
-                    state.models.forEach(m => {
-                        const isActive = (state.activeModel === m);
-                        const btnClass = isActive 
-                            ? "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow cursor-pointer"
-                            : "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 cursor-pointer";
-                        modelTabsForSetup += `<button data-setupmodel="${m}" class="${btnClass} setup-model-tab">${m}</button>`;
-                    });
-                } else {
-                    modelTabsForSetup = `<span class="text-gray-500 text-xs">กรุณาติ๊กเลือกรุ่นด้านบนก่อน</span>`;
                 }
+            });
 
-                container.innerHTML = `
-                    <div class="space-y-6">
-                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center border-l-4 border-yellow-500 gap-4">
-                            <div>
-                                <span class="text-xs uppercase tracking-wider text-yellow-400 font-semibold">Setup & Configuration</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">ตั้งค่ากระบวนการและเลือกรุ่น สำหรับ ${state.name}</h2>
-                                <p class="text-xs text-gray-400 mt-1">1 Order สามารถเพิ่มพาร์ทการผลิตได้ทั้ง Back plate และ Bottom plate ในสถานีงาน</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button id="btn-add-station" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold transition border border-gray-700 cursor-pointer flex items-center gap-1.5"><span>➕</span> เพิ่มรายการพาร์ท/สถานีงาน</button>
-                                <button id="btn-save-back-dash" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md cursor-pointer">💾 บันทึกและกลับหน้าหลัก</button>
-                            </div>
-                        </div>
+            container.innerHTML = html;
+        }
 
-                        <!-- Product Group, Working Time & Manpower Settings -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">Product ใหญ่ (Product Group)</h3>
-                                <p class="text-xs text-gray-400">ระบุชื่อผลิตภัณฑ์หลัก</p>
-                                <input type="text" id="input-product-group" value="${state.productGroup || ''}" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate">
-                            </div>
-                            <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">⏱️ เวลาการทำงาน (Working Time)</h3>
-                                <div class="grid grid-cols-2 gap-2 mt-1">
-                                    <div>
-                                        <label class="text-[10px] text-gray-400">เวลาทำงาน (ชม./วัน)</label>
-                                        <input type="number" step="0.5" id="input-working-hours" value="${state.workingHours || '8.0'}" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] text-gray-400">เวลาพัก (นาที)</label>
-                                        <input type="number" id="input-break-time" value="${state.breakTime || '60'}" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">⚡ Takt Time / เป้าหมาย</h3>
-                                <p class="text-xs text-gray-400">กำหนดรอบเวลามาตรฐาน (วินาที)</p>
-                                <input type="number" step="0.1" id="input-takt-time" value="${state.taktTime || ''}" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-yellow-400 mt-1" placeholder="เช่น 36.6">
-                            </div>
-                        </div>
+        // --- ฟังก์ชันจัดการข้อมูล (State Management) ---
+        function toggleEdit(id) {
+            const item = appData.find(d => d.id === id);
+            if(item) { item.isEditing = true; renderApp(); }
+        }
+        function cancelEdit(id) {
+            const item = appData.find(d => d.id === id);
+            if(item) { item.isEditing = false; renderApp(); }
+        }
+        function saveEdit(id) {
+            const item = appData.find(d => d.id === id);
+            if(item) { item.isEditing = false; renderApp(); }
+        }
+        function deleteCard(id) {
+            if(confirm("คุณต้องการลบรายการพาร์ทนี้ใช่หรือไม่?")) {
+                appData = appData.filter(d => d.id !== id);
+                renderApp();
+            }
+        }
+        function addNewCard() {
+            const newId = 'card_' + Date.now();
+            appData.unshift({
+                id: newId,
+                title: "New Part Item",
+                partType: "Back plate",
+                lineTag: "B line",
+                customTags: ["Custom"],
+                models: ["T DOOR H Metal"],
+                takt: 20.0,
+                stations: [
+                    { station: "ST01", processes: [{ name: "กระบวนการที่ 1", wt: 10.0 }], loss: 0 }
+                ],
+                isEditing: true
+            });
+            renderApp();
+        }
+        document.getElementById('btn-add-new-card').addEventListener('click', addNewCard);
 
-                        <!-- Model Selection Section -->
-                        <div class="custom-card p-6 rounded-xl space-y-3">
-                            <h3 class="text-sm font-bold text-white">เลือกรุ่น (Models) ที่ใช้ในกระบวนการนี้</h3>
-                            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">${modelCheckboxes}</div>
-                        </div>
+        function updateCardTitle(id, val) { const d = appData.find(x => x.id === id); if(d) d.title = val; }
+        function updatePartType(id, val) { const d = appData.find(x => x.id === id); if(d) d.partType = val; }
+        function updateTakt(id, val) { const d = appData.find(x => x.id === id); if(d) d.takt = parseFloat(val) || 0; }
 
-                        <!-- Stations Table Editor with Model Sub-Tabs -->
-                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                <div>
-                                    <h3 class="text-base font-bold text-white">ตารางจัดการสถานี พาร์ทการผลิต และเวลาการทำงาน</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">ระบุพาร์ท (Back plate / Bottom plate) และขั้นตอนของรุ่นที่กำลังเลือกอยู่</p>
-                                </div>
-                                <div class="flex items-center gap-2 flex-wrap">
-                                    <span class="text-xs text-gray-400">เลือกรุ่นเพื่อแก้ไขข้อมูล:</span>
-                                    <div class="flex gap-1.5 flex-wrap">${modelTabsForSetup}</div>
-                                </div>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-3">Station</th>
-                                            <th class="p-3">Part Type</th>
-                                            <th class="p-3">Process 1</th>
-                                            <th class="p-3">Process 2</th>
-                                            <th class="p-3">Process 3</th>
-                                            <th class="p-3 text-center">WT 1</th>
-                                            <th class="p-3 text-center">WT 2</th>
-                                            <th class="p-3 text-center">WT 3</th>
-                                            <th class="p-3 text-center">Loss</th>
-                                            <th class="p-3 text-center">จัดการ</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="text-sm divide-y divide-gray-800/60">
-                                        ${setupRows}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById('input-product-group').addEventListener('input', function() {
-                    state.productGroup = this.value;
-                });
-                document.getElementById('input-working-hours').addEventListener('input', function() {
-                    state.workingHours = this.value;
-                });
-                document.getElementById('input-break-time').addEventListener('input', function() {
-                    state.breakTime = this.value;
-                });
-                document.getElementById('input-takt-time').addEventListener('input', function() {
-                    state.taktTime = this.value;
-                });
-
-                container.querySelectorAll('.setup-input').forEach(input => {
-                    input.addEventListener('input', function() {
-                        const idx = parseInt(this.getAttribute('data-index'));
-                        const field = this.getAttribute('data-field');
-                        const val = this.value;
-                        const activeList = state.dataByModel[state.activeModel];
-                        if(activeList && activeList[idx]) {
-                            if(['wt1', 'wt2', 'wt3', 'loss'].includes(field)) {
-                                activeList[idx][field] = val === "" ? 0 : parseFloat(val);
-                            } else {
-                                activeList[idx][field] = val;
-                            }
-                        }
-                    });
-                    input.addEventListener('change', function() {
-                        const idx = parseInt(this.getAttribute('data-index'));
-                        const field = this.getAttribute('data-field');
-                        const val = this.value;
-                        const activeList = state.dataByModel[state.activeModel];
-                        if(activeList && activeList[idx] && field === 'part') {
-                            activeList[idx][field] = val;
-                        }
-                    });
-                });
-
-                container.querySelectorAll('.remove-station-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const idx = parseInt(this.getAttribute('data-index'));
-                        state.dataByModel[state.activeModel].splice(idx, 1);
-                        renderView();
-                    });
-                });
-
-                container.querySelectorAll('.model-checkbox').forEach(chk => {
-                    chk.addEventListener('change', function() {
-                        const mName = this.value;
-                        if(!state.models) state.models = [];
-                        const idx = state.models.indexOf(mName);
-                        if(this.checked) {
-                            if(idx === -1) state.models.push(mName);
-                            if(!state.dataByModel[mName]) state.dataByModel[mName] = [];
-                            if(!state.activeModel) state.activeModel = mName;
-                        } else {
-                            if(idx > -1) state.models.splice(idx, 1);
-                            delete state.dataByModel[mName];
-                            if(state.activeModel === mName) {
-                                state.activeModel = state.models[0] || '';
-                            }
-                        }
-                        renderView();
-                    });
-                });
-
-                container.querySelectorAll('.setup-model-tab').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const mName = this.getAttribute('data-setupmodel');
-                        state.activeModel = mName;
-                        if(!state.dataByModel[mName]) state.dataByModel[mName] = [];
-                        renderView();
-                    });
-                });
-
-                document.getElementById('btn-add-station').addEventListener('click', function() {
-                    if(!state.models || state.models.length === 0) {
-                        state.models = ["Default Model"];
-                    }
-                    if(!state.activeModel || !state.models.includes(state.activeModel)) {
-                        state.activeModel = state.models[0];
-                    }
-                    if(!state.dataByModel) state.dataByModel = {};
-                    if(!state.dataByModel[state.activeModel]) {
-                        state.dataByModel[state.activeModel] = [];
-                    }
-                    const activeList = state.dataByModel[state.activeModel];
-                    const prefix = currentTab.substring(0, 3).toUpperCase();
-                    const stName = prefix + "0" + (activeList.length + 1);
-                    
-                    activeList.push({ 
-                        station: stName, 
-                        part: "Back Plate",
-                        p1: "", 
-                        p2: "", 
-                        p3: "", 
-                        wt1: 0, 
-                        wt2: 0, 
-                        wt3: 0, 
-                        loss: 0 
-                    });
-                    renderView();
-                });
-
-                document.getElementById('btn-save-back-dash').addEventListener('click', () => switchMainView('dashboard'));
+        function addModel(id) {
+            const input = document.getElementById(`new_model_${id}`);
+            if(input && input.value.trim() !== "") {
+                const d = appData.find(x => x.id === id);
+                if(d) {
+                    d.models.push(input.value.trim());
+                    renderApp();
+                }
+            }
+        }
+        function removeModel(id, mIdx) {
+            const d = appData.find(x => x.id === id);
+            if(d) {
+                d.models.splice(mIdx, 1);
+                renderApp();
             }
         }
 
-        document.getElementById('nav-btn-dashboard').addEventListener('click', () => switchMainView('dashboard'));
-        document.getElementById('nav-btn-setup').addEventListener('click', () => switchMainView('setup'));
-
-        document.querySelectorAll('.line-tab-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const target = this.getAttribute('data-target');
-                switchTab(target);
-            });
-        });
-
-        document.getElementById('btn-open-filter-editor').addEventListener('click', openFilterEditor);
-        document.getElementById('btn-close-filter-editor').addEventListener('click', closeFilterEditor);
-        document.getElementById('btn-cancel-filter').addEventListener('click', closeFilterEditor);
-        
-        document.getElementById('btn-add-filter-item').addEventListener('click', function() {
-            tempFilters.push("หมวดหมู่ใหม่");
-            renderModalFilterList();
-        });
-
-        document.getElementById('btn-save-filter').addEventListener('click', function() {
-            appState[currentTab].filters = [...tempFilters];
-            if(!appState[currentTab].filters.includes(activeFilter)) {
-                activeFilter = appState[currentTab].filters[0] || '';
+        function updateStationName(id, sIdx, val) { appData.find(x => x.id === id).stations[sIdx].station = val; }
+        function updateStationLoss(id, sIdx, val) { appData.find(x => x.id === id).stations[sIdx].loss = parseFloat(val) || 0; }
+        function removeStation(id, sIdx) {
+            const d = appData.find(x => x.id === id);
+            if(d) { d.stations.splice(sIdx, 1); renderApp(); }
+        }
+        function addStation(id) {
+            const d = appData.find(x => x.id === id);
+            if(d) {
+                const sName = "ST0" + (d.stations.length + 1);
+                d.stations.push({ station: sName, processes: [{ name: "กระบวนการใหม่", wt: 10.0 }], loss: 0 });
+                renderApp();
             }
-            renderFilters();
-            closeFilterEditor();
-        });
+        }
 
-        window.onload = function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const processParam = urlParams.get('process');
-            
-            if (processParam) {
-                const foundKey = Object.keys(appState).find(key => 
-                    appState[key].name.toLowerCase() === processParam.toLowerCase() || key.toLowerCase() === processParam.toLowerCase()
-                );
-                if (foundKey) {
-                    currentTab = foundKey;
-                }
+        function updateProcessName(id, sIdx, pIdx, val) { appData.find(x => x.id === id).stations[sIdx].processes[pIdx].name = val; }
+        function updateProcessWt(id, sIdx, pIdx, val) { appData.find(x => x.id === id).stations[sIdx].processes[pIdx].wt = parseFloat(val) || 0; }
+        function removeProcess(id, sIdx, pIdx) {
+            const d = appData.find(x => x.id === id);
+            if(d) {
+                d.stations[sIdx].processes.splice(pIdx, 1);
+                renderApp();
             }
-            
-            renderFilters();
-            switchTab(currentTab);
-        };
+        }
+        function addProcess(id, sIdx) {
+            const d = appData.find(x => x.id === id);
+            if(d) {
+                d.stations[sIdx].processes.push({ name: "กระบวนการใหม่", wt: 5.0 });
+                renderApp();
+            }
+        }
+
+        // เริ่มต้นการเรนเดอร์แอป
+        window.onload = renderApp;
     </script>
 </body>
 </html>
