@@ -49,9 +49,10 @@
 
     <script>
         const appState = {
-            press: { name: "Press Machine", data: [], models: ["159C", "159F"], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25, manpower: 4 },
+            press: { name: "Press Machine", productGroup: "Press Panel", data: [], models: ["159C", "159F"], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25, manpower: 4 },
             back_bottom: { 
                 name: "Bottom plate #A — One Door", 
+                productGroup: "Bottom Plate (One Door)",
                 models: ["159C", "159F", "199C", "199F"],
                 data: [
                     { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
@@ -66,9 +67,9 @@
                 ],
                 totalPlan: 2920, totalActual: 2935, hours: 8, manpower: 9
             },
-            door_a: { name: "Door A", models: ["TD 469"], data: [], totalPlan: 800, totalActual: 800, hours: 8, cycle: 35, manpower: 5 },
-            door_b: { name: "Door B", models: ["SBS 550"], data: [], totalPlan: 850, totalActual: 860, hours: 8, cycle: 34, manpower: 6 },
-            door_c: { name: "Door C", models: ["BM23"], data: [], totalPlan: 750, totalActual: 730, hours: 8, cycle: 38, manpower: 5 }
+            door_a: { name: "Door A", productGroup: "Refrigerator Door A", models: ["TD 469"], data: [], totalPlan: 800, totalActual: 800, hours: 8, cycle: 35, manpower: 5 },
+            door_b: { name: "Door B", productGroup: "Refrigerator Door B", models: ["SBS 550"], data: [], totalPlan: 850, totalActual: 860, hours: 8, cycle: 34, manpower: 6 },
+            door_c: { name: "Door C", productGroup: "Refrigerator Door C", models: ["BM23"], data: [], totalPlan: 750, totalActual: 730, hours: 8, cycle: 38, manpower: 5 }
         };
 
         let currentTab = 'back_bottom';
@@ -137,7 +138,14 @@
                         </div>
 
                         <!-- Dashboard Minimal Cards -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <!-- Product Group Card -->
+                            <div class="custom-card p-6 rounded-2xl space-y-2 flex flex-col justify-between">
+                                <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
+                                <h3 class="text-xl font-bold text-blue-400">${state.productGroup || '-'}</h3>
+                                <p class="text-xs text-gray-500">กลุ่มผลิตภัณฑ์หลักของไลน์ผลิตนี้</p>
+                            </div>
+
                             <!-- Models Card -->
                             <div class="custom-card p-6 rounded-2xl space-y-3">
                                 <p class="text-xs text-gray-400 font-medium">รุ่นที่ผลิต (Models)</p>
@@ -218,13 +226,18 @@
                             </div>
                         </div>
 
-                        <!-- Manpower Setting Input -->
-                        <div class="custom-card p-6 rounded-xl flex items-center justify-between">
-                            <div>
-                                <h3 class="text-sm font-bold text-white">จำนวนพนักงาน (Manpower) ประจำไลน์</h3>
-                                <p class="text-xs text-gray-400 mt-0.5">กำหนดจำนวนคนทำงานรวมในไลน์ผลิตนี้</p>
+                        <!-- Product Group & Manpower Settings -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="custom-card p-6 rounded-xl space-y-2">
+                                <h3 class="text-sm font-bold text-white">Product ใหญ่ (Product Group)</h3>
+                                <p class="text-xs text-gray-400">ระบุชื่อผลิตภัณฑ์หลักของไลน์นี้</p>
+                                <input type="text" value="${state.productGroup || ''}" onchange="updateProductGroup(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate (One Door)">
                             </div>
-                            <input type="number" value="${state.manpower || stationsCount}" onchange="updateManpower(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-32 text-right font-bold text-blue-400">
+                            <div class="custom-card p-6 rounded-xl space-y-2">
+                                <h3 class="text-sm font-bold text-white">จำนวนพนักงาน (Manpower) ประจำไลน์</h3>
+                                <p class="text-xs text-gray-400">กำหนดจำนวนคนทำงานรวมในไลน์ผลิตนี้</p>
+                                <input type="number" value="${state.manpower || stationsCount}" onchange="updateManpower(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-blue-400 mt-1">
+                            </div>
                         </div>
 
                         <!-- Model Selection Section -->
@@ -271,6 +284,10 @@
 
         function updateManpower(val) {
             appState[currentTab].manpower = parseInt(val) || 1;
+        }
+
+        function updateProductGroup(val) {
+            appState[currentTab].productGroup = val;
         }
 
         function addStation() {
