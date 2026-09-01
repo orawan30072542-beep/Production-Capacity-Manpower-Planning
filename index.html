@@ -24,7 +24,7 @@
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
                     <h1 class="text-xl font-bold text-white">Manpower Planning & Production Capacity</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">ระบบแดชบอร์ดสรุปยอดผลิตและตั้งค่ากระบวนการผลิต</p>
+                <p class="text-xs text-gray-400 mt-1">ระบบแดชบอร์ดสรุปยอดผลิตและตั้งค่ากระบวนการผลิต (รองรับ Multi-Part Order)</p>
             </div>
             <div class="flex gap-2 text-sm items-center">
                 <button id="nav-btn-dashboard" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow cursor-pointer">📊 หน้าหลัก (Dashboard)</button>
@@ -90,11 +90,11 @@
                 filters: ["Press Line 1", "Press Line 2"], 
                 dataByModel: { 
                     "159C": [
-                        { station: "PR01", p1: "ป้อนเหล็กแผ่นเข้าเครื่อง Punching", p2: "ตรวจสอบรอยพับขอบ", p3: "", wt1: 15.40, wt2: 12.10, wt3: 0, loss: 1.50 },
-                        { station: "PR02", p1: "ขึ้นรูปโครงสร้างชิ้นงานด้วยแม่พิมพ์ Press", p2: "เช็คขนาดด้วย Go/No-Go Gauge", p3: "", wt1: 22.50, wt2: 8.30, wt3: 0, loss: 2.10 }
+                        { station: "PR01", part: "Back Plate", p1: "ป้อนเหล็กแผ่นเข้าเครื่อง Punching", p2: "ตรวจสอบรอยพับขอบ", p3: "", wt1: 15.40, wt2: 12.10, wt3: 0, loss: 1.50 },
+                        { station: "PR02", part: "Bottom Plate", p1: "ขึ้นรูปโครงสร้างชิ้นงานด้วยแม่พิมพ์ Press", p2: "เช็คขนาดด้วย Go/No-Go Gauge", p3: "", wt1: 22.50, wt2: 8.30, wt3: 0, loss: 2.10 }
                     ],
                     "199C": [
-                        { station: "PR01", p1: "เซ็ตแม่พิมพ์รุ่น 199C", p2: "ทดสอบปั๊มชิ้นงานชิ้นแรก", p3: "", wt1: 18.20, wt2: 14.00, wt3: 0, loss: 2.00 }
+                        { station: "PR01", part: "Back Plate", p1: "เซ็ตแม่พิมพ์รุ่น 199C", p2: "ทดสอบปั๊มชิ้นงานชิ้นแรก", p3: "", wt1: 18.20, wt2: 14.00, wt3: 0, loss: 2.00 }
                     ]
                 } 
             },
@@ -109,12 +109,12 @@
                 filters: ["Welding", "Back plate", "Bottom plate"], 
                 dataByModel: { 
                     "159C": [
-                        { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
-                        { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
-                        { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 }
+                        { station: "BTA01", part: "Back Plate", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
+                        { station: "BTA02", part: "Bottom Plate", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
+                        { station: "BTA03", part: "Back Plate", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 }
                     ],
                     "159F": [
-                        { station: "BTF01", p1: "เชื่อมจุดยึดโครงฐานล่างรุ่น F", p2: "เจียรแต่งแนวเชื่อม", p3: "", wt1: 16.50, wt2: 9.20, wt3: 0, loss: 1.80 }
+                        { station: "BTF01", part: "Back Plate", p1: "เชื่อมจุดยึดโครงฐานล่างรุ่น F", p2: "เจียรแต่งแนวเชื่อม", p3: "", wt1: 16.50, wt2: 9.20, wt3: 0, loss: 1.80 }
                     ]
                 } 
             },
@@ -129,8 +129,8 @@
                 filters: ["Frame Assy"], 
                 dataByModel: { 
                     "TD 469": [
-                        { station: "FG01", p1: "ประกอบมุมอลูมิเนียม Frame", p2: "ยิงสกรูล็อกมุม", p3: "", wt1: 25.00, wt2: 18.50, wt3: 0, loss: 2.00 },
-                        { station: "FG02", p1: "วางกระจกนิรภัยลงบน Frame", p2: "ยาแนวซิลิโคนขอบกระจก", p3: "", wt1: 30.20, wt2: 15.00, wt3: 0, loss: 3.50 }
+                        { station: "FG01", part: "Frame", p1: "ประกอบมุมอลูมิเนียม Frame", p2: "ยิงสกรูล็อกมุม", p3: "", wt1: 25.00, wt2: 18.50, wt3: 0, loss: 2.00 },
+                        { station: "FG02", part: "Glass Door", p1: "วางกระจกนิรภัยลงบน Frame", p2: "ยาแนวซิลิโคนขอบกระจก", p3: "", wt1: 30.20, wt2: 15.00, wt3: 0, loss: 3.50 }
                     ] 
                 } 
             },
@@ -145,7 +145,7 @@
                 filters: ["Main Line"], 
                 dataByModel: { 
                     "TD 469": [
-                        { station: "DA01", p1: "ประกอบแผ่นโฟมฉนวนกันความร้อน", p2: "ประกอบชุดมือจับประตู (Handle)", p3: "", wt1: 20.00, wt2: 15.50, wt3: 0, loss: 1.20 }
+                        { station: "DA01", part: "Door A", p1: "ประกอบแผ่นโฟมฉนวนกันความร้อน", p2: "ประกอบชุดมือจับประตู (Handle)", p3: "", wt1: 20.00, wt2: 15.50, wt3: 0, loss: 1.20 }
                     ] 
                 } 
             },
@@ -160,7 +160,7 @@
                 filters: ["Main Line"], 
                 dataByModel: { 
                     "SBS 550": [
-                        { station: "DB01", p1: "ประกอบชุดบานพับประตูคู่ (Hinge)", p2: "ปรับตั้งศูนย์บานประตู", p3: "", wt1: 24.10, wt2: 19.30, wt3: 0, loss: 2.20 }
+                        { station: "DB01", part: "Door B", p1: "ประกอบชุดบานพับประตูคู่ (Hinge)", p2: "ปรับตั้งศูนย์บานประตู", p3: "", wt1: 24.10, wt2: 19.30, wt3: 0, loss: 2.20 }
                     ] 
                 } 
             },
@@ -175,7 +175,7 @@
                 filters: ["Main Line"], 
                 dataByModel: { 
                     "BM23": [
-                        { station: "DC01", p1: "ประกอบแผงควบคุมหน้าจอ Digital", p2: "เชื่อมต่อสายไฟภายในบานประตู", p3: "", wt1: 22.00, wt2: 16.40, wt3: 0, loss: 1.50 }
+                        { station: "DC01", part: "Door C", p1: "ประกอบแผงควบคุมหน้าจอ Digital", p2: "เชื่อมต่อสายไฟภายในบานประตู", p3: "", wt1: 22.00, wt2: 16.40, wt3: 0, loss: 1.50 }
                     ] 
                 } 
             },
@@ -190,7 +190,7 @@
                 filters: ["Cutting"], 
                 dataByModel: { 
                     "Gasket Standard": [
-                        { station: "GK01", p1: "ตัดยางขอบประตูตามความยาวแบบ", p2: "เชื่อมมุมยางด้วยความร้อน", p3: "สอดแม่เหล็กเส้นเข้าขอบยาง", wt1: 12.00, wt2: 14.50, wt3: 10.10, loss: 1.00 }
+                        { station: "GK01", part: "Gasket", p1: "ตัดยางขอบประตูตามความยาวแบบ", p2: "เชื่อมมุมยางด้วยความร้อน", p3: "สอดแม่เหล็กเส้นเข้าขอบยาง", wt1: 12.00, wt2: 14.50, wt3: 10.10, loss: 1.00 }
                     ] 
                 } 
             },
@@ -205,7 +205,7 @@
                 filters: ["Assembly"], 
                 dataByModel: { 
                     "DID Model": [
-                        { station: "DID01", p1: "ประกอบกลไกบานพับย่อย Door-in-Door", p2: "ประกอบกระจกชั้นนอกและชั้นใน", p3: "", wt1: 35.00, wt2: 22.50, wt3: 0, loss: 3.00 }
+                        { station: "DID01", part: "Door in Door", p1: "ประกอบกลไกบานพับย่อย Door-in-Door", p2: "ประกอบกระจกชั้นนอกและชั้นใน", p3: "", wt1: 35.00, wt2: 22.50, wt3: 0, loss: 3.00 }
                     ] 
                 } 
             }
@@ -337,7 +337,6 @@
                 if (!state.dataByModel[state.activeModel]) state.dataByModel[state.activeModel] = [];
                 const activeModelData = state.dataByModel[state.activeModel];
 
-                // คำนวณ Lead Time รวมของรุ่นปัจจุบัน
                 let totalLeadTime = 0;
                 activeModelData.forEach(item => {
                     const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
@@ -347,7 +346,7 @@
 
                 let dashboardRows = '';
                 if(activeModelData.length === 0) {
-                    dashboardRows = `<tr><td colspan="10" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีข้อมูลสถานีในรุ่นนี้ ไปที่หน้า "ตั้งค่ากระบวนการและรุ่น" เพื่อเพิ่มข้อมูล</td></tr>`;
+                    dashboardRows = `<tr><td colspan="11" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีข้อมูลสถานีในรุ่นนี้ ไปที่หน้า "ตั้งค่ากระบวนการและรุ่น" เพื่อเพิ่มข้อมูล</td></tr>`;
                 } else {
                     activeModelData.forEach((item) => {
                         const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
@@ -355,6 +354,7 @@
                         dashboardRows += `
                             <tr class="hover:bg-gray-800/40 transition">
                                 <td class="p-3 font-semibold text-white">${item.station || '-'}</td>
+                                <td class="p-3"><span class="bg-gray-800 text-blue-300 border border-gray-700 px-2.5 py-1 rounded-full text-xs font-medium">${item.part || 'Back Plate'}</span></td>
                                 <td class="p-3 text-gray-300">${item.p1 || '-'}</td>
                                 <td class="p-3 text-gray-300">${item.p2 || '-'}</td>
                                 <td class="p-3 text-gray-300">${item.p3 || '-'}</td>
@@ -369,7 +369,6 @@
                     });
                 }
 
-                // สร้างตารางสรุปข้อมูลทุกรุ่น (Model Summary Table)
                 let modelSummaryRows = '';
                 if(state.models && state.models.length > 0) {
                     state.models.forEach(m => {
@@ -442,7 +441,6 @@
                                 </div>
                             </div>
 
-                            <!-- Lead Time Card -->
                             <div class="custom-card p-6 rounded-2xl space-y-3 border-l-4 border-emerald-500 flex flex-col justify-between">
                                 <div>
                                     <p class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Lead Time รวมทั้งกระบวนการ</p>
@@ -473,6 +471,7 @@
                                     <thead>
                                         <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
                                             <th class="p-3">Station</th>
+                                            <th class="p-3">Part Type</th>
                                             <th class="p-3">Process 1</th>
                                             <th class="p-3">Process 2</th>
                                             <th class="p-3">Process 3</th>
@@ -491,7 +490,7 @@
                             </div>
                         </div>
 
-                        <!-- ตารางสรุปเปรียบเทียบแต่ละรุ่น (Model Performance Summary Table) -->
+                        <!-- ตารางสรุปข้อมูลตามรุ่น (Model Summary Table) -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                             <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div>
@@ -539,19 +538,29 @@
                 
                 let setupRows = '';
                 if (activeModelData.length === 0) {
-                    setupRows = `<tr><td colspan="9" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีสถานีในรุ่นนี้ กดปุ่ม "➕ เพิ่มสถานี" ด้านบนเพื่อเริ่มเพิ่มข้อมูล</td></tr>`;
+                    setupRows = `<tr><td colspan="10" class="p-6 text-center text-gray-500 text-xs">ยังไม่มีสถานีในรุ่นนี้ กดปุ่ม "➕ เพิ่มรายการพาร์ท/สถานีงาน" ด้านบนเพื่อเริ่มเพิ่มข้อมูล</td></tr>`;
                 } else {
                     activeModelData.forEach((item, index) => {
+                        const partVal = item.part || 'Back Plate';
                         setupRows += `
                             <tr class="hover:bg-gray-800/40 transition">
-                                <td class="p-3 font-semibold text-white"><input type="text" value="${item.station || ''}" data-index="${index}" data-field="station" class="input-dark px-2 py-1 rounded text-xs w-20 setup-input"></td>
+                                <td class="p-3 font-semibold text-white"><input type="text" value="${item.station || ''}" data-index="${index}" data-field="station" class="input-dark px-2 py-1 rounded text-xs w-20 setup-input" placeholder="BTA01"></td>
+                                <td class="p-3">
+                                    <select data-index="${index}" data-field="part" class="input-dark px-2 py-1 rounded text-xs setup-input">
+                                        <option value="Back Plate" ${partVal === 'Back Plate' ? 'selected' : ''}>Back Plate</option>
+                                        <option value="Bottom Plate" ${partVal === 'Bottom Plate' ? 'selected' : ''}>Bottom Plate</option>
+                                        <option value="Frame" ${partVal === 'Frame' ? 'selected' : ''}>Frame</option>
+                                        <option value="Glass Door" ${partVal === 'Glass Door' ? 'selected' : ''}>Glass Door</option>
+                                        <option value="Other" ${partVal === 'Other' ? 'selected' : ''}>Other</option>
+                                    </select>
+                                </td>
                                 <td class="p-3"><input type="text" value="${item.p1 || ''}" data-index="${index}" data-field="p1" class="input-dark px-2 py-1 rounded text-xs w-full setup-input" placeholder="Process 1"></td>
                                 <td class="p-3"><input type="text" value="${item.p2 || ''}" data-index="${index}" data-field="p2" class="input-dark px-2 py-1 rounded text-xs w-full setup-input" placeholder="Process 2"></td>
                                 <td class="p-3"><input type="text" value="${item.p3 || ''}" data-index="${index}" data-field="p3" class="input-dark px-2 py-1 rounded text-xs w-full setup-input" placeholder="Process 3"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.wt1 !== undefined ? item.wt1 : 0}" data-index="${index}" data-field="wt1" class="input-dark px-2 py-1 rounded text-xs w-20 text-center setup-input"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.wt2 !== undefined ? item.wt2 : 0}" data-index="${index}" data-field="wt2" class="input-dark px-2 py-1 rounded text-xs w-20 text-center setup-input"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.wt3 !== undefined ? item.wt3 : 0}" data-index="${index}" data-field="wt3" class="input-dark px-2 py-1 rounded text-xs w-20 text-center setup-input"></td>
-                                <td class="p-3"><input type="number" step="0.01" value="${item.loss !== undefined ? item.loss : 0}" data-index="${index}" data-field="loss" class="input-dark px-2 py-1 rounded text-xs w-20 text-center setup-input"></td>
+                                <td class="p-3"><input type="number" step="0.01" value="${item.wt1 !== undefined ? item.wt1 : 0}" data-index="${index}" data-field="wt1" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
+                                <td class="p-3"><input type="number" step="0.01" value="${item.wt2 !== undefined ? item.wt2 : 0}" data-index="${index}" data-field="wt2" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
+                                <td class="p-3"><input type="number" step="0.01" value="${item.wt3 !== undefined ? item.wt3 : 0}" data-index="${index}" data-field="wt3" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
+                                <td class="p-3"><input type="number" step="0.01" value="${item.loss !== undefined ? item.loss : 0}" data-index="${index}" data-field="loss" class="input-dark px-2 py-1 rounded text-xs w-16 text-center setup-input"></td>
                                 <td class="p-3 text-center"><button data-index="${index}" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-1 rounded text-xs cursor-pointer remove-station-btn">ลบ</button></td>
                             </tr>
                         `;
@@ -589,9 +598,10 @@
                             <div>
                                 <span class="text-xs uppercase tracking-wider text-yellow-400 font-semibold">Setup & Configuration</span>
                                 <h2 class="text-2xl font-bold text-white mt-1">ตั้งค่ากระบวนการและเลือกรุ่น สำหรับ ${state.name}</h2>
+                                <p class="text-xs text-gray-400 mt-1">1 Order สามารถเพิ่มพาร์ทการผลิตได้ทั้ง Back plate และ Bottom plate ในสถานีงาน</p>
                             </div>
                             <div class="flex gap-2">
-                                <button id="btn-add-station" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold transition border border-gray-700 cursor-pointer">➕ เพิ่มสถานี</button>
+                                <button id="btn-add-station" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold transition border border-gray-700 cursor-pointer flex items-center gap-1.5"><span>➕</span> เพิ่มรายการพาร์ท/สถานีงาน</button>
                                 <button id="btn-save-back-dash" class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition shadow-md cursor-pointer">💾 บันทึกและกลับหน้าหลัก</button>
                             </div>
                         </div>
@@ -632,7 +642,10 @@
                         <!-- Stations Table Editor with Model Sub-Tabs -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                             <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและเวลาการทำงาน (WT1, WT2, WT3, Loss)</h3>
+                                <div>
+                                    <h3 class="text-base font-bold text-white">ตารางจัดการสถานี พาร์ทการผลิต และเวลาการทำงาน</h3>
+                                    <p class="text-xs text-gray-400 mt-0.5">ระบุพาร์ท (Back plate / Bottom plate) และขั้นตอนของรุ่นที่กำลังเลือกอยู่</p>
+                                </div>
                                 <div class="flex items-center gap-2 flex-wrap">
                                     <span class="text-xs text-gray-400">เลือกรุ่นเพื่อแก้ไขข้อมูล:</span>
                                     <div class="flex gap-1.5 flex-wrap">${modelTabsForSetup}</div>
@@ -643,6 +656,7 @@
                                     <thead>
                                         <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
                                             <th class="p-3">Station</th>
+                                            <th class="p-3">Part Type</th>
                                             <th class="p-3">Process 1</th>
                                             <th class="p-3">Process 2</th>
                                             <th class="p-3">Process 3</th>
@@ -687,6 +701,15 @@
                             } else {
                                 activeList[idx][field] = val;
                             }
+                        }
+                    });
+                    input.addEventListener('change', function() {
+                        const idx = parseInt(this.getAttribute('data-index'));
+                        const field = this.getAttribute('data-field');
+                        const val = this.value;
+                        const activeList = state.dataByModel[state.activeModel];
+                        if(activeList && activeList[idx] && field === 'part') {
+                            activeList[idx][field] = val;
                         }
                     });
                 });
@@ -745,6 +768,7 @@
                     
                     activeList.push({ 
                         station: stName, 
+                        part: "Back Plate",
                         p1: "", 
                         p2: "", 
                         p3: "", 
