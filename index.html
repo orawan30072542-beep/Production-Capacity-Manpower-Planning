@@ -25,17 +25,17 @@
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
                     <h1 class="text-xl font-bold text-white">Manpower Planning & Production Capacity</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและติดตามยอดผลิตรายชั่วโมงจากไฟล์ Excel</p>
+                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและติดตามยอดผลิตรายชั่วโมงแยกตามจุดงาน (4 Stations)</p>
             </div>
             <div class="flex gap-3 text-sm items-center">
-                <span class="text-xs bg-blue-950 text-blue-400 border border-blue-800 px-3 py-1.5 rounded-lg">🟢 ระบบรองรับอัปโหลด Excel แยกตามไลน์</span>
+                <span class="text-xs bg-blue-950 text-blue-400 border border-blue-800 px-3 py-1.5 rounded-lg">🟢 รองรับ 4 จุดงาน: Back #1, #2 & Bottom #1, #2</span>
             </div>
         </header>
 
         <!-- Navigation Tabs -->
         <nav class="flex flex-wrap gap-2 custom-card p-3 rounded-xl">
             <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="press">Press Machine</button>
-            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow" data-target="back_bottom">Back & Bottom Plate</button>
+            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow" data-target="back_bottom">Back & Bottom Plate (4 Stations)</button>
             <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_a">Door A</button>
             <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_b">Door B</button>
             <button onclick="switchTab('door_c')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_c">Door C</button>
@@ -47,18 +47,19 @@
     </div>
 
     <script>
-        // Store uploaded or default data for each line, aligning with real product/model master list
         const appState = {
             press: { name: "Press Machine", data: [], totalPlan: 1200, totalActual: 1250, hours: 8, cycle: 25 },
             back_bottom: { 
-                name: "Back plate & Bottom plate", 
+                name: "Back plate & Bottom plate (4 Stations)", 
                 data: [
-                    { product: "FUF14", model: "FUF14 D", type: "Back & Bottom (1:1)", plan: 480, ct: 30, actual: 490, hours: 8 },
-                    { product: "FUF14", model: "FUF14 L", type: "Back & Bottom (1:1)", plan: 470, ct: 30, actual: 460, hours: 8 },
-                    { product: "FUF18", model: "FUF18 D", type: "Back & Bottom (1:1)", plan: 500, ct: 32, actual: 510, hours: 8 },
-                    { product: "FUF22", model: "FUF22 S", type: "Back & Bottom (1:1)", plan: 450, ct: 32, actual: 440, hours: 8 }
+                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #1", plan: 480, ct: 30, actual: 490, hours: 8 },
+                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #2", plan: 480, ct: 30, actual: 485, hours: 8 },
+                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #1", plan: 480, ct: 30, actual: 475, hours: 8 },
+                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #2", plan: 480, ct: 30, actual: 480, hours: 8 },
+                    { product: "FUF18", model: "FUF18 D", type: "Back Plate #1", plan: 500, ct: 32, actual: 510, hours: 8 },
+                    { product: "FUF18", model: "FUF18 D", type: "Bottom Plate #1", plan: 500, ct: 32, actual: 495, hours: 8 }
                 ],
-                totalPlan: 1900, totalActual: 1900, hours: 8, cycle: 31
+                totalPlan: 2920, totalActual: 2935, hours: 8, cycle: 31
             },
             door_a: { 
                 name: "Door A", 
@@ -116,7 +117,7 @@
                         <tr class="hover:bg-gray-800/40 transition">
                             <td class="p-4 font-semibold text-white">${item.product}</td>
                             <td class="p-4 text-gray-300">${item.model}</td>
-                            <td class="p-4 text-blue-400">${item.type}</td>
+                            <td class="p-4 text-blue-400 font-medium">${item.type}</td>
                             <td class="p-4 text-right font-bold text-white">${item.plan.toLocaleString()}</td>
                             <td class="p-4 text-right text-gray-300">${item.ct}s</td>
                             <td class="p-4 text-right text-green-400 font-semibold">${item.actual.toLocaleString()}</td>
@@ -176,8 +177,8 @@
                     <!-- Detail Table: Product & Model Breakdown -->
                     <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                         <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                            <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิตแยกตาม Product ใหญ่ และ Model ย่อย</h2>
-                            <span class="text-xs text-gray-400">ข้อมูลนำเข้าจากไฟล์ Excel (อ้างอิงรหัสจริง FUF14, FUF18, FUF22, SBS, BM23, ฯลฯ)</span>
+                            <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิตแยกตาม 4 จุดงาน (Back Plate #1, #2 & Bottom Plate #1, #2)</h2>
+                            <span class="text-xs text-gray-400">ข้อมูลนำเข้าจากไฟล์ Excel</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
@@ -185,7 +186,7 @@
                                     <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
                                         <th class="p-4">Product ใหญ่ (Series)</th>
                                         <th class="p-4">Model ย่อย</th>
-                                        <th class="p-4">ประเภทชิ้นงาน</th>
+                                        <th class="p-4">จุดงาน (Station)</th>
                                         <th class="p-4 text-right">ยอดแผน (Plan Pcs)</th>
                                         <th class="p-4 text-right">Cycle Time (s)</th>
                                         <th class="p-4 text-right">ยอดผลิตจริง (Actual Pcs)</th>
@@ -229,7 +230,7 @@
                     json.forEach(row => {
                         const prod = row['Product Group'] || row['Product'] || 'General Product';
                         const model = row['Model Name'] || row['Model'] || 'Model-01';
-                        const type = row['Item Type'] || row['Type'] || 'Standard Part';
+                        const type = row['Item Type'] || row['Type'] || 'Back Plate #1';
                         const plan = parseFloat(row['Target Qty (pcs)'] || row['Plan'] || 0);
                         const ct = parseFloat(row['Cycle Time (s)'] || row['Cycle Time'] || 30);
                         const actual = parseFloat(row['Actual Qty (pcs)'] || row['Actual'] || 0);
