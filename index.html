@@ -25,10 +25,10 @@
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
                     <h1 class="text-xl font-bold text-white">Manpower Planning & Production Capacity</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและติดตามยอดผลิตรายชั่วโมงแยกตามจุดงาน (4 Stations)</p>
+                <p class="text-xs text-gray-400 mt-1">ระบบคำนวณและติดตามยอดผลิตรายชั่วโมงแยกตาม 4 จุดงาน</p>
             </div>
             <div class="flex gap-3 text-sm items-center">
-                <span class="text-xs bg-blue-950 text-blue-400 border border-blue-800 px-3 py-1.5 rounded-lg">🟢 รองรับ 4 จุดงาน: Back #1, #2 & Bottom #1, #2</span>
+                <span class="text-xs bg-blue-950 text-blue-400 border border-blue-800 px-3 py-1.5 rounded-lg">🟢 อัปเดตฟอร์มบันทึกกระบวนการและเวลาทำงานแล้ว</span>
             </div>
         </header>
 
@@ -52,36 +52,36 @@
             back_bottom: { 
                 name: "Back plate & Bottom plate (4 Stations)", 
                 data: [
-                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #1", plan: 480, ct: 30, actual: 490, hours: 8 },
-                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #2", plan: 480, ct: 30, actual: 485, hours: 8 },
-                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #1", plan: 480, ct: 30, actual: 475, hours: 8 },
-                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #2", plan: 480, ct: 30, actual: 480, hours: 8 },
-                    { product: "FUF18", model: "FUF18 D", type: "Back Plate #1", plan: 500, ct: 32, actual: 510, hours: 8 },
-                    { product: "FUF18", model: "FUF18 D", type: "Bottom Plate #1", plan: 500, ct: 32, actual: 495, hours: 8 }
+                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #1", plan: 480, ct: 30, actual: 490, hours: 8, process: "Press & Bend", workTime: "08:00 - 17:00" },
+                    { product: "FUF14", model: "FUF14 D", type: "Back Plate #2", plan: 480, ct: 30, actual: 485, hours: 8, process: "Spot Welding", workTime: "08:00 - 17:00" },
+                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #1", plan: 480, ct: 30, actual: 475, hours: 8, process: "Cutting & Punch", workTime: "08:00 - 17:00" },
+                    { product: "FUF14", model: "FUF14 D", type: "Bottom Plate #2", plan: 480, ct: 30, actual: 480, hours: 8, process: "Assembly Prep", workTime: "08:00 - 17:00" },
+                    { product: "FUF18", model: "FUF18 D", type: "Back Plate #1", plan: 500, ct: 32, actual: 510, hours: 8, process: "Press & Bend", workTime: "08:00 - 17:00" },
+                    { product: "FUF18", model: "FUF18 D", type: "Bottom Plate #1", plan: 500, ct: 32, actual: 495, hours: 8, process: "Cutting & Punch", workTime: "08:00 - 17:00" }
                 ],
                 totalPlan: 2920, totalActual: 2935, hours: 8, cycle: 31
             },
             door_a: { 
                 name: "Door A", 
                 data: [
-                    { product: "TD 469", model: "T DOOR H Metal", type: "Door A", plan: 400, ct: 35, actual: 410, hours: 8 },
-                    { product: "TD 520", model: "T DOOR 520", type: "Door A", plan: 400, ct: 35, actual: 390, hours: 8 }
+                    { product: "TD 469", model: "T DOOR H Metal", type: "Door A", plan: 400, ct: 35, actual: 410, hours: 8, process: "Foaming", workTime: "08:00 - 17:00" },
+                    { product: "TD 520", model: "T DOOR 520", type: "Door A", plan: 400, ct: 35, actual: 390, hours: 8, process: "Assembly", workTime: "08:00 - 17:00" }
                 ],
                 totalPlan: 800, totalActual: 800, hours: 8, cycle: 35 
             },
             door_b: { 
                 name: "Door B", 
                 data: [
-                    { product: "SBS", model: "SBS 550", type: "Door B", plan: 450, ct: 34, actual: 460, hours: 8 },
-                    { product: "SBS", model: "SBS 620", type: "Door B", plan: 400, ct: 34, actual: 400, hours: 8 }
+                    { product: "SBS", model: "SBS 550", type: "Door B", plan: 450, ct: 34, actual: 460, hours: 8, process: "Outer Frame", workTime: "08:00 - 17:00" },
+                    { product: "SBS", model: "SBS 620", type: "Door B", plan: 400, ct: 34, actual: 400, hours: 8, process: "Inner Lining", workTime: "08:00 - 17:00" }
                 ],
                 totalPlan: 850, totalActual: 860, hours: 8, cycle: 34 
             },
             door_c: { 
                 name: "Door C", 
                 data: [
-                    { product: "BM23", model: "BM23", type: "Door C", plan: 400, ct: 38, actual: 390, hours: 8 },
-                    { product: "BM29", model: "BM29", type: "Door C", plan: 350, ct: 38, actual: 340, hours: 8 }
+                    { product: "BM23", model: "BM23", type: "Door C", plan: 400, ct: 38, actual: 390, hours: 8, process: "Sealing", workTime: "08:00 - 17:00" },
+                    { product: "BM29", model: "BM29", type: "Door C", plan: 350, ct: 38, actual: 340, hours: 8, process: "Inspection", workTime: "08:00 - 17:00" }
                 ],
                 totalPlan: 750, totalActual: 730, hours: 8, cycle: 38 
             }
@@ -107,26 +107,28 @@
 
             let tableRows = '';
             if(state.data.length > 0) {
-                state.data.forEach(item => {
+                state.data.forEach((item, index) => {
                     const diff = item.actual - item.plan;
                     const statusBadge = diff >= 0 ? 
-                        `<span class="bg-green-950 text-green-400 px-2.5 py-1 rounded text-xs border border-green-800">ผ่านเป้า (+${diff})</span>` : 
-                        `<span class="bg-red-950 text-red-400 px-2.5 py-1 rounded text-xs border border-red-800">ต่ำกว่าแผน (${diff})</span>`;
+                        `<span class="bg-green-950 text-green-400 px-2 py-0.5 rounded text-xs border border-green-800">ผ่าน (+${diff})</span>` : 
+                        `<span class="bg-red-950 text-red-400 px-2 py-0.5 rounded text-xs border border-red-800">ต่ำ (${diff})</span>`;
                     
                     tableRows += `
                         <tr class="hover:bg-gray-800/40 transition">
-                            <td class="p-4 font-semibold text-white">${item.product}</td>
-                            <td class="p-4 text-gray-300">${item.model}</td>
-                            <td class="p-4 text-blue-400 font-medium">${item.type}</td>
-                            <td class="p-4 text-right font-bold text-white">${item.plan.toLocaleString()}</td>
-                            <td class="p-4 text-right text-gray-300">${item.ct}s</td>
-                            <td class="p-4 text-right text-green-400 font-semibold">${item.actual.toLocaleString()}</td>
-                            <td class="p-4 text-center">${statusBadge}</td>
+                            <td class="p-3 font-semibold text-white">${item.product}</td>
+                            <td class="p-3 text-gray-300">${item.model}</td>
+                            <td class="p-3 text-blue-400 font-medium">${item.type}</td>
+                            <td class="p-3"><input type="text" value="${item.process || ''}" onchange="updateItemField(${index}, 'process', this.value)" class="input-dark px-2.5 py-1 rounded text-xs w-full" placeholder="ระบุขั้นตอน"></td>
+                            <td class="p-3"><input type="text" value="${item.workTime || ''}" onchange="updateItemField(${index}, 'workTime', this.value)" class="input-dark px-2.5 py-1 rounded text-xs w-full" placeholder="08:00 - 17:00"></td>
+                            <td class="p-3 text-right font-bold text-white">${item.plan.toLocaleString()}</td>
+                            <td class="p-3 text-right text-gray-300">${item.ct}s</td>
+                            <td class="p-3 text-right text-green-400 font-semibold">${item.actual.toLocaleString()}</td>
+                            <td class="p-3 text-center">${statusBadge}</td>
                         </tr>
                     `;
                 });
             } else {
-                tableRows = `<tr><td colspan="7" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูล กรุณาอัปโหลดไฟล์ Excel เพื่อเริ่มต้นใช้งาน</td></tr>`;
+                tableRows = `<tr><td colspan="9" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูล กรุณาอัปโหลดไฟล์ Excel เพื่อเริ่มต้นใช้งาน</td></tr>`;
             }
 
             const planPerHour = Math.round(state.totalPlan / state.hours);
@@ -174,23 +176,25 @@
                         </div>
                     </div>
 
-                    <!-- Detail Table: Product & Model Breakdown -->
+                    <!-- Detail Table: Product & Model Breakdown with Process & Work Time -->
                     <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                         <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                            <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิตแยกตาม 4 จุดงาน (Back Plate #1, #2 & Bottom Plate #1, #2)</h2>
-                            <span class="text-xs text-gray-400">ข้อมูลนำเข้าจากไฟล์ Excel</span>
+                            <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิต กระบวนการ และเวลาทำงานแต่ละจุดสถานี</h2>
+                            <span class="text-xs text-gray-400">สามารถแก้ไขข้อมูลกระบวนการและเวลาทำงานได้โดยตรง</span>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
                                     <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                        <th class="p-4">Product ใหญ่ (Series)</th>
-                                        <th class="p-4">Model ย่อย</th>
-                                        <th class="p-4">จุดงาน (Station)</th>
-                                        <th class="p-4 text-right">ยอดแผน (Plan Pcs)</th>
-                                        <th class="p-4 text-right">Cycle Time (s)</th>
-                                        <th class="p-4 text-right">ยอดผลิตจริง (Actual Pcs)</th>
-                                        <th class="p-4 text-center">สถานะเทียบแผน</th>
+                                        <th class="p-3">Product ใหญ่</th>
+                                        <th class="p-3">Model ย่อย</th>
+                                        <th class="p-3">จุดงาน (Station)</th>
+                                        <th class="p-3">กระบวนการทำงาน (Process)</th>
+                                        <th class="p-3">ช่วงเวลาทำงาน (Work Time)</th>
+                                        <th class="p-3 text-right">ยอดแผน (Plan)</th>
+                                        <th class="p-3 text-right">Cycle Time (s)</th>
+                                        <th class="p-3 text-right">ยอดจริง (Actual)</th>
+                                        <th class="p-3 text-center">สถานะ</th>
                                     </tr>
                                 </thead>
                                 <tbody class="text-sm divide-y divide-gray-800/60">
@@ -201,6 +205,10 @@
                     </div>
                 </div>
             `;
+        }
+
+        function updateItemField(index, field, value) {
+            appState[currentTab].data[index][field] = value;
         }
 
         function handleExcelUpload(event) {
@@ -230,7 +238,9 @@
                     json.forEach(row => {
                         const prod = row['Product Group'] || row['Product'] || 'General Product';
                         const model = row['Model Name'] || row['Model'] || 'Model-01';
-                        const type = row['Item Type'] || row['Type'] || 'Back Plate #1';
+                        const type = row['Item Type'] || row['Station'] || 'Back Plate #1';
+                        const process = row['Process'] || 'Standard Process';
+                        const workTime = row['Work Time'] || '08:00 - 17:00';
                         const plan = parseFloat(row['Target Qty (pcs)'] || row['Plan'] || 0);
                         const ct = parseFloat(row['Cycle Time (s)'] || row['Cycle Time'] || 30);
                         const actual = parseFloat(row['Actual Qty (pcs)'] || row['Actual'] || 0);
@@ -244,6 +254,8 @@
                             product: prod,
                             model: model,
                             type: type,
+                            process: process,
+                            workTime: workTime,
                             plan: plan,
                             ct: ct,
                             actual: actual,
