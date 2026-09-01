@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manpower & Production Capacity Dashboard - Multi-Page</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Prompt', sans-serif; background-color: #0b0f19; color: #e5e7eb; }
@@ -103,7 +102,6 @@
             const state = appState[currentTab];
             const container = document.getElementById('app-container');
 
-            // Calculate Takt and Cycle Time (Bottleneck)
             let maxWt = 0;
             let sumWtAll = 0;
             state.data.forEach(item => {
@@ -139,10 +137,12 @@
 
                         <!-- Dashboard Minimal Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                            <!-- Product Group Card -->
-                            <div class="custom-card p-6 rounded-2xl space-y-2 flex flex-col justify-between">
+                            <!-- Product Group Card (Highlighted with large font & card styling matching models) -->
+                            <div class="custom-card p-6 rounded-2xl space-y-3 flex flex-col justify-between">
                                 <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
-                                <h3 class="text-xl font-bold text-blue-400">${state.productGroup || '-'}</h3>
+                                <div class="py-2">
+                                    <span class="bg-blue-950/80 text-blue-300 border border-blue-800 px-4 py-2 rounded-xl text-lg font-bold inline-block shadow-inner">${state.productGroup || '-'}</span>
+                                </div>
                                 <p class="text-xs text-gray-500">กลุ่มผลิตภัณฑ์หลักของไลน์ผลิตนี้</p>
                             </div>
 
@@ -180,7 +180,6 @@
                     </div>
                 `;
             } else {
-                // Setup / Edit View
                 let setupRows = '';
                 state.data.forEach((item, index) => {
                     setupRows += `
