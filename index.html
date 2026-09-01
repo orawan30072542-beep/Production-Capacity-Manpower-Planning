@@ -80,11 +80,20 @@
     <script>
         const appState = {
             press: { name: "Press Machine", productGroup: "Press Panel", workingHours: "8.0", breakTime: "60", taktTime: "45", models: ["159C", "159F"], filters: ["All stations", "Press Line 1", "Press Line 2"], data: [] },
-            back_bottom: { name: "Back Plate & Bottom Plate", productGroup: "Bottom Plate & Back Plate", workingHours: "8.0", breakTime: "60", taktTime: "36.6", models: ["159C", "159F", "199C", "199F", "FUF14D", "TM545#212", "SBS 550", "BM23"], filters: ["All stations", "Welding", "Back plate", "Bottom plate"], data: [
-                { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "" },
-                { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "" },
-                { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปเหนียวด้านข้าง" }
-            ]},
+            back_bottom: { 
+                name: "Back Plate & Bottom Plate", 
+                productGroup: "Bottom Plate & Back Plate", 
+                workingHours: "8.0", 
+                breakTime: "60", 
+                taktTime: "36.6", 
+                models: ["159C", "159F", "199C", "199F", "FUF14D", "TM545#212", "SBS 550", "BM23"], 
+                filters: ["All stations", "Welding", "Back plate", "Bottom plate"], 
+                data: [
+                    { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
+                    { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
+                    { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 }
+                ] 
+            },
             frame_glass: { name: "Frame & Glass Door", productGroup: "Door Assembly", workingHours: "8.0", breakTime: "60", taktTime: "60", models: ["TD 469", "SBS 550"], filters: ["All stations", "Frame Assy", "Glass Bonding"], data: [] },
             door_a: { name: "Door A", productGroup: "Refrigerator Door A", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["TD 469"], filters: ["All stations", "Main Line"], data: [] },
             door_b: { name: "Door B", productGroup: "Refrigerator Door B", workingHours: "8.0", breakTime: "60", taktTime: "55", models: ["SBS 550"], filters: ["All stations", "Main Line"], data: [] },
@@ -173,20 +182,9 @@
             container.innerHTML = html;
         }
 
-        function updateTempFilter(idx, val) {
-            tempFilters[idx] = val;
-        }
-
-        function addFilterItem() {
-            tempFilters.push("หมวดหมู่ใหม่");
-            renderModalFilterList();
-        }
-
-        function removeTempFilter(idx) {
-            tempFilters.splice(idx, 1);
-            renderModalFilterList();
-        }
-
+        function updateTempFilter(idx, val) { tempFilters[idx] = val; }
+        function addFilterItem() { tempFilters.push("หมวดหมู่ใหม่"); renderModalFilterList(); }
+        function removeTempFilter(idx) { tempFilters.splice(idx, 1); renderModalFilterList(); }
         function saveFilterItems() {
             appState[currentTab].filters = [...tempFilters];
             if(!appState[currentTab].filters.includes(activeFilter)) {
@@ -208,6 +206,36 @@
                     });
                 } else {
                     modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
+                }
+
+                // Render Table like user image in Dashboard preview
+                let dashboardRows = '';
+                if(state.data && state.data.length > 0) {
+                    state.data.forEach(item => {
+                        const wt1 = parseFloat(item.wt1) || 0;
+                        const wt2 = parseFloat(item.wt2) || 0;
+                        const wt3 = parseFloat(item.wt3) || 0;
+                        const wtTotal = wt1 + wt2 + wt3;
+                        const loss = parseFloat(item.loss) || 0;
+                        const cycleTime = wtTotal + loss;
+
+                        dashboardRows += `
+                            <tr class="hover:bg-gray-800/40 transition border-b border-gray-800/60 text-xs">
+                                <td class="p-3.5 font-semibold text-white">${item.station || '-'}</td>
+                                <td class="p-3.5 text-gray-300">${item.p1 || '-'}</td>
+                                <td class="p-3.5 text-gray-300">${item.p2 || '-'}</td>
+                                <td class="p-3.5 text-gray-300">${item.p3 || '-'}</td>
+                                <td class="p-3.5 text-center text-gray-300">${wt1 > 0 ? wt1.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-center text-gray-300">${wt2 > 0 ? wt2.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-center text-gray-300">${wt3 > 0 ? wt3.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-center font-bold text-white">${wtTotal > 0 ? wtTotal.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-center text-gray-400">${loss > 0 ? loss.toFixed(2) : '-'}</td>
+                                <td class="p-3.5 text-center font-bold text-yellow-400">${cycleTime > 0 ? cycleTime.toFixed(2) : '-'}</td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    dashboardRows = `<tr><td colspan="10" class="p-6 text-center text-gray-500">ยังไม่มีข้อมูลสถานี กรุณาเพิ่มข้อมูลในหน้าตั้งค่า</td></tr>`;
                 }
 
                 container.innerHTML = `
@@ -260,6 +288,34 @@
                                 <p class="text-xs text-gray-500">อ้างอิงจากสถานีปฏิบัติงานในไลน์ (${state.data.length} สถานี)</p>
                             </div>
                         </div>
+
+                        <!-- Data Table Preview -->
+                        <div class="custom-card rounded-2xl overflow-hidden shadow-xl">
+                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                                <h3 class="text-base font-bold text-white">ตารางสรุปกระบวนการและเวลาการทำงาน</h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr class="bg-gray-900/60 text-gray-400 text-xs border-b border-gray-800">
+                                            <th class="p-3.5">Station</th>
+                                            <th class="p-3.5">Process 1</th>
+                                            <th class="p-3.5">Process 2</th>
+                                            <th class="p-3.5">Process 3</th>
+                                            <th class="p-3.5 text-center">WT 1</th>
+                                            <th class="p-3.5 text-center">WT 2</th>
+                                            <th class="p-3.5 text-center">WT 3</th>
+                                            <th class="p-3.5 text-center">WT Total</th>
+                                            <th class="p-3.5 text-center">Loss</th>
+                                            <th class="p-3.5 text-center">Cycle Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-800/60">
+                                        ${dashboardRows}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 `;
             } else {
@@ -268,10 +324,14 @@
                     setupRows += `
                         <tr class="hover:bg-gray-800/40 transition">
                             <td class="p-3 font-semibold text-white"><input type="text" value="${item.station || ''}" onchange="updateSetupRow(${index}, 'station', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20"></td>
-                            <td class="p-3"><input type="text" value="${item.p1 || ''}" onchange="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3"><input type="text" value="${item.p2 || ''}" onchange="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3"><input type="text" value="${item.p3 || ''}" onchange="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3 text-center"><button onclick="removeStation(${index})" class="bg-red-950 text-red-400 border border-red-800 px-2 py-1 rounded text-xs">ลบ</button></td>
+                            <td class="p-3"><input type="text" value="${item.p1 || ''}" onchange="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full" placeholder="Process 1"></td>
+                            <td class="p-3"><input type="text" value="${item.p2 || ''}" onchange="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full" placeholder="Process 2"></td>
+                            <td class="p-3"><input type="text" value="${item.p3 || ''}" onchange="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full" placeholder="Process 3"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.wt1 || 0}" onchange="updateSetupRow(${index}, 'wt1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.wt2 || 0}" onchange="updateSetupRow(${index}, 'wt2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.wt3 || 0}" onchange="updateSetupRow(${index}, 'wt3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3"><input type="number" step="0.01" value="${item.loss || 0}" onchange="updateSetupRow(${index}, 'loss', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20 text-center"></td>
+                            <td class="p-3 text-center"><button onclick="removeStation(${index})" class="bg-red-950 text-red-400 border border-red-800 px-2.5 py-1 rounded text-xs">ลบ</button></td>
                         </tr>
                     `;
                 });
@@ -337,17 +397,21 @@
                         <!-- Stations Table Editor -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
                             <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและกระบวนการทำงาน</h3>
+                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและเวลาการทำงาน (WT1, WT2, WT3, Loss)</h3>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
                                     <thead>
                                         <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-3.5">Station</th>
-                                            <th class="p-3.5">Process 1</th>
-                                            <th class="p-3.5">Process 2</th>
-                                            <th class="p-3.5">Process 3</th>
-                                            <th class="p-3.5 text-center">จัดการ</th>
+                                            <th class="p-3">Station</th>
+                                            <th class="p-3">Process 1</th>
+                                            <th class="p-3">Process 2</th>
+                                            <th class="p-3">Process 3</th>
+                                            <th class="p-3 text-center">WT 1</th>
+                                            <th class="p-3 text-center">WT 2</th>
+                                            <th class="p-3 text-center">WT 3</th>
+                                            <th class="p-3 text-center">Loss</th>
+                                            <th class="p-3 text-center">จัดการ</th>
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm divide-y divide-gray-800/60">
@@ -362,20 +426,19 @@
         }
 
         function updateSetupRow(index, field, value) {
-            appState[currentTab].data[index][field] = value;
+            if(['wt1', 'wt2', 'wt3', 'loss'].includes(field)) {
+                appState[currentTab].data[index][field] = parseFloat(value) || 0;
+            } else {
+                appState[currentTab].data[index][field] = value;
+            }
         }
 
-        function updateProductGroup(val) {
-            appState[currentTab].productGroup = val;
-        }
-
-        function updateWorkingTime(field, val) {
-            appState[currentTab][field] = val;
-        }
+        function updateProductGroup(val) { appState[currentTab].productGroup = val; }
+        function updateWorkingTime(field, val) { appState[currentTab][field] = val; }
 
         function addStation() {
-            const stName = "ST0" + (appState[currentTab].data.length + 1);
-            appState[currentTab].data.push({ station: stName, p1: "", p2: "", p3: "" });
+            const stName = "BTA0" + (appState[currentTab].data.length + 1);
+            appState[currentTab].data.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
             renderView();
         }
 
@@ -387,16 +450,12 @@
         function toggleModel(modelName) {
             const models = appState[currentTab].models;
             const idx = models.indexOf(modelName);
-            if(idx > -1) {
-                models.splice(idx, 1);
-            } else {
-                models.push(modelName);
-            }
+            if(idx > -1) { models.splice(idx, 1); } else { models.push(modelName); }
         }
 
         window.onload = function() {
             renderFilters();
-            switchTab('press');
+            switchTab('back_bottom');
         };
     </script>
 </body>
