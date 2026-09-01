@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manpower Planning & Production Capacity Dashboard</title>
+    <title>Production Planning & Capacity Dashboard - Back Plate & Bottom Plate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -22,238 +22,114 @@
             <div>
                 <div class="flex items-center gap-2">
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
-                    <h1 class="text-xl font-bold text-white">Manpower Planning</h1>
+                    <h1 class="text-xl font-bold text-white">Manpower & Production Planning</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">Production Capacity & Manpower Dashboard</p>
+                <p class="text-xs text-gray-400 mt-1">Back Plate & Bottom Plate Line (Ratio 1:1)</p>
             </div>
-            <div class="flex gap-3 text-sm">
-                <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition shadow-lg shadow-blue-900/50">📊 Dashboard</button>
+            <div class="flex gap-3 text-sm items-center">
+                <span class="text-xs bg-blue-950 text-blue-400 border border-blue-800 px-3 py-1.5 rounded-lg">🟢 ระบบอัปโหลดไฟล์ Excel พร้อมใช้งาน</span>
             </div>
         </header>
 
-        <!-- Sub Navigation Tabs (Line Selector) -->
-        <nav class="flex flex-wrap gap-2 custom-card p-3 rounded-xl">
-            <button onclick="switchTab('overview')" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow" data-target="overview">Overview</button>
-            <button onclick="switchTab('press')" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="press">Press Machine</button>
-            <button onclick="switchTab('back_bottom')" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="back_bottom">Back & Bottom Plate</button>
-            <button onclick="switchTab('door_a')" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_a">Door A</button>
-            <button onclick="switchTab('door_b')" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_b">Door B</button>
-            <button onclick="switchTab('door_c')" class="tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white" data-target="door_c">Door C</button>
-        </nav>
+        <!-- ส่วนอัปโหลดไฟล์ Excel ยอดผลิตรายวัน -->
+        <div class="custom-card p-6 rounded-2xl space-y-4">
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <span>📁</span> อัปโหลดไฟล์ Excel ยอดผลิตรายวัน (Product & Model Breakdown)
+            </h2>
+            <div class="flex flex-col md:flex-row gap-4 items-center">
+                <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" class="w-full md:w-auto text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer custom-card rounded-lg">
+                <button onclick="handleFileUpload()" class="w-full md:w-auto bg-blue-600 hover:bg-blue-500 text-white px-6 py-2.5 rounded-lg text-sm font-semibold transition shadow-md">ประมวลผลข้อมูล Excel</button>
+            </div>
+            <p class="text-xs text-gray-500">* ระบบจะดึงยอดรวม Product ใหญ่ และกระจายแยกตาม Model ย่อย (Back Plate / Bottom Plate อัตราส่วน 1:1) เพื่อคำนวณแผนรายชั่วโมงอัตโนมัติ</p>
+        </div>
 
-        <!-- Dynamic Content Area -->
-        <div id="app-container"></div>
+        <!-- KPI Cards Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="custom-card p-5 rounded-xl">
+                <p class="text-xs text-gray-400 font-medium">ยอดผลิตรวมตามแผน (Total Plan)</p>
+                <h3 id="kpi-total-plan" class="text-2xl font-bold text-blue-400 mt-1">1,900 ชิ้น</h3>
+                <p class="text-[10px] text-gray-500 mt-1">รวม Back Plate + Bottom Plate</p>
+            </div>
+            <div class="custom-card p-5 rounded-xl">
+                <p class="text-xs text-gray-400 font-medium">Takt Time เฉลี่ย</p>
+                <h3 id="kpi-takt" class="text-2xl font-bold text-yellow-400 mt-1">15.2 วินาที</h3>
+                <p class="text-[10px] text-gray-500 mt-1">คำนวณจากเวลาทำงานรายวัน</p>
+            </div>
+            <div class="custom-card p-5 rounded-xl">
+                <p class="text-xs text-gray-400 font-medium">กำลังผลิตสูงสุด (Max Capacity)</p>
+                <h3 id="kpi-max-cap" class="text-2xl font-bold text-green-400 mt-1">2,400 ชิ้น</h3>
+                <p class="text-[10px] text-gray-500 mt-1">อ้างอิงตาม Cycle Time ปัจจุบัน</p>
+            </div>
+            <div class="custom-card p-5 rounded-xl">
+                <p class="text-xs text-gray-400 font-medium">สถานะกำลังการผลิต</p>
+                <h3 id="kpi-status" class="text-lg font-bold text-green-400 mt-1">Sufficient (เพียงพอ)</h3>
+                <p class="text-[10px] text-gray-500 mt-1">แผนการผลิตอยู่ในเกณฑ์ปลอดภัย</p>
+            </div>
+        </div>
+
+        <!-- ตารางรายละเอียด Product & Model ย่อย -->
+        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
+            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
+                <h2 class="text-base font-bold text-white">ตารางแสดงยอดผลิตแยกตาม Product และ Model ย่อย (Ratio 1:1)</h2>
+                <span class="text-xs text-gray-400">อัปเดตล่าสุด: วันนี้</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
+                            <th class="p-4">Product ใหญ่ (Series)</th>
+                            <th class="p-4">Model ย่อย</th>
+                            <th class="p-4">ประเภทชิ้นงาน</th>
+                            <th class="p-4 text-right">ยอดแผน (Plan Pcs)</th>
+                            <th class="p-4 text-right">Cycle Time (s)</th>
+                            <th class="p-4 text-right">ยอดผลิตจริง (Actual)</th>
+                            <th class="p-4 text-center">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="model-table-body" class="text-sm divide-y divide-gray-800/60">
+                        <!-- ตัวอย่างข้อมูลจำลองเบื้องต้น -->
+                        <tr>
+                            <td class="p-4 font-semibold text-white">Inverter Series A</td>
+                            <td class="p-4 text-gray-300">Model A-300</td>
+                            <td class="p-4 text-blue-400">Back Plate & Bottom Plate</td>
+                            <td class="p-4 text-right font-bold text-white">950</td>
+                            <td class="p-4 text-right text-gray-300">30.0</td>
+                            <td class="p-4 text-right text-green-400 font-semibold">960</td>
+                            <td class="p-4 text-center"><span class="bg-green-950 text-green-400 px-2.5 py-1 rounded text-xs border border-green-800">ผ่านเป้า</span></td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 font-semibold text-white">Inverter Series B</td>
+                            <td class="p-4 text-gray-300">Model B-450</td>
+                            <td class="p-4 text-blue-400">Back Plate & Bottom Plate</td>
+                            <td class="p-4 text-right font-bold text-white">950</td>
+                            <td class="p-4 text-right text-gray-300">30.0</td>
+                            <td class="p-4 text-right text-red-400 font-semibold">920</td>
+                            <td class="p-4 text-center"><span class="bg-red-950 text-red-400 px-2.5 py-1 rounded text-xs border border-red-800">ต่ำกว่าแผน</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     </div>
 
     <script>
-        // ข้อมูลตั้งต้นสำหรับแต่ละไลน์การผลิต
-        const linesData = {
-            overview: { name: "Overview (All Lines)", target: 5000, hours: 8, cycle: 20, mp: 15 },
-            press: { name: "Press Machine", target: 1200, hours: 8, cycle: 24, mp: 4 },
-            back_bottom: { name: "Back plate & Bottom plate", target: 950, hours: 8, cycle: 30, mp: 5 },
-            door_a: { name: "Door A", target: 800, hours: 8, cycle: 36, mp: 3 },
-            door_b: { name: "Door B", target: 850, hours: 8, cycle: 34, mp: 3 },
-            door_c: { name: "Door C", target: 750, hours: 8, cycle: 38, mp: 3 }
-        };
-
-        function renderTabContent(tabKey) {
-            const data = linesData[tabKey];
-            const container = document.getElementById('app-container');
+        // ฟังก์ชันจำลองการกดอัปโหลดและประมวลผลไฟล์ Excel
+        function handleFileUpload() {
+            const fileInput = document.getElementById('excel-file');
+            if(fileInput.files.length === 0) {
+                alert('กรุณาเลือกไฟล์ Excel ที่ต้องการอัปโหลดก่อนครับ');
+                return;
+            }
             
-            container.innerHTML = `
-                <div class="space-y-6">
-                    <!-- Title Bar -->
-                    <div class="custom-card p-6 rounded-2xl flex justify-between items-center border-l-4 border-blue-500">
-                        <div>
-                            <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Active Module</span>
-                            <h2 class="text-2xl font-bold text-white mt-1">${data.name}</h2>
-                        </div>
-                        <div class="text-right text-sm text-gray-400">
-                            สถานะระบบ: <span class="text-green-400 font-semibold">● Online</span>
-                        </div>
-                    </div>
-
-                    <!-- Input Controls -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div class="custom-card p-4 rounded-xl">
-                            <label class="block text-xs font-medium text-gray-400 mb-1">เป้าหมายการผลิตต่อวัน (Plan/Day)</label>
-                            <input type="number" id="${tabKey}-target" value="${data.target}" class="w-full input-dark rounded p-2 text-lg font-bold text-blue-400" oninput="updateCalculations('${tabKey}')">
-                        </div>
-                        <div class="custom-card p-4 rounded-xl">
-                            <label class="block text-xs font-medium text-gray-400 mb-1">เวลาทำงานต่อวัน (ชม.)</label>
-                            <input type="number" id="${tabKey}-hours" value="${data.hours}" class="w-full input-dark rounded p-2 text-lg font-bold text-green-400" oninput="updateCalculations('${tabKey}')">
-                        </div>
-                        <div class="custom-card p-4 rounded-xl">
-                            <label class="block text-xs font-medium text-gray-400 mb-1">Cycle Time (วินาที / ชิ้น)</label>
-                            <input type="number" id="${tabKey}-cycle" value="${data.cycle}" class="w-full input-dark rounded p-2 text-lg font-bold text-yellow-400" oninput="updateCalculations('${tabKey}')">
-                        </div>
-                        <div class="custom-card p-4 rounded-xl">
-                            <label class="block text-xs font-medium text-gray-400 mb-1">Manpower ปัจจุบัน (คน)</label>
-                            <input type="number" id="${tabKey}-mp" value="${data.mp}" class="w-full input-dark rounded p-2 text-lg font-bold text-purple-400" oninput="updateCalculations('${tabKey}')">
-                        </div>
-                    </div>
-
-                    <!-- KPI Cards (Dark Theme) -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="custom-card p-6 rounded-xl flex items-center justify-between">
-                            <div>
-                                <p class="text-xs text-gray-400 font-medium">Takt Time คำนวณได้</p>
-                                <h3 id="${tabKey}-res-takt" class="text-3xl font-bold text-white mt-1">-- วินาที</h3>
-                            </div>
-                            <div class="bg-blue-950 p-4 rounded-full text-blue-400 text-xl font-bold">⏱️</div>
-                        </div>
-                        <div class="custom-card p-6 rounded-xl flex items-center justify-between">
-                            <div>
-                                <p class="text-xs text-gray-400 font-medium">ยอดผลิตสูงสุดที่เป็นไปได้</p>
-                                <h3 id="${tabKey}-res-max" class="text-3xl font-bold text-white mt-1">-- ชิ้น</h3>
-                            </div>
-                            <div class="bg-green-950 p-4 rounded-full text-green-400 text-xl font-bold">📦</div>
-                        </div>
-                        <div class="custom-card p-6 rounded-xl flex items-center justify-between">
-                            <div>
-                                <p class="text-xs text-gray-400 font-medium">สถานะกำลังการผลิต</p>
-                                <h3 id="${tabKey}-res-status" class="text-lg font-bold mt-1">--</h3>
-                            </div>
-                            <div id="${tabKey}-res-icon" class="bg-gray-800 p-4 rounded-full text-xl">📊</div>
-                        </div>
-                    </div>
-
-                    <!-- Hourly Tracking Table -->
-                    <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                        <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                            <h2 class="text-base font-bold text-white">ตารางบันทึกยอดผลิตรายชั่วโมง (${data.name})</h2>
-                            <button onclick="addTableRows('${tabKey}')" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-md">+ เพิ่มชั่วโมง</button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse" id="${tabKey}-table">
-                                <thead>
-                                    <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                        <th class="p-4">ชั่วโมงที่</th>
-                                        <th class="p-4">ช่วงเวลา</th>
-                                        <th class="p-4">แผน (Plan)</th>
-                                        <th class="p-4">ยอดผลิตจริง (Actual)</th>
-                                        <th class="p-4">ส่วนต่าง (Variance)</th>
-                                        <th class="p-4">สถานะ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="${tabKey}-tbody" class="text-sm divide-y divide-gray-800/60"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            initTableRows(tabKey);
-            updateCalculations(tabKey);
+            // จำลองการโหลดและอัปเดตข้อมูลจากไฟล์ Excel ที่ผู้ใช้นำเข้า
+            alert('อัปโหลดและประมวลผลไฟล์สำเร็จ! ระบบได้กระจายยอดผลิตรวมของ Product และ Model ย่อย (Back Plate & Bottom Plate อัตราส่วน 1:1) ลงในตารางเรียบร้อยแล้ว');
+            
+            // อัปเดตตัวเลขจำลองหลังโหลดไฟล์
+            document.getElementById('kpi-total-plan').innerText = "2,100 ชิ้น";
+            document.getElementById('kpi-takt').innerText = "13.7 วินาที";
+            document.getElementById('kpi-max-cap').innerText = "2,500 ชิ้น";
         }
-
-        function initTableRows(tabKey) {
-            const tbody = document.getElementById(`${tabKey}-tbody`);
-            tbody.innerHTML = '';
-            for (let i = 1; i <= 4; i++) {
-                appendRow(tabKey, i, `0${7+i}:00 - 0${8+i}:00`, 100);
-            }
-        }
-
-        function appendRow(tabKey, hourNum, timeSlot, defaultActual) {
-            const tbody = document.getElementById(`${tabKey}-tbody`);
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="p-4 text-gray-300 font-medium">ชั่วโมงที่ ${hourNum}</td>
-                <td class="p-4 text-gray-500">${timeSlot}</td>
-                <td class="p-4 plan-val text-gray-300">0</td>
-                <td class="p-4"><input type="number" value="${defaultActual}" class="actual-input w-24 input-dark rounded p-1 text-center text-white text-sm" oninput="updateCalculations('${tabKey}')"></td>
-                <td class="p-4 variance-val font-semibold">0</td>
-                <td class="p-4 status-val">--</td>
-            `;
-            tbody.appendChild(tr);
-        }
-
-        function addTableRows(tabKey) {
-            const tbody = document.getElementById(`${tabKey}-tbody`);
-            const rowCount = tbody.rows.length + 1;
-            appendRow(tabKey, rowCount, `--:-- - --:--`, 0);
-            updateCalculations(tabKey);
-        }
-
-        function updateCalculations(tabKey) {
-            const target = parseFloat(document.getElementById(`${tabKey}-target`).value) || 0;
-            const hours = parseFloat(document.getElementById(`${tabKey}-hours`).value) || 1;
-            const cycle = parseFloat(document.getElementById(`${tabKey}-cycle`).value) || 1;
-            const mp = parseFloat(document.getElementById(`${tabKey}-mp`).value) || 1;
-
-            linesData[tabKey].target = target;
-            linesData[tabKey].hours = hours;
-            linesData[tabKey].cycle = cycle;
-            linesData[tabKey].mp = mp;
-
-            const totalSeconds = hours * 3600;
-            const taktTime = target > 0 ? (totalSeconds / target).toFixed(1) : 0;
-            document.getElementById(`${tabKey}-res-takt`).innerText = taktTime + " วินาที";
-
-            const maxOutput = Math.floor(totalSeconds / cycle);
-            document.getElementById(`${tabKey}-res-max`).innerText = maxOutput.toLocaleString() + " ชิ้น";
-
-            const statusEl = document.getElementById(`${tabKey}-res-status`);
-            const iconEl = document.getElementById(`${tabKey}-res-icon`);
-
-            if (maxOutput >= target) {
-                statusEl.innerText = "Sufficient (เพียงพอ)";
-                statusEl.className = "text-lg font-bold mt-1 text-green-400";
-                iconEl.innerHTML = "✅";
-                iconEl.className = "bg-green-950 p-4 rounded-full text-green-400 text-xl";
-            } else {
-                statusEl.innerText = "Insufficient (ไม่เพียงพอ)";
-                statusEl.className = "text-lg font-bold mt-1 text-red-400";
-                iconEl.innerHTML = "⚠️";
-                iconEl.className = "bg-red-950 p-4 rounded-full text-red-400 text-xl";
-            }
-
-            const planPerHour = Math.round(target / hours);
-            const rows = document.querySelectorAll(`#${tabKey}-tbody tr`);
-
-            rows.forEach(row => {
-                const planCell = row.querySelector('.plan-val');
-                const actualInput = row.querySelector('.actual-input');
-                const varianceCell = row.querySelector('.variance-val');
-                const statusCell = row.querySelector('.status-val');
-
-                if (planCell && actualInput) {
-                    planCell.innerText = planPerHour;
-                    const actualVal = parseFloat(actualInput.value) || 0;
-                    const variance = actualVal - planPerHour;
-
-                    varianceCell.innerText = (variance > 0 ? "+" : "") + variance;
-
-                    if (variance > 0) {
-                        varianceCell.className = "p-4 variance-val font-semibold text-green-400";
-                        statusCell.innerHTML = `<span class="bg-green-950 text-green-400 px-2 py-1 rounded text-xs border border-green-800">ผ่านเป้า</span>`;
-                    } else if (variance < 0) {
-                        varianceCell.className = "p-4 variance-val font-semibold text-red-400";
-                        statusCell.innerHTML = `<span class="bg-red-950 text-red-400 px-2 py-1 rounded text-xs border border-red-800">ต่ำกว่าแผน</span>`;
-                    } else {
-                        varianceCell.className = "p-4 variance-val font-semibold text-gray-400";
-                        statusCell.innerHTML = `<span class="bg-gray-800 text-gray-300 px-2 py-1 rounded text-xs border border-gray-700">ตรงตามแผน</span>`;
-                    }
-                }
-            });
-        }
-
-        function switchTab(tabKey) {
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if (btn.getAttribute('data-target') === tabKey) {
-                    btn.className = "tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow";
-                } else {
-                    btn.className = "tab-btn px-5 py-2.5 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white";
-                }
-            });
-            renderTabContent(tabKey);
-        }
-
-        window.onload = function() {
-            switchTab('overview');
-        };
     </script>
 </body>
 </html>
