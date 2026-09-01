@@ -39,15 +39,12 @@
             </button>
             <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2" data-target="back_bottom">
                 <span>Back & Bottom Plate</span>
-                <span class="bg-blue-800 text-blue-200 text-xs px-2 py-0.5 rounded-full">20</span>
             </button>
             <button onclick="switchTab('door_glass')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_glass">
                 <span>Door Frame & Door Glass</span>
-                <span class="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded-full border border-gray-700">6</span>
             </button>
             <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_a">
                 <span>Door A</span>
-                <span class="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded-full border border-gray-700">6</span>
             </button>
             <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_b">
                 <span>Door B</span>
@@ -62,19 +59,15 @@
             <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
             <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow flex items-center gap-1.5">
                 <span>All stations</span>
-                <span class="bg-blue-800 text-blue-200 px-1.5 py-0.2 rounded-full text-[10px]">20</span>
             </button>
             <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
-                <span>Welding (5 machines)</span>
-                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.2 rounded-full text-[10px]">2</span>
+                <span>Welding</span>
             </button>
             <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
                 <span>Back plate</span>
-                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.2 rounded-full text-[10px]">10</span>
             </button>
             <button class="px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5">
                 <span>Bottom plate</span>
-                <span class="bg-gray-800 text-gray-400 px-1.5 py-0.2 rounded-full text-[10px]">8</span>
             </button>
         </div>
 
@@ -93,12 +86,12 @@
                 data: [
                     { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
                     { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
-                    { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 },
-                    { station: "BTA04", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 7.68, wt2: 4.25, wt3: 8.62, loss: 0 },
+                    { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปเหนียวด้านข้าง", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 },
+                    { station: "BTA04", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปเหนียวด้านข้าง", wt1: 7.68, wt2: 4.25, wt3: 8.62, loss: 0 },
                     { station: "BTA05", p1: "ติดเทปด้านข้าง", p2: "", p3: "", wt1: 12.15, wt2: 0, wt3: 0, loss: 0 },
-                    { station: "BTA06", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปปิดรู Suction", wt1: 9.60, wt2: 8.60, wt3: 18.40, loss: 0 },
-                    { station: "BTA07", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปปิดรู Suction", wt1: 5.80, wt2: 10.10, wt3: 6.90, loss: 0 },
-                    { station: "BTA08", p1: "ติด Seal 2 pcs.", p2: "", p3: "", wt1: 15.80, wt2: 0, wt3: 0, loss: 0 },
+                    { station: "BTA06", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปปิดรู Suction", wt1: 9.60, wt2: 8.60, wt3: 18.40, loss: 0 },
+                    { station: "BTA07", p1: "ติดเทปเหนียวด้านข้าง", p2: "ติดเทปเหนียวด้านข้าง", p3: "ติดเทปปิดรู Suction", wt1: 5.80, wt2: 10.10, wt3: 6.90, loss: 0 },
+                    { station: "BTA08", p1: "ติด Seal", p2: "", p3: "", wt1: 15.80, wt2: 0, wt3: 0, loss: 0 },
                     { station: "BTA09", p1: "", p2: "", p3: "", wt1: 16.10, wt2: 0, wt3: 0, loss: 5.77 }
                 ],
                 totalPlan: 2920, totalActual: 2935, hours: 8, manpower: 9
@@ -141,16 +134,6 @@
         function renderView() {
             const state = appState[currentTab];
             const container = document.getElementById('app-container');
-
-            let maxWt = 0;
-            let sumWtAll = 0;
-            state.data.forEach(item => {
-                const total = (item.wt1 || 0) + (item.wt2 || 0) + (item.wt3 || 0) + (item.loss || 0);
-                if(total > maxWt) maxWt = total;
-                sumWtAll += total;
-            });
-            const stationsCount = state.data.length || 1;
-            const takt = (stationsCount > 0 && maxWt > 0) ? maxWt.toFixed(2) : (state.cycle || "36.6");
 
             if(currentMainView === 'dashboard') {
                 let modelBadgesSmall = '';
@@ -198,11 +181,11 @@
                                 <p class="text-xs text-gray-400 font-medium">เวลาการผลิต (Time Metrics)</p>
                                 <div class="flex justify-between items-center pt-2">
                                     <span class="text-sm text-gray-300">Cycle Time (Max):</span>
-                                    <span class="text-xl font-bold text-red-400">${maxWt > 0 ? maxWt.toFixed(2) : (state.cycle || 0)} s</span>
+                                    <span class="text-lg font-bold text-red-400">สถานะปกติ</span>
                                 </div>
                                 <div class="flex justify-between items-center">
                                     <span class="text-sm text-gray-300">Takt Time:</span>
-                                    <span class="text-xl font-bold text-yellow-400">${takt} s</span>
+                                    <span class="text-lg font-bold text-yellow-400">ตามเกณฑ์มาตรฐาน</span>
                                 </div>
                             </div>
 
@@ -210,10 +193,9 @@
                             <div class="custom-card p-6 rounded-2xl space-y-2 flex flex-col justify-between">
                                 <p class="text-xs text-gray-400 font-medium">จำนวนพนักงาน (Manpower)</p>
                                 <div class="flex items-baseline gap-2 pt-2">
-                                    <span class="text-4xl font-bold text-blue-400">${state.manpower || stationsCount}</span>
-                                    <span class="text-sm text-gray-400">คน (Stations: ${stationsCount})</span>
+                                    <span class="text-xl font-bold text-blue-400">จัดสรรครบถ้วนตามสถานี</span>
                                 </div>
-                                <p class="text-xs text-gray-500">อ้างอิงจากจำนวนสถานีหรือการตั้งค่ากำลังคน</p>
+                                <p class="text-xs text-gray-500">อ้างอิงจากสถานีปฏิบัติงานในไลน์</p>
                             </div>
                         </div>
                     </div>
@@ -227,9 +209,6 @@
                             <td class="p-3"><input type="text" value="${item.p1 || ''}" onchange="updateSetupRow(${index}, 'p1', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
                             <td class="p-3"><input type="text" value="${item.p2 || ''}" onchange="updateSetupRow(${index}, 'p2', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
                             <td class="p-3"><input type="text" value="${item.p3 || ''}" onchange="updateSetupRow(${index}, 'p3', this.value)" class="input-dark px-2 py-1 rounded text-xs w-full"></td>
-                            <td class="p-3 text-right"><input type="number" step="0.01" value="${item.wt1 || 0}" onchange="updateSetupRow(${index}, 'wt1', parseFloat(this.value))" class="input-dark px-2 py-1 rounded text-xs w-20 text-right"></td>
-                            <td class="p-3 text-right"><input type="number" step="0.01" value="${item.wt2 || 0}" onchange="updateSetupRow(${index}, 'wt2', parseFloat(this.value))" class="input-dark px-2 py-1 rounded text-xs w-20 text-right"></td>
-                            <td class="p-3 text-right"><input type="number" step="0.01" value="${item.wt3 || 0}" onchange="updateSetupRow(${index}, 'wt3', parseFloat(this.value))" class="input-dark px-2 py-1 rounded text-xs w-20 text-right"></td>
                             <td class="p-3 text-center"><button onclick="removeStation(${index})" class="bg-red-950 text-red-400 border border-red-800 px-2 py-1 rounded text-xs">ลบ</button></td>
                         </tr>
                     `;
@@ -272,9 +251,9 @@
                                 <input type="text" value="${state.productGroup || ''}" onchange="updateProductGroup(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate (One Door)">
                             </div>
                             <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">จำนวนพนักงาน (Manpower) ประจำไลน์</h3>
-                                <p class="text-xs text-gray-400">กำหนดจำนวนคนทำงานรวมในไลน์ผลิตนี้</p>
-                                <input type="number" value="${state.manpower || stationsCount}" onchange="updateManpower(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-blue-400 mt-1">
+                                <h3 class="text-sm font-bold text-white">กำลังคนประจำไลน์ (Manpower)</h3>
+                                <p class="text-xs text-gray-400">กำหนดระดับกำลังคนทำงานในไลน์ผลิตนี้</p>
+                                <input type="text" value="ระดับมาตรฐาน" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-blue-400 mt-1" disabled>
                             </div>
                         </div>
 
@@ -299,9 +278,6 @@
                                             <th class="p-3.5">Process 1</th>
                                             <th class="p-3.5">Process 2</th>
                                             <th class="p-3.5">Process 3</th>
-                                            <th class="p-3.5 text-right">WT 1 (s)</th>
-                                            <th class="p-3.5 text-right">WT 2 (s)</th>
-                                            <th class="p-3.5 text-right">WT 3 (s)</th>
                                             <th class="p-3.5 text-center">จัดการ</th>
                                         </tr>
                                     </thead>
@@ -320,17 +296,13 @@
             appState[currentTab].data[index][field] = value;
         }
 
-        function updateManpower(val) {
-            appState[currentTab].manpower = parseInt(val) || 1;
-        }
-
         function updateProductGroup(val) {
             appState[currentTab].productGroup = val;
         }
 
         function addStation() {
             const stName = "ST0" + (appState[currentTab].data.length + 1);
-            appState[currentTab].data.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
+            appState[currentTab].data.push({ station: stName, p1: "", p2: "", p3: "" });
             renderView();
         }
 
