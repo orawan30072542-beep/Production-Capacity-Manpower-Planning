@@ -216,7 +216,7 @@
                     modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
                 }
 
-                const currentDataCount = (state.dataByModel[state.activeModel] || []).length;
+                const currentDataCount = (state.dataByModel && state.dataByModel[state.activeModel]) ? state.dataByModel[state.activeModel].length : 0;
 
                 container.innerHTML = `
                     <div class="space-y-6">
@@ -271,7 +271,10 @@
                     </div>
                 `;
             } else {
-                const activeModelData = state.dataByModel[state.activeModel] || [];
+                if (!state.dataByModel) state.dataByModel = {};
+                if (!state.dataByModel[state.activeModel]) state.dataByModel[state.activeModel] = [];
+                const activeModelData = state.dataByModel[state.activeModel];
+                
                 let setupRows = '';
                 activeModelData.forEach((item, index) => {
                     setupRows += `
@@ -292,7 +295,7 @@
                 const allModelsList = ["159C", "159F", "199C", "199F", "TM545#212", "FUF14D", "FUF18D", "FUF22S", "TD 469", "SBS 550", "BM23", "Gasket Standard", "DID Model"];
                 let modelCheckboxes = '';
                 allModelsList.forEach(m => {
-                    const checked = state.models.includes(m) ? 'checked' : '';
+                    const checked = state.models && state.models.includes(m) ? 'checked' : '';
                     modelCheckboxes += `
                         <label class="flex items-center gap-2 bg-gray-900 border border-gray-800 px-3 py-2 rounded-lg cursor-pointer text-xs">
                             <input type="checkbox" value="${m}" ${checked} onchange="toggleModel('${m}')" class="rounded bg-gray-800 border-gray-700 text-blue-600">
@@ -302,13 +305,15 @@
                 });
 
                 let modelTabsForSetup = '';
-                state.models.forEach(m => {
-                    const isActive = (state.activeModel === m);
-                    const btnClass = isActive 
-                        ? "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow"
-                        : "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800";
-                    modelTabsForSetup += `<button onclick="setActiveModelForSetup('${m}')" class="${btnClass}">${m}</button>`;
-                });
+                if(state.models) {
+                    state.models.forEach(m => {
+                        const isActive = (state.activeModel === m);
+                        const btnClass = isActive 
+                            ? "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow"
+                            : "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800";
+                        modelTabsForSetup += `<button onclick="setActiveModelForSetup('${m}')" class="${btnClass}">${m}</button>`;
+                    });
+                }
 
                 container.innerHTML = `
                     <div class="space-y-6">
@@ -405,46 +410,67 @@
         function updateWorkingTime(field, val) { appState[currentTab][field] = val; }
 
         function addStation() {
-    const state = appState[currentTab];
-    
-    // ตรวจสอบและสร้างโครงสร้างข้อมูลรุ่นและสถานีให้พร้อม
-    if (!state.models || state.models.length === 0) {
-        state.models = ["Default Model"];
-    }
-    if (!state.activeModel || !state.models.includes(state.activeModel)) {
-        state.activeModel = state.models[0];
-    }
-    if (!state.dataByModel) {
-        state.dataByModel = {};
-    }
-    if (!state.dataByModel[state.activeModel]) {
-        state.dataByModel[state.activeModel] = [];
-    }
-    
-    const activeList = state.dataByModel[state.activeModel];
-    const stName = "BTA0" + (activeList.length + 1);
-    activeList.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
-    
-    renderView();
-}
+            if (typeof appState === 'undefined' || !currentTab) return;
+            
+            const state = appState[currentTab];
+            if (!state) return;
+            
+            if (!state.models || !Array.isArray(state.models) || state.models.length === 0) {
+                state.models = ["Default Model"];
+            }
+            
+            if (!state.activeModel || !state.models.includes(state.activeModel)) {
+                state.activeModel = state.models[0];
+            }
+            
+            if (!state.dataByModel || typeof state.dataByModel !== 'object') {
+                state.dataByModel = {};
+            }
+            
+            if (!state.dataByModel[state.activeModel] || !Array.isArray(state.dataByModel[state.activeModel])) {
+                state.dataByModel[state.activeModel] = [];
+            }
+            
+            const activeList = state.dataByModel[state.activeModel];
+            const stName = "BTA0" + (activeList.length + 1);
+            
+            activeList.push({ 
+                station: stName, 
+                p1: "", 
+                p2: "", 
+                p3: "", 
+                wt1: 0, 
+                wt2: 0, 
+                wt3: 0, 
+                loss: 0 
+            });
+            
+            renderView();
+        }
+
         function removeStation(index) {
             const state = appState[currentTab];
-            state.dataByModel[state.activeModel].splice(index, 1);
-            renderView();
+            if (state && state.dataByModel && state.dataByModel[state.activeModel]) {
+                state.dataByModel[state.activeModel].splice(index, 1);
+                renderView();
+            }
         }
 
         function toggleModel(modelName) {
             const state = appState[currentTab];
+            if (!state.models) state.models = [];
             const models = state.models;
             const idx = models.indexOf(modelName);
+            
             if(idx > -1) { 
                 models.splice(idx, 1); 
-                delete state.dataByModel[modelName];
+                if (state.dataByModel) delete state.dataByModel[modelName];
                 if(state.activeModel === modelName) {
                     state.activeModel = models[0] || '';
                 }
             } else { 
                 models.push(modelName); 
+                if(!state.dataByModel) state.dataByModel = {};
                 if(!state.dataByModel[modelName]) {
                     state.dataByModel[modelName] = [];
                 }
