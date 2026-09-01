@@ -54,11 +54,10 @@
             </button>
         </nav>
 
-        <!-- Sub Filter Bar (Station / Category Filter with Editable capability) -->
+        <!-- Sub Filter Bar -->
         <div id="sub-filter-bar" class="flex flex-wrap items-center justify-between gap-2 custom-card px-4 py-3 rounded-xl text-sm">
             <div id="filter-buttons-container" class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
-                <!-- Rendered dynamically -->
             </div>
             <button onclick="openFilterEditor()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1">
                 <span>✏️ จัดการปุ่มหมวดหมู่</span>
@@ -77,9 +76,7 @@
                 <h3 class="text-base font-bold text-white">แก้ไขปุ่มหมวดหมู่สถานี (Sub Filters)</h3>
                 <button onclick="closeFilterEditor()" class="text-gray-400 hover:text-white text-sm">✕</button>
             </div>
-            <div id="modal-filter-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <!-- Editable rows injected via JS -->
-            </div>
+            <div id="modal-filter-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             <div class="flex justify-between items-center pt-2 border-t border-gray-800">
                 <button onclick="addFilterItem()" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700">
                     ➕ เพิ่มหมวดหมู่
@@ -97,6 +94,9 @@
             press: { 
                 name: "Press Machine", 
                 productGroup: "Press Panel", 
+                workingHours: "8.0",
+                breakTime: "60",
+                taktTime: "45",
                 models: ["159C", "159F"], 
                 filters: ["All stations", "Press Line 1", "Press Line 2"],
                 data: [] 
@@ -104,6 +104,9 @@
             back_bottom: { 
                 name: "Back & Bottom Plate", 
                 productGroup: "Bottom Plate (One Door)",
+                workingHours: "8.0",
+                breakTime: "60",
+                taktTime: "52",
                 models: ["159C", "159F", "199C", "199F"],
                 filters: ["All stations", "Welding", "Back plate", "Bottom plate"],
                 data: [
@@ -118,10 +121,10 @@
                     { station: "BTA09", p1: "", p2: "", p3: "" }
                 ]
             },
-            door_glass: { name: "Door Frame & Door Glass", productGroup: "Door Assembly", models: ["TD 469", "SBS 550"], filters: ["All stations", "Frame Assy", "Glass Bonding"], data: [] },
-            door_a: { name: "Door A", productGroup: "Refrigerator Door A", models: ["TD 469"], filters: ["All stations", "Main Line"], data: [] },
-            door_b: { name: "Door B", productGroup: "Refrigerator Door B", models: ["SBS 550"], filters: ["All stations", "Main Line"], data: [] },
-            door_c: { name: "Door C", productGroup: "Refrigerator Door C", models: ["BM23"], filters: ["All stations", "Main Line"], data: [] }
+            door_glass: { name: "Door Frame & Door Glass", productGroup: "Door Assembly", workingHours: "8.0", breakTime: "60", taktTime: "60", models: ["TD 469", "SBS 550"], filters: ["All stations", "Frame Assy", "Glass Bonding"], data: [] },
+            door_a: { name: "Door A", productGroup: "Refrigerator Door A", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["TD 469"], filters: ["All stations", "Main Line"], data: [] },
+            door_b: { name: "Door B", productGroup: "Refrigerator Door B", workingHours: "8.0", breakTime: "60", taktTime: "55", models: ["SBS 550"], filters: ["All stations", "Main Line"], data: [] },
+            door_c: { name: "Door C", productGroup: "Refrigerator Door C", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["BM23"], filters: ["All stations", "Main Line"], data: [] }
         };
 
         let currentTab = 'back_bottom';
@@ -208,14 +211,9 @@
             tempFilters[idx] = val;
         }
 
-        function addTempFilter() {
+        function addFilterItem() {
             tempFilters.push("หมวดหมู่ใหม่");
             renderModalFilterList();
-        }
-        
-        // alias for modal button
-        function addFilterItem() {
-            addTempFilter();
         }
 
         function removeTempFilter(idx) {
@@ -248,7 +246,6 @@
 
                 container.innerHTML = `
                     <div class="space-y-6">
-                        <!-- Top Info Bar -->
                         <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-blue-500">
                             <div>
                                 <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Production Line Overview</span>
@@ -259,7 +256,6 @@
                             </button>
                         </div>
 
-                        <!-- Dashboard Minimal Cards -->
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div class="custom-card p-6 rounded-2xl space-y-4 flex flex-col justify-between">
                                 <div>
@@ -276,15 +272,19 @@
                                 </div>
                             </div>
 
-                            <div class="custom-card p-6 rounded-2xl space-y-2">
-                                <p class="text-xs text-gray-400 font-medium">เวลาการผลิต (Time Metrics)</p>
-                                <div class="flex justify-between items-center pt-2">
-                                    <span class="text-sm text-gray-300">Cycle Time (Max):</span>
-                                    <span class="text-lg font-bold text-red-400">สถานะปกติ</span>
+                            <div class="custom-card p-6 rounded-2xl space-y-3">
+                                <p class="text-xs text-gray-400 font-medium">เวลาการทำงานและผลิต (Time Metrics)</p>
+                                <div class="flex justify-between items-center pt-1">
+                                    <span class="text-xs text-gray-300">เวลาทำงาน/วัน:</span>
+                                    <span class="text-sm font-bold text-white">${state.workingHours || '8.0'} ชม.</span>
                                 </div>
                                 <div class="flex justify-between items-center">
-                                    <span class="text-sm text-gray-300">Takt Time:</span>
-                                    <span class="text-lg font-bold text-yellow-400">ตามเกณฑ์มาตรฐาน</span>
+                                    <span class="text-xs text-gray-300">เวลาพัก:</span>
+                                    <span class="text-sm font-bold text-white">${state.breakTime || '60'} นาที</span>
+                                </div>
+                                <div class="flex justify-between items-center border-t border-gray-800 pt-2">
+                                    <span class="text-xs text-gray-300">Takt Time:</span>
+                                    <span class="text-sm font-bold text-yellow-400">${state.taktTime || '-'} วินาที</span>
                                 </div>
                             </div>
 
@@ -341,17 +341,30 @@
                             </div>
                         </div>
 
-                        <!-- Product Group & Manpower Settings -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Product Group, Working Time & Manpower Settings -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="custom-card p-6 rounded-xl space-y-2">
                                 <h3 class="text-sm font-bold text-white">Product ใหญ่ (Product Group)</h3>
-                                <p class="text-xs text-gray-400">ระบุชื่อผลิตภัณฑ์หลักของไลน์นี้</p>
-                                <input type="text" value="${state.productGroup || ''}" onchange="updateProductGroup(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate (One Door)">
+                                <p class="text-xs text-gray-400">ระบุชื่อผลิตภัณฑ์หลัก</p>
+                                <input type="text" value="${state.productGroup || ''}" onchange="updateProductGroup(this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-semibold text-blue-400 mt-1" placeholder="เช่น Bottom Plate">
                             </div>
                             <div class="custom-card p-6 rounded-xl space-y-2">
-                                <h3 class="text-sm font-bold text-white">กำลังคนประจำไลน์ (Manpower)</h3>
-                                <p class="text-xs text-gray-400">กำหนดระดับกำลังคนทำงานในไลน์ผลิตนี้</p>
-                                <input type="text" value="ระดับมาตรฐาน" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-blue-400 mt-1" disabled>
+                                <h3 class="text-sm font-bold text-white">⏱️ เวลาการทำงาน (Working Time)</h3>
+                                <div class="grid grid-cols-2 gap-2 mt-1">
+                                    <div>
+                                        <label class="text-[10px] text-gray-400">เวลาทำงาน (ชม./วัน)</label>
+                                        <input type="number" step="0.5" value="${state.workingHours || '8.0'}" onchange="updateWorkingTime('workingHours', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] text-gray-400">เวลาพัก (นาที)</label>
+                                        <input type="number" value="${state.breakTime || '60'}" onchange="updateWorkingTime('breakTime', this.value)" class="input-dark px-3 py-2 rounded-lg text-sm w-full font-semibold text-white">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="custom-card p-6 rounded-xl space-y-2">
+                                <h3 class="text-sm font-bold text-white">⚡ Takt Time / เป้าหมาย</h3>
+                                <p class="text-xs text-gray-400">กำหนดรอบเวลามาตรฐาน (วินาที)</p>
+                                <input type="number" value="${state.taktTime || ''}" onchange="updateWorkingTime('taktTime', this.value)" class="input-dark px-4 py-2 rounded-lg text-sm w-full font-bold text-yellow-400 mt-1" placeholder="เช่น 52">
                             </div>
                         </div>
 
@@ -396,6 +409,10 @@
 
         function updateProductGroup(val) {
             appState[currentTab].productGroup = val;
+        }
+
+        function updateWorkingTime(field, val) {
+            appState[currentTab][field] = val;
         }
 
         function addStation() {
