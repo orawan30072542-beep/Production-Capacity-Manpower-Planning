@@ -26,27 +26,27 @@
                 <p class="text-xs text-gray-400 mt-1">ระบบแดชบอร์ดสรุปยอดผลิตและตั้งค่ากระบวนการผลิต</p>
             </div>
             <div class="flex gap-2 text-sm items-center">
-                <button onclick="switchMainView('dashboard')" id="nav-btn-dashboard" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow">📊 หน้าหลัก (Dashboard)</button>
-                <button onclick="switchMainView('setup')" id="nav-btn-setup" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white">⚙️ ตั้งค่ากระบวนการและรุ่น</button>
+                <button id="nav-btn-dashboard" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow cursor-pointer">📊 หน้าหลัก (Dashboard)</button>
+                <button id="nav-btn-setup" class="px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white cursor-pointer">⚙️ ตั้งค่ากระบวนการและรุ่น</button>
             </div>
         </header>
 
         <nav class="flex flex-wrap items-center gap-2 custom-card p-3 rounded-xl overflow-x-auto">
-            <button onclick="switchTab('press')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2" data-target="press"><span>Press Machine</span></button>
-            <button onclick="switchTab('back_bottom')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="back_bottom"><span>Back Plate & Bottom Plate</span></button>
-            <button onclick="switchTab('frame_glass')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="frame_glass"><span>Frame & Glass Door</span></button>
-            <button onclick="switchTab('door_a')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_a"><span>Door A</span></button>
-            <button onclick="switchTab('door_b')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_b"><span>Door B</span></button>
-            <button onclick="switchTab('door_c')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_c"><span>Door C</span></button>
-            <button onclick="switchTab('gasket')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="gasket"><span>Gasket</span></button>
-            <button onclick="switchTab('door_in_door')" class="tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2" data-target="door_in_door"><span>Door In Door</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2 cursor-pointer" data-target="press"><span>Press Machine</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="back_bottom"><span>Back Plate & Bottom Plate</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="frame_glass"><span>Frame & Glass Door</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_a"><span>Door A</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_b"><span>Door B</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_c"><span>Door C</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="gasket"><span>Gasket</span></button>
+            <button class="line-tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2 cursor-pointer" data-target="door_in_door"><span>Door In Door</span></button>
         </nav>
 
         <div id="sub-filter-bar" class="flex flex-wrap items-center justify-between gap-2 custom-card px-4 py-3 rounded-xl text-sm">
             <div id="filter-buttons-container" class="flex flex-wrap items-center gap-2">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>
             </div>
-            <button onclick="openFilterEditor()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1">
+            <button id="btn-open-filter-editor" class="bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1 cursor-pointer">
                 <span>✏️ จัดการปุ่มหมวดหมู่</span>
             </button>
         </div>
@@ -59,14 +59,14 @@
         <div class="custom-card p-6 rounded-2xl w-full max-w-lg space-y-4 shadow-2xl border border-gray-700">
             <div class="flex justify-between items-center border-b border-gray-800 pb-3">
                 <h3 class="text-base font-bold text-white">แก้ไขปุ่มหมวดหมู่สถานี (Sub Filters)</h3>
-                <button onclick="closeFilterEditor()" class="text-gray-400 hover:text-white text-sm">✕</button>
+                <button id="btn-close-filter-editor" class="text-gray-400 hover:text-white text-sm cursor-pointer">✕</button>
             </div>
             <div id="modal-filter-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
             <div class="flex justify-between items-center pt-2 border-t border-gray-800">
-                <button onclick="addFilterItem()" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700">➕ เพิ่มหมวดหมู่</button>
+                <button id="btn-add-filter-item" class="bg-gray-800 hover:bg-gray-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition border border-gray-700 cursor-pointer">➕ เพิ่มหมวดหมู่</button>
                 <div class="flex gap-2">
-                    <button onclick="closeFilterEditor()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-semibold">ยกเลิก</button>
-                    <button onclick="saveFilterItems()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow">บันทึก</button>
+                    <button id="btn-cancel-filter" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-4 py-2 rounded-lg text-xs font-semibold cursor-pointer">ยกเลิก</button>
+                    <button id="btn-save-filter" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow cursor-pointer">บันทึก</button>
                 </div>
             </div>
         </div>
@@ -155,279 +155,4 @@
                 filters: ["All stations", "Main Line"], 
                 dataByModel: { 
                     "SBS 550": [
-                        { station: "DB01", p1: "ประกอบชุดบานพับประตูคู่ (Hinge)", p2: "ปรับตั้งศูนย์บานประตู", p3: "", wt1: 24.10, wt2: 19.30, wt3: 0, loss: 2.20 }
-                    ] 
-                } 
-            },
-            door_c: { 
-                name: "Door C", 
-                productGroup: "Refrigerator Door C", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "50.0", 
-                models: ["BM23"], 
-                activeModel: "BM23", 
-                filters: ["All stations", "Main Line"], 
-                dataByModel: { 
-                    "BM23": [
-                        { station: "DC01", p1: "ประกอบแผงควบคุมหน้าจอ Digital", p2: "เชื่อมต่อสายไฟภายในบานประตู", p3: "", wt1: 22.00, wt2: 16.40, wt3: 0, loss: 1.50 }
-                    ] 
-                } 
-            },
-            gasket: { 
-                name: "Gasket", 
-                productGroup: "Gasket Profile", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "40.0", 
-                models: ["Gasket Standard"], 
-                activeModel: "Gasket Standard", 
-                filters: ["All stations", "Cutting"], 
-                dataByModel: { 
-                    "Gasket Standard": [
-                        { station: "GK01", p1: "ตัดยางขอบประตูตามความยาวแบบ", p2: "เชื่อมมุมยางด้วยความร้อน", p3: "สอดแม่เหล็กเส้นเข้าขอบยาง", wt1: 12.00, wt2: 14.50, wt3: 10.10, loss: 1.00 }
-                    ] 
-                } 
-            },
-            door_in_door: { 
-                name: "Door In Door", 
-                productGroup: "DID Assembly", 
-                workingHours: "8.0", 
-                breakTime: "60", 
-                taktTime: "65.0", 
-                models: ["DID Model"], 
-                activeModel: "DID Model", 
-                filters: ["All stations", "Assembly"], 
-                dataByModel: { 
-                    "DID Model": [
-                        { station: "DID01", p1: "ประกอบกลไกบานพับย่อย Door-in-Door", p2: "ประกอบกระจกชั้นนอกและชั้นใน", p3: "", wt1: 35.00, wt2: 22.50, wt3: 0, loss: 3.00 }
-                    ] 
-                } 
-            }
-        };
-
-        let currentTab = 'press';
-        let currentMainView = 'dashboard';
-        let activeFilter = 'All stations';
-        let tempFilters = [];
-
-        function switchMainView(view) {
-            currentMainView = view;
-            if(view === 'dashboard') {
-                document.getElementById('nav-btn-dashboard').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow";
-                document.getElementById('nav-btn-setup').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white";
-                document.getElementById('sub-filter-bar').style.display = 'flex';
-            } else {
-                document.getElementById('nav-btn-setup').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-blue-600 text-white shadow";
-                document.getElementById('nav-btn-dashboard').className = "px-4 py-2 rounded-lg font-semibold text-xs transition bg-gray-800 text-gray-300 hover:text-white";
-                document.getElementById('sub-filter-bar').style.display = 'none';
-            }
-            renderView();
-        }
-
-        function switchTab(tabKey) {
-            currentTab = tabKey;
-            activeFilter = 'All stations';
-            const state = appState[currentTab];
-            if(!state.models.includes(state.activeModel)) {
-                state.activeModel = state.models[0] || '';
-            }
-            document.querySelectorAll('.tab-btn').forEach(btn => {
-                if(btn.getAttribute('data-target') === tabKey) {
-                    btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2";
-                } else {
-                    btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-gray-800 text-gray-400 hover:text-white flex items-center gap-2";
-                }
-            });
-            renderFilters();
-            renderView();
-        }
-
-        function renderFilters() {
-            const state = appState[currentTab];
-            const container = document.getElementById('filter-buttons-container');
-            let html = '<span class="text-xs font-bold text-gray-400 uppercase tracking-wider mr-2">STATION</span>';
-            
-            if(state.filters && state.filters.length > 0) {
-                state.filters.forEach(f => {
-                    const isActive = (activeFilter === f);
-                    const btnClass = isActive 
-                        ? "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white shadow flex items-center gap-1.5"
-                        : "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800 flex items-center gap-1.5";
-                    html += `<button onclick="selectFilter('${f}')" class="${btnClass}"><span>${f}</span></button>`;
-                });
-            }
-            container.innerHTML = html;
-        }
-
-        function selectFilter(fName) {
-            activeFilter = fName;
-            renderFilters();
-        }
-
-        function openFilterEditor() {
-            const state = appState[currentTab];
-            tempFilters = [...state.filters];
-            renderModalFilterList();
-            document.getElementById('filter-modal').classList.remove('hidden');
-        }
-
-        function closeFilterEditor() {
-            document.getElementById('filter-modal').classList.add('hidden');
-        }
-
-        function renderModalFilterList() {
-            const container = document.getElementById('modal-filter-list');
-            let html = '';
-            tempFilters.forEach((f, idx) => {
-                html += `
-                    <div class="flex items-center gap-2">
-                        <input type="text" value="${f}" onchange="updateTempFilter(${idx}, this.value)" class="input-dark px-3 py-1.5 rounded-lg text-xs w-full">
-                        <button onclick="removeTempFilter(${idx})" class="bg-red-950 text-red-400 border border-red-800 px-3 py-1.5 rounded-lg text-xs">ลบ</button>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        function updateTempFilter(idx, val) { tempFilters[idx] = val; }
-        function addFilterItem() { tempFilters.push("หมวดหมู่ใหม่"); renderModalFilterList(); }
-        function removeTempFilter(idx) { tempFilters.splice(idx, 1); renderModalFilterList(); }
-        function saveFilterItems() {
-            appState[currentTab].filters = [...tempFilters];
-            if(!appState[currentTab].filters.includes(activeFilter)) {
-                activeFilter = appState[currentTab].filters[0] || 'All stations';
-            }
-            renderFilters();
-            closeFilterEditor();
-        }
-
-        function renderView() {
-            const state = appState[currentTab];
-            const container = document.getElementById('app-container');
-
-            if(currentMainView === 'dashboard') {
-                let modelBadgesSmall = '';
-                if(state.models && state.models.length > 0) {
-                    state.models.forEach(m => {
-                        const isActive = (state.activeModel === m);
-                        const activeStyle = isActive ? "bg-blue-600 text-white border-blue-500 shadow" : "bg-gray-800/80 text-yellow-400/90 border-gray-700/60 hover:bg-gray-700";
-                        modelBadgesSmall += `<button onclick="setActiveModelForDashboard('${m}')" class="${activeStyle} px-2.5 py-1 rounded-md text-xs font-medium border transition cursor-pointer">${m}</button>`;
-                    });
-                } else {
-                    modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
-                }
-
-                if (!state.dataByModel) state.dataByModel = {};
-                if (!state.dataByModel[state.activeModel]) state.dataByModel[state.activeModel] = [];
-                const activeModelData = state.dataByModel[state.activeModel];
-
-                let dashboardRows = '';
-                activeModelData.forEach((item) => {
-                    const wtTotal = (Number(item.wt1)||0) + (Number(item.wt2)||0) + (Number(item.wt3)||0);
-                    const cycleTime = wtTotal + (Number(item.loss)||0);
-                    dashboardRows += `
-                        <tr class="hover:bg-gray-800/40 transition">
-                            <td class="p-3 font-semibold text-white">${item.station || '-'}</td>
-                            <td class="p-3 text-gray-300">${item.p1 || '-'}</td>
-                            <td class="p-3 text-gray-300">${item.p2 || '-'}</td>
-                            <td class="p-3 text-gray-300">${item.p3 || '-'}</td>
-                            <td class="p-3 text-center text-gray-300">${item.wt1 || '-'}</td>
-                            <td class="p-3 text-center text-gray-300">${item.wt2 || '-'}</td>
-                            <td class="p-3 text-center text-gray-300">${item.wt3 || '-'}</td>
-                            <td class="p-3 text-center font-bold text-white">${wtTotal > 0 ? wtTotal.toFixed(2) : '-'}</td>
-                            <td class="p-3 text-center text-red-400">${item.loss ? Number(item.loss).toFixed(2) : '-'}</td>
-                            <td class="p-3 text-center font-bold text-yellow-400">${cycleTime > 0 ? cycleTime.toFixed(2) : '-'}</td>
-                        </tr>
-                    `;
-                });
-
-                const dates = ["20 ส.ค.", "21 ส.ค.", "22 ส.ค.", "23 ส.ค.", "24 ส.ค.", "25 ส.ค.", "26 ส.ค.", "27 ส.ค.", "28 ส.ค.", "29 ส.ค.", "30 ส.ค.", "31 ส.ค.", "1 ก.ย.", "2 ก.ย.", "3 ก.ย.", "4 ก.ย.", "5 ก.ย."];
-                let dateHeaderHtml = '';
-                let wtHeaderHtml = '';
-                let shiftHeaderHtml = '';
-                let effHeaderHtml = '';
-                let lineARows = '';
-                let lineBRows = '';
-
-                dates.forEach((d, idx) => {
-                    dateHeaderHtml += `<th class="p-2 text-center border border-gray-800 text-[11px] bg-gray-900">${d}</th>`;
-                    wtHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">${state.workingHours || 8}</td>`;
-                    shiftHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">2</td>`;
-                    effHeaderHtml += `<td class="p-2 text-center border border-gray-800 text-xs">100</td>`;
-                    
-                    const baseValA = 1500 + (idx * 40);
-                    const baseValB = 2100 + (idx * 35);
-                    lineARows += `<td class="p-2 text-center border border-gray-800 text-xs"><div class="font-bold text-white">${baseValA}</div><div class="text-[10px] text-blue-400">85</div></td>`;
-                    lineBRows += `<td class="p-2 text-center border border-gray-800 text-xs"><div class="font-bold text-white">${baseValB}</div><div class="text-[10px] text-blue-400">110</div></td>`;
-                });
-
-                container.innerHTML = `
-                    <div class="space-y-6">
-                        <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-blue-500">
-                            <div>
-                                <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Production Line Overview</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">${state.name} <span class="text-xs text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800/60 ml-2">แสดงผลรุ่น: ${state.activeModel || '-'}</span></h2>
-                            </div>
-                            <button onclick="switchMainView('setup')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1.5">
-                                <span>⚙️</span> ไปหน้าตั้งค่ากระบวนการ
-                            </button>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="custom-card p-6 rounded-2xl space-y-4 flex flex-col justify-between">
-                                <div>
-                                    <p class="text-xs text-gray-400 font-medium">Product ใหญ่ (Product Group)</p>
-                                    <div class="mt-2">
-                                        <span class="bg-blue-950/80 text-blue-300 border border-blue-800 px-3.5 py-1.5 rounded-xl text-base font-bold inline-block shadow-inner">${state.productGroup || '-'}</span>
-                                    </div>
-                                </div>
-                                <div class="pt-3 border-t border-gray-800/80 space-y-2">
-                                    <p class="text-xs text-gray-400 font-medium">รุ่นที่ผลิต (คลิกเพื่อเปลี่ยนรุ่น)</p>
-                                    <div class="flex flex-wrap gap-1.5">${modelBadgesSmall}</div>
-                                </div>
-                            </div>
-
-                            <div class="custom-card p-6 rounded-2xl space-y-3">
-                                <p class="text-xs text-gray-400 font-medium">เวลาการทำงานและผลิต (Time Metrics)</p>
-                                <div class="flex justify-between items-center pt-1">
-                                    <span class="text-xs text-gray-300">เวลาทำงาน/วัน:</span>
-                                    <span class="text-sm font-bold text-white">${state.workingHours || '8.0'} ชม.</span>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs text-gray-300">เวลาพัก:</span>
-                                    <span class="text-sm font-bold text-white">${state.breakTime || '60'} นาที</span>
-                                </div>
-                                <div class="flex justify-between items-center border-t border-gray-800 pt-2">
-                                    <span class="text-xs text-gray-300">Takt Time:</span>
-                                    <span class="text-sm font-bold text-yellow-400">${state.taktTime || '-'} วินาที</span>
-                                </div>
-                            </div>
-
-                            <div class="custom-card p-6 rounded-2xl space-y-2 flex flex-col justify-between">
-                                <p class="text-xs text-gray-400 font-medium">จำนวนพนักงาน (Manpower)</p>
-                                <div class="flex items-baseline gap-2 pt-2">
-                                    <span class="text-xl font-bold text-blue-400">จัดสรรครบถ้วนตามสถานี</span>
-                                </div>
-                                <p class="text-xs text-gray-500">อ้างอิงจากรุ่น ${state.activeModel} (${activeModelData.length} สถานี)</p>
-                            </div>
-                        </div>
-
-                        <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                                <h3 class="text-base font-bold text-white">ตารางสรุปกระบวนการและเวลาการทำงาน (${state.name})</h3>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left border-collapse">
-                                    <thead>
-                                        <tr class="bg-gray-900/50 text-gray-400 text-xs border-b border-gray-800">
-                                            <th class="p-3">Station</th>
-                                            <th class="p-3">Process 1</th>
-                                            <th class="p-3">Process 2</th>
-                                            <th class="p-3">Process 3</th>
-                                            <th class="p-3 text-center">WT 1</th>
-                                            <th class="p-3 text-center">WT 2</th>
-                                            <th class="p-3 text-center">WT 3</th>
-                                            <th class="p-3 text-center">WT Total</th>
-                                            <th class="p-3 text-center">Loss</th>
-                                            <th class="p-3 text
+                        { station: "DB01", p1: "ประกอบชุดบาน
