@@ -79,27 +79,31 @@
 
     <script>
         const appState = {
-            press: { name: "Press Machine", productGroup: "Press Panel", workingHours: "8.0", breakTime: "60", taktTime: "45", models: ["159C", "159F"], filters: ["All stations", "Press Line 1", "Press Line 2"], data: [] },
+            press: { name: "Press Machine", productGroup: "Press Panel", workingHours: "8.0", breakTime: "60", taktTime: "45", models: ["159C"], activeModel: "159C", filters: ["All stations", "Press Line 1"], dataByModel: { "159C": [] } },
             back_bottom: { 
                 name: "Back Plate & Bottom Plate", 
                 productGroup: "Bottom Plate & Back Plate", 
                 workingHours: "8.0", 
                 breakTime: "60", 
                 taktTime: "36.6", 
-                models: ["159C", "159F", "199C", "199F", "FUF14D", "TM545#212", "SBS 550", "BM23"], 
+                models: ["159C", "159F"], 
+                activeModel: "159C",
                 filters: ["All stations", "Welding", "Back plate", "Bottom plate"], 
-                data: [
-                    { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
-                    { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
-                    { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 }
-                ] 
+                dataByModel: { 
+                    "159C": [
+                        { station: "BTA01", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 13.90, wt2: 11.30, wt3: 0, loss: 3.21 },
+                        { station: "BTA02", p1: "ประกอบขา Leg เข้ากับชิ้นส่วน+เคาะ", p2: "ประกอบชิ้นส่วนด้านข้าง", p3: "", wt1: 8.80, wt2: 10.20, wt3: 0, loss: 2.54 },
+                        { station: "BTA03", p1: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p2: "ติดเทปเหนียวด้านข้าง 1 Pcs.", p3: "ติดเทปเหนียวด้านข้าง 1 Pcs.", wt1: 5.90, wt2: 6.50, wt3: 3.80, loss: 0 }
+                    ],
+                    "159F": []
+                } 
             },
-            frame_glass: { name: "Frame & Glass Door", productGroup: "Door Assembly", workingHours: "8.0", breakTime: "60", taktTime: "60", models: ["TD 469", "SBS 550"], filters: ["All stations", "Frame Assy", "Glass Bonding"], data: [] },
-            door_a: { name: "Door A", productGroup: "Refrigerator Door A", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["TD 469"], filters: ["All stations", "Main Line"], data: [] },
-            door_b: { name: "Door B", productGroup: "Refrigerator Door B", workingHours: "8.0", breakTime: "60", taktTime: "55", models: ["SBS 550"], filters: ["All stations", "Main Line"], data: [] },
-            door_c: { name: "Door C", productGroup: "Refrigerator Door C", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["BM23"], filters: ["All stations", "Main Line"], data: [] },
-            gasket: { name: "Gasket", productGroup: "Gasket Profile", workingHours: "8.0", breakTime: "60", taktTime: "40", models: ["Gasket Standard"], filters: ["All stations", "Cutting", "Welding"], data: [] },
-            door_in_door: { name: "Door In Door", productGroup: "DID Assembly", workingHours: "8.0", breakTime: "60", taktTime: "65", models: ["DID Model"], filters: ["All stations", "Assembly"], data: [] }
+            frame_glass: { name: "Frame & Glass Door", productGroup: "Door Assembly", workingHours: "8.0", breakTime: "60", taktTime: "60", models: ["TD 469"], activeModel: "TD 469", filters: ["All stations", "Frame Assy"], dataByModel: { "TD 469": [] } },
+            door_a: { name: "Door A", productGroup: "Refrigerator Door A", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["TD 469"], activeModel: "TD 469", filters: ["All stations", "Main Line"], dataByModel: { "TD 469": [] } },
+            door_b: { name: "Door B", productGroup: "Refrigerator Door B", workingHours: "8.0", breakTime: "60", taktTime: "55", models: ["SBS 550"], activeModel: "SBS 550", filters: ["All stations", "Main Line"], dataByModel: { "SBS 550": [] } },
+            door_c: { name: "Door C", productGroup: "Refrigerator Door C", workingHours: "8.0", breakTime: "60", taktTime: "50", models: ["BM23"], activeModel: "BM23", filters: ["All stations", "Main Line"], dataByModel: { "BM23": [] } },
+            gasket: { name: "Gasket", productGroup: "Gasket Profile", workingHours: "8.0", breakTime: "60", taktTime: "40", models: ["Gasket Standard"], activeModel: "Gasket Standard", filters: ["All stations", "Cutting"], dataByModel: { "Gasket Standard": [] } },
+            door_in_door: { name: "Door In Door", productGroup: "DID Assembly", workingHours: "8.0", breakTime: "60", taktTime: "65", models: ["DID Model"], activeModel: "DID Model", filters: ["All stations", "Assembly"], dataByModel: { "DID Model": [] } }
         };
 
         let currentTab = 'back_bottom';
@@ -124,6 +128,10 @@
         function switchTab(tabKey) {
             currentTab = tabKey;
             activeFilter = 'All stations';
+            const state = appState[currentTab];
+            if(!state.models.includes(state.activeModel)) {
+                state.activeModel = state.models[0] || '';
+            }
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 if(btn.getAttribute('data-target') === tabKey) {
                     btn.className = "tab-btn px-4 py-2 rounded-lg text-sm font-semibold transition bg-blue-600 text-white shadow flex items-center gap-2";
@@ -208,12 +216,14 @@
                     modelBadgesSmall = `<span class="text-gray-500 text-xs">ยังไม่ได้เลือกรุ่น</span>`;
                 }
 
+                const currentDataCount = (state.dataByModel[state.activeModel] || []).length;
+
                 container.innerHTML = `
                     <div class="space-y-6">
                         <div class="custom-card p-6 rounded-2xl flex flex-col md:flex-row justify-between items-center gap-4 border-l-4 border-blue-500">
                             <div>
                                 <span class="text-xs uppercase tracking-wider text-blue-400 font-semibold">Production Line Overview</span>
-                                <h2 class="text-2xl font-bold text-white mt-1">${state.name} <span class="text-xs text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800/60 ml-2">แสดงผล: ${activeFilter}</span></h2>
+                                <h2 class="text-2xl font-bold text-white mt-1">${state.name} <span class="text-xs text-blue-400 bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800/60 ml-2">แสดงผลรุ่น: ${state.activeModel || '-'}</span></h2>
                             </div>
                             <button onclick="switchMainView('setup')" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition border border-gray-700 flex items-center gap-1.5">
                                 <span>⚙️</span> ไปหน้าตั้งค่ากระบวนการ
@@ -255,14 +265,15 @@
                                 <div class="flex items-baseline gap-2 pt-2">
                                     <span class="text-xl font-bold text-blue-400">จัดสรรครบถ้วนตามสถานี</span>
                                 </div>
-                                <p class="text-xs text-gray-500">อ้างอิงจากสถานีปฏิบัติงานในไลน์ (${state.data.length} สถานี)</p>
+                                <p class="text-xs text-gray-500">อ้างอิงจากรุ่น ${state.activeModel} (${currentDataCount} สถานี)</p>
                             </div>
                         </div>
                     </div>
                 `;
             } else {
+                const activeModelData = state.dataByModel[state.activeModel] || [];
                 let setupRows = '';
-                state.data.forEach((item, index) => {
+                activeModelData.forEach((item, index) => {
                     setupRows += `
                         <tr class="hover:bg-gray-800/40 transition">
                             <td class="p-3 font-semibold text-white"><input type="text" value="${item.station || ''}" onchange="updateSetupRow(${index}, 'station', this.value)" class="input-dark px-2 py-1 rounded text-xs w-20"></td>
@@ -288,6 +299,15 @@
                             <span class="text-white">${m}</span>
                         </label>
                     `;
+                });
+
+                let modelTabsForSetup = '';
+                state.models.forEach(m => {
+                    const isActive = (state.activeModel === m);
+                    const btnClass = isActive 
+                        ? "px-3.5 py-1.5 rounded-lg text-xs font-bold bg-blue-600 text-white shadow"
+                        : "px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-gray-900 text-gray-300 border border-gray-800 hover:bg-gray-800";
+                    modelTabsForSetup += `<button onclick="setActiveModelForSetup('${m}')" class="${btnClass}">${m}</button>`;
                 });
 
                 container.innerHTML = `
@@ -336,10 +356,14 @@
                             <div class="grid grid-cols-2 md:grid-cols-5 gap-3">${modelCheckboxes}</div>
                         </div>
 
-                        <!-- Stations Table Editor -->
+                        <!-- Stations Table Editor with Model Sub-Tabs -->
                         <div class="custom-card rounded-xl overflow-hidden shadow-xl">
-                            <div class="p-6 border-b border-gray-800 flex justify-between items-center">
-                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและเวลาการทำงาน (WT1, WT2, WT3, Loss)</h3>
+                            <div class="p-6 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                                <h3 class="text-base font-bold text-white">ตารางจัดการสถานีและเวลา (แยกตามรุ่นที่เลือก)</h3>
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-xs text-gray-400">เลือกรุ่นเพื่อแก้ไขข้อมูล:</span>
+                                    <div class="flex gap-1.5 flex-wrap">${modelTabsForSetup}</div>
+                                </div>
                             </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left border-collapse">
@@ -368,10 +392,12 @@
         }
 
         function updateSetupRow(index, field, value) {
+            const state = appState[currentTab];
+            const activeList = state.dataByModel[state.activeModel];
             if(['wt1', 'wt2', 'wt3', 'loss'].includes(field)) {
-                appState[currentTab].data[index][field] = parseFloat(value) || 0;
+                activeList[index][field] = parseFloat(value) || 0;
             } else {
-                appState[currentTab].data[index][field] = value;
+                activeList[index][field] = value;
             }
         }
 
@@ -379,20 +405,47 @@
         function updateWorkingTime(field, val) { appState[currentTab][field] = val; }
 
         function addStation() {
-            const stName = "BTA0" + (appState[currentTab].data.length + 1);
-            appState[currentTab].data.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
+            const state = appState[currentTab];
+            if(!state.dataByModel[state.activeModel]) {
+                state.dataByModel[state.activeModel] = [];
+            }
+            const activeList = state.dataByModel[state.activeModel];
+            const stName = "BTA0" + (activeList.length + 1);
+            activeList.push({ station: stName, p1: "", p2: "", p3: "", wt1: 0, wt2: 0, wt3: 0, loss: 0 });
             renderView();
         }
 
         function removeStation(index) {
-            appState[currentTab].data.splice(index, 1);
+            const state = appState[currentTab];
+            state.dataByModel[state.activeModel].splice(index, 1);
             renderView();
         }
 
         function toggleModel(modelName) {
-            const models = appState[currentTab].models;
+            const state = appState[currentTab];
+            const models = state.models;
             const idx = models.indexOf(modelName);
-            if(idx > -1) { models.splice(idx, 1); } else { models.push(modelName); }
+            if(idx > -1) { 
+                models.splice(idx, 1); 
+                delete state.dataByModel[modelName];
+                if(state.activeModel === modelName) {
+                    state.activeModel = models[0] || '';
+                }
+            } else { 
+                models.push(modelName); 
+                if(!state.dataByModel[modelName]) {
+                    state.dataByModel[modelName] = [];
+                }
+                if(!state.activeModel) {
+                    state.activeModel = modelName;
+                }
+            }
+            renderView();
+        }
+
+        function setActiveModelForSetup(modelName) {
+            appState[currentTab].activeModel = modelName;
+            renderView();
         }
 
         window.onload = function() {
