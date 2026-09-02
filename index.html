@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manpower & Production Capacity Dashboard - Modern UI</title>
+    <title>Haier Door Line - Production Capacity & Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -22,9 +22,9 @@
             <div>
                 <div class="flex items-center gap-2">
                     <span class="text-blue-500 text-xl font-bold">⚡</span>
-                    <h1 class="text-xl font-bold text-white">Manpower Planning & Production Capacity</h1>
+                    <h1 class="text-xl font-bold text-white">Haier Door Line - Production Capacity & Line Balancing</h1>
                 </div>
-                <p class="text-xs text-gray-400 mt-1">ระบบบริหารจัดการกระบวนการผลิตและตั้งค่าสถานีงานตามรุ่นสินค้า</p>
+                <p class="text-xs text-gray-400 mt-1">ระบบบริหารจัดการกระบวนการผลิต, วิเคราะห์คอขวด (Bottleneck) และแดชบอร์ดสรุปภาพรวม</p>
             </div>
             <div class="flex gap-2 text-sm items-center mt-4 md:mt-0">
                 <button id="btn-add-new-card" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow transition cursor-pointer flex items-center gap-1.5">
@@ -32,6 +32,38 @@
                 </button>
             </div>
         </header>
+
+        <!-- DASHBOARD EXECUTIVE SUMMARY SECTION (รวมเข้ามาไว้ด้านบนสุดเพื่อให้เห็นภาพรวมทันที) -->
+        <section id="executive-dashboard-summary" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="custom-card p-5 rounded-xl border border-gray-800 flex flex-col justify-between">
+                <span class="text-xs text-gray-400 font-medium">Target Takt Time</span>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="dash-takt" class="text-2xl font-bold text-white">20.0</span>
+                    <span class="text-xs text-gray-400">Seconds</span>
+                </div>
+            </div>
+            <div class="custom-card p-5 rounded-xl border border-gray-800 flex flex-col justify-between">
+                <span class="text-xs text-gray-400 font-medium">Max Bottleneck Time</span>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="dash-bottleneck" class="text-2xl font-bold text-red-400">59.24</span>
+                    <span class="text-xs text-gray-400">Seconds (BP05)</span>
+                </div>
+            </div>
+            <div class="custom-card p-5 rounded-xl border border-gray-800 flex flex-col justify-between">
+                <span class="text-xs text-gray-400 font-medium">Total Active Stations</span>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="dash-stations" class="text-2xl font-bold text-white">9</span>
+                    <span class="text-xs text-gray-400">Stations</span>
+                </div>
+            </div>
+            <div class="custom-card p-5 rounded-xl border border-gray-800 flex flex-col justify-between">
+                <span class="text-xs text-gray-400 font-medium">Overall Line Balance Efficiency</span>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="dash-balance" class="text-2xl font-bold text-emerald-400">63%</span>
+                    <span class="text-xs text-gray-400">Efficiency</span>
+                </div>
+            </div>
+        </section>
 
         <!-- Filter Navigation Tabs (STATION / CATEGORIES) -->
         <nav class="flex flex-wrap items-center justify-between gap-4 custom-card p-4 rounded-xl">
@@ -52,12 +84,12 @@
     </div>
 
     <script>
-        // สมมติฐานข้อมูลหลักของระบบ (รองรับ Back plate และ Bottom plate)
+        // ข้อมูลหลักของระบบ (Back Plate #B และ Bottom Plate)
         let appData = [
             {
                 id: "card_1",
                 title: "Back Plate #B",
-                partType: "Back plate", // Back plate หรือ Bottom plate
+                partType: "Back plate",
                 lineTag: "B line",
                 customTags: ["Custom", "Edited"],
                 models: ["T DOOR H Metal", "T DOOR H Metal WD", "T DOOR H Glass", "T DOOR H Glass WD"],
@@ -138,34 +170,6 @@
                     }
                 ],
                 isEditing: false
-            },
-            {
-                id: "card_2",
-                title: "Bottom Plate #A",
-                partType: "Bottom plate",
-                lineTag: "B line",
-                customTags: ["Standard"],
-                models: ["T DOOR H Metal", "T DOOR H Glass"],
-                takt: 25.0,
-                stations: [
-                    {
-                        station: "BT01",
-                        processes: [
-                            { name: "ประกอบโครงฐานล่าง", wt: 15.20 },
-                            { name: "ยิงจุดเชื่อมกันโคลง", wt: 10.50 }
-                        ],
-                        loss: 1.2
-                    },
-                    {
-                        station: "BT02",
-                        processes: [
-                            { name: "ทาน้ำުރกันสนิมขอบ", wt: 18.40 },
-                            { name: "ตรวจสอบรอยรั่ว", wt: 12.00 }
-                        ],
-                        loss: 0.8
-                    }
-                ],
-                isEditing: false
             }
         ];
 
@@ -173,14 +177,41 @@
         let searchQuery = '';
 
         function renderApp() {
+            renderDashboardSummary();
             renderFilters();
             renderContent();
         }
 
+        function renderDashboardSummary() {
+            // คำนวณค่าภาพรวมจาก Back Plate หลัก (หรือ Card แรกสุด)
+            if(appData.length === 0) return;
+            const primaryItem = appData[0];
+
+            let totalStations = primaryItem.stations.length;
+            let maxCycleTime = 0;
+            let totalCycleSum = 0;
+            let bottleneckName = "-";
+
+            primaryItem.stations.forEach(s => {
+                let sTime = s.processes.reduce((acc, curr) => acc + (Number(curr.wt) || 0), 0) + (Number(s.loss) || 0);
+                totalCycleSum += sTime;
+                if(sTime > maxCycleTime) {
+                    maxCycleTime = sTime;
+                    bottleneckName = s.station;
+                }
+            });
+
+            let balance = (totalStations > 0 && maxCycleTime > 0) ? Math.round((totalCycleSum / (totalStations * maxCycleTime)) * 100) : 0;
+
+            document.getElementById('dash-takt').innerText = primaryItem.takt.toFixed(1);
+            document.getElementById('dash-bottleneck').innerText = maxCycleTime.toFixed(2);
+            document.querySelector('#dash-bottleneck').parentElement.querySelector('.text-xs').innerText = `Seconds (${bottleneckName})`;
+            document.getElementById('dash-stations').innerText = totalStations;
+            document.getElementById('dash-balance').innerText = balance + '%';
+        }
+
         function renderFilters() {
             const container = document.getElementById('filter-tabs-container');
-            
-            // นับจำนวนสถานีทั้งหมดและแยกตามพาร์ท
             let totalStationsCount = 0;
             let backPlateCount = 0;
             let bottomPlateCount = 0;
@@ -193,7 +224,7 @@
 
             const filters = [
                 { name: 'All stations', count: totalStationsCount },
-                { name: 'Welding (5 machines)', count: 2 }, // ตัวอย่างหมวดหมู่ย่อย
+                { name: 'Welding (5 machines)', count: 2 },
                 { name: 'Back plate', count: backPlateCount },
                 { name: 'Bottom plate', count: bottomPlateCount }
             ];
@@ -224,14 +255,11 @@
             const container = document.getElementById('main-content-container');
             let html = '';
 
-            // กรองข้อมูลตาม Filter และ Search Query
             let filteredData = appData.filter(item => {
-                // Filter Tab Match
                 let matchFilter = true;
                 if(activeFilter === 'Back plate' && !item.partType.toLowerCase().includes('back')) matchFilter = false;
                 if(activeFilter === 'Bottom plate' && !item.partType.toLowerCase().includes('bottom')) matchFilter = false;
                 
-                // Search Query Match
                 let matchSearch = true;
                 if(searchQuery) {
                     const matchTitle = item.title.toLowerCase().includes(searchQuery);
@@ -249,7 +277,6 @@
             }
 
             filteredData.forEach(item => {
-                // คำนวณค่าสถิติต่างๆ
                 let totalStations = item.stations.length;
                 let maxCycleTime = 0;
                 let totalCycleSum = 0;
@@ -263,7 +290,6 @@
                 let balance = (totalStations > 0 && maxCycleTime > 0) ? Math.round((totalCycleSum / (totalStations * maxCycleTime)) * 100) : 0;
 
                 if(item.isEditing) {
-                    // === โหมดแก้ไข (Editing View - คล้ายภาพที่ 3) ===
                     let stationEditorHtml = '';
                     item.stations.forEach((s, sIdx) => {
                         let sTime = s.processes.reduce((acc, curr) => acc + (Number(curr.wt) || 0), 0) + (Number(s.loss) || 0);
@@ -316,7 +342,6 @@
 
                     html += `
                         <div class="custom-card rounded-2xl p-6 space-y-6 shadow-2xl border-2 border-blue-600/50">
-                            <!-- Top Edit Bar -->
                             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-gray-800">
                                 <div class="flex items-center gap-3 flex-wrap">
                                     <input type="text" value="${item.title}" oninput="updateCardTitle('${item.id}', this.value)" class="input-dark px-3 py-1.5 rounded-lg text-sm font-bold text-white w-48">
@@ -332,7 +357,6 @@
                                 </div>
                             </div>
 
-                            <!-- Models & Metrics Edit Bar -->
                             <div class="flex flex-wrap items-center justify-between gap-4 bg-gray-900/40 p-4 rounded-xl border border-gray-800">
                                 <div class="flex flex-wrap items-center gap-2">
                                     ${modelTagsEditHtml}
@@ -352,7 +376,6 @@
                                 </div>
                             </div>
 
-                            <!-- Stations Editor List -->
                             <div class="space-y-4">
                                 ${stationEditorHtml}
                                 <button onclick="addStation('${item.id}')" class="w-full py-3 bg-gray-900 hover:bg-gray-800 border border-dashed border-gray-700 rounded-xl text-xs font-semibold text-gray-300 transition cursor-pointer flex items-center justify-center gap-2">
@@ -363,7 +386,6 @@
                     `;
 
                 } else {
-                    // === โหมดแสดงผลปกติ (Dashboard Card View - คล้ายภาพที่ 2) ===
                     let modelBadgesHtml = '';
                     item.models.forEach(m => {
                         modelBadgesHtml += `<span class="bg-amber-950/60 text-amber-300 border border-amber-800/80 px-3 py-1 rounded-md text-xs font-medium">${m}</span>`;
@@ -407,7 +429,6 @@
 
                     html += `
                         <div class="custom-card rounded-2xl overflow-hidden shadow-xl space-y-4">
-                            <!-- Card Header Bar -->
                             <div class="p-6 pb-4 border-b border-gray-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                                 <div class="flex items-center gap-3 flex-wrap">
                                     <h3 class="text-lg font-bold text-white">${item.title}</h3>
@@ -426,7 +447,6 @@
                                 </div>
                             </div>
 
-                            <!-- Models & Summary Metrics Bar -->
                             <div class="px-6 flex flex-wrap items-center justify-between gap-4">
                                 <div class="flex flex-wrap gap-2">${modelBadgesHtml}</div>
                                 <div class="flex items-center gap-6 text-xs">
@@ -437,7 +457,6 @@
                                 </div>
                             </div>
 
-                            <!-- Station Table -->
                             <div class="overflow-x-auto px-2 pb-2">
                                 <table class="w-full text-left border-collapse">
                                     <thead>
@@ -467,19 +486,9 @@
             container.innerHTML = html;
         }
 
-        // --- ฟังก์ชันจัดการข้อมูล (State Management) ---
-        function toggleEdit(id) {
-            const item = appData.find(d => d.id === id);
-            if(item) { item.isEditing = true; renderApp(); }
-        }
-        function cancelEdit(id) {
-            const item = appData.find(d => d.id === id);
-            if(item) { item.isEditing = false; renderApp(); }
-        }
-        function saveEdit(id) {
-            const item = appData.find(d => d.id === id);
-            if(item) { item.isEditing = false; renderApp(); }
-        }
+        function toggleEdit(id) { const item = appData.find(d => d.id === id); if(item) { item.isEditing = true; renderApp(); } }
+        function cancelEdit(id) { const item = appData.find(d => d.id === id); if(item) { item.isEditing = false; renderApp(); } }
+        function saveEdit(id) { const item = appData.find(d => d.id === id); if(item) { item.isEditing = false; renderApp(); } }
         function deleteCard(id) {
             if(confirm("คุณต้องการลบรายการพาร์ทนี้ใช่หรือไม่?")) {
                 appData = appData.filter(d => d.id !== id);
@@ -507,28 +516,19 @@
 
         function updateCardTitle(id, val) { const d = appData.find(x => x.id === id); if(d) d.title = val; }
         function updatePartType(id, val) { const d = appData.find(x => x.id === id); if(d) d.partType = val; }
-        function updateTakt(id, val) { const d = appData.find(x => x.id === id); if(d) d.takt = parseFloat(val) || 0; }
+        function updateTakt(id, val) { const d = appData.find(x => x.id === id); if(d) { d.takt = parseFloat(val) || 0; renderDashboardSummary(); } }
 
         function addModel(id) {
             const input = document.getElementById(`new_model_${id}`);
             if(input && input.value.trim() !== "") {
                 const d = appData.find(x => x.id === id);
-                if(d) {
-                    d.models.push(input.value.trim());
-                    renderApp();
-                }
+                if(d) { d.models.push(input.value.trim()); renderApp(); }
             }
         }
-        function removeModel(id, mIdx) {
-            const d = appData.find(x => x.id === id);
-            if(d) {
-                d.models.splice(mIdx, 1);
-                renderApp();
-            }
-        }
+        function removeModel(id, mIdx) { const d = appData.find(x => x.id === id); if(d) { d.models.splice(mIdx, 1); renderApp(); } }
 
         function updateStationName(id, sIdx, val) { appData.find(x => x.id === id).stations[sIdx].station = val; }
-        function updateStationLoss(id, sIdx, val) { appData.find(x => x.id === id).stations[sIdx].loss = parseFloat(val) || 0; }
+        function updateStationLoss(id, sIdx, val) { appData.find(x => x.id === id).stations[sIdx].loss = parseFloat(val) || 0; renderDashboardSummary(); }
         function removeStation(id, sIdx) {
             const d = appData.find(x => x.id === id);
             if(d) { d.stations.splice(sIdx, 1); renderApp(); }
@@ -543,23 +543,19 @@
         }
 
         function updateProcessName(id, sIdx, pIdx, val) { appData.find(x => x.id === id).stations[sIdx].processes[pIdx].name = val; }
-        function updateProcessWt(id, sIdx, pIdx, val) { appData.find(x => x.id === id).stations[sIdx].processes[pIdx].wt = parseFloat(val) || 0; }
+        function updateProcessWt(id, sIdx, pIdx, val) { 
+            appData.find(x => x.id === id).stations[sIdx].processes[pIdx].wt = parseFloat(val) || 0; 
+            renderDashboardSummary();
+        }
         function removeProcess(id, sIdx, pIdx) {
             const d = appData.find(x => x.id === id);
-            if(d) {
-                d.stations[sIdx].processes.splice(pIdx, 1);
-                renderApp();
-            }
+            if(d) { d.stations[sIdx].processes.splice(pIdx, 1); renderApp(); }
         }
         function addProcess(id, sIdx) {
             const d = appData.find(x => x.id === id);
-            if(d) {
-                d.stations[sIdx].processes.push({ name: "กระบวนการใหม่", wt: 5.0 });
-                renderApp();
-            }
+            if(d) { d.stations[sIdx].processes.push({ name: "กระบวนการใหม่", wt: 5.0 }); renderApp(); }
         }
 
-        // เริ่มต้นการเรนเดอร์แอป
         window.onload = renderApp;
     </script>
 </body>
