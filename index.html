@@ -58,9 +58,16 @@ label{
   font-size:12px;
   color:var(--muted);
 }
-:focus-visible{outline:3px solid #9dd3ff;outline-offset:2px}
+:focus-visible{
+  outline:3px solid #9dd3ff;
+  outline-offset:2px;
+}
 [hidden]{display:none!important}
-.container{max-width:1440px;margin:auto;padding:26px}
+.container{
+  max-width:1440px;
+  margin:auto;
+  padding:26px;
+}
 .card{
   margin-bottom:20px;
   background:white;
@@ -68,7 +75,10 @@ label{
   border-radius:15px;
   overflow:hidden;
 }
-.header{padding:26px;border-top:4px solid var(--blue)}
+.header{
+  padding:26px;
+  border-top:4px solid var(--blue);
+}
 .brand{
   color:var(--blue);
   font-size:35px;
@@ -186,7 +196,10 @@ tbody tr:hover{background:#f0f7ff}
   white-space:nowrap;
   color:var(--muted);
 }
-.chart-panel{padding:20px 22px;background:#fbfdff}
+.chart-panel{
+  padding:20px 22px;
+  background:#fbfdff;
+}
 .chart-heading{
   display:flex;
   justify-content:space-between;
@@ -241,23 +254,13 @@ tbody tr:hover{background:#f0f7ff}
 #plan-table .product-cell{
   position:sticky;
   left:0;
-  min-width:150px;
-  width:150px;
-  max-width:150px;
+  min-width:190px;
+  width:190px;
   background:white;
   z-index:2;
   font-weight:700;
 }
-#plan-table .model-cell{
-  position:sticky;
-  left:150px;
-  min-width:210px;
-  width:210px;
-  background:white;
-  z-index:2;
-}
-#plan-table thead .product-cell,
-#plan-table thead .model-cell{
+#plan-table thead .product-cell{
   background:#eaf3fc;
   z-index:4;
 }
@@ -296,11 +299,9 @@ footer{
 
   <header class="card header">
     <div class="brand">Haier</div>
-
     <div class="company">
       HAIER ELECTRIC (THAILAND) PUBLIC COMPANY LIMITED
     </div>
-
     <h1 id="page-title">Door Line</h1>
     <p id="page-description" class="muted"></p>
   </header>
@@ -318,6 +319,7 @@ footer{
 
   <!-- หน้ากำลังการผลิต -->
   <section id="capacity-page">
+
     <div class="metrics">
       <div class="card metric">
         <span class="muted">Target Takt Time</span>
@@ -371,13 +373,14 @@ footer{
     <p id="capacity-message" class="notice" role="status"></p>
   </section>
 
-  <!-- หน้าแผนผลิต -->
+  <!-- หน้าแผนผลิต: แสดงเฉพาะ Product -->
   <section id="plan-page" hidden>
     <div class="card">
+
       <div class="section-header">
         <h2>แผนผลิต / Production Plan</h2>
         <p class="muted">
-          Product / Model อยู่ด้านซ้าย วันที่อยู่ด้านบน แต่ละช่องคือ Order
+          รวม Order ทุกรุ่น แยกตาม Product และวันที่
         </p>
       </div>
 
@@ -397,10 +400,10 @@ footer{
         </button>
       </div>
 
-      <p class="notice">ใช้ไฟล์รูปแบบเดียวกับ “แผนผลิต.xlsx” ที่แนบมาได้โดยตรง
-คอลัมน์ Product / Model ตามด้วยวันที่ในแต่ละคอลัมน์
+      <p class="notice">นำเข้า Excel รูปแบบ Product / Model ตามด้วยวันที่
+ระบบรวม Order ของทุกรุ่นใน Product เดียวกันตามวันที่
 ช่อง Product ที่ว่างจะใช้กลุ่มจากแถวก่อนหน้า
-เก็บแถว Model ซ้ำแยกตามต้นฉบับ
+แถว Model ซ้ำในต้นฉบับจะถูกนำมารวมด้วย
 รองรับไฟล์ .xlsx ไม่เกิน 10 MB</p>
 
       <p id="plan-message" class="notice"
@@ -418,10 +421,6 @@ footer{
             </select>
           </label>
 
-          <label>ค้นหา Model
-            <input id="plan-search" placeholder="เช่น 159C, TM19">
-          </label>
-
           <button id="reset-plan-filter">ล้างตัวกรอง</button>
         </div>
 
@@ -436,7 +435,6 @@ footer{
           <thead id="plan-head">
             <tr>
               <th class="product-cell">Product</th>
-              <th class="model-cell">Model</th>
               <th class="number">DATE / Order</th>
             </tr>
           </thead>
@@ -444,7 +442,7 @@ footer{
         </table>
       </div>
 
-      <p class="notice" style="padding-top:16px">Order และยอดรวมแสดงเป็นจำนวนเต็ม โดยปัดเศษเฉพาะการแสดงผล และยังคำนวณจากค่าต้นฉบับ
+      <p class="notice" style="padding-top:16px">Order และยอดรวมแสดงเป็นจำนวนเต็ม โดยปัดเศษหลังรวมค่าต้นฉบับ
 ข้อมูลบันทึกเฉพาะเบราว์เซอร์เครื่องนี้ ยังไม่ซิงก์ข้ามเครื่อง กรุณาเก็บไฟล์ Excel ไว้สำรอง</p>
     </div>
   </section>
@@ -477,7 +475,7 @@ function numberValue(value) {
   return Number.isFinite(result) ? Math.max(0,result) : 0;
 }
 
-/* แสดง Order และยอดรวมเป็นจำนวนเต็ม */
+/* แสดงจำนวนเต็ม */
 function fmt(value) {
   return Number(value).toLocaleString("en-US",{
     minimumFractionDigits:0,
@@ -615,6 +613,7 @@ function validLine(line) {
 let lines = load(CAPACITY_KEY,defaultLines);
 if (!lines.every(validLine)) lines = clone(defaultLines);
 
+/* เก็บข้อมูลรุ่นต้นทางไว้ แต่แสดงรวมเฉพาะ Product */
 let plans = load(MATRIX_PLAN_KEY,[]).filter(row =>
   row &&
   Number.isInteger(row.sourceRow) &&
@@ -657,7 +656,7 @@ function showPage() {
     : "Door Line · Production Capacity";
 
   $("page-description").textContent = isPlan
-    ? "แผนผลิตแบบ Product / Model / วันที่"
+    ? "รวมแผนผลิตแยกตาม Product และวันที่"
     : "วิเคราะห์เวลาสถานี คอขวด และประสิทธิภาพสมดุลไลน์";
 
   document.title = $("page-title").textContent;
@@ -729,7 +728,6 @@ function chartHtml(line) {
 
   const width = Math.max(760,line.stations.length*90);
   const height = 340;
-
   const left = 60;
   const right = 25;
   const top = 35;
@@ -908,16 +906,11 @@ function lineHtml(line) {
         </div>
 
         <div class="controls">
-          <button
-            data-action="edit"
-            data-id="${esc(line.id)}"
-          >แก้ไข</button>
+          <button data-action="edit"
+            data-id="${esc(line.id)}">แก้ไข</button>
 
-          <button
-            class="danger"
-            data-action="delete"
-            data-id="${esc(line.id)}"
-          >ลบ</button>
+          <button class="danger" data-action="delete"
+            data-id="${esc(line.id)}">ลบ</button>
         </div>
       </div>
 
@@ -956,7 +949,7 @@ function lineHtml(line) {
 }
 
 /* =====================================================
-   แก้ไขข้อมูลไลน์
+   หน้าจอแก้ไขไลน์
    ===================================================== */
 
 function editorHtml() {
@@ -1021,11 +1014,9 @@ function editorHtml() {
                 </label>
               </div>
 
-              <button
-                class="danger"
+              <button class="danger"
                 data-action="remove-station"
-                data-si="${si}"
-              >ลบสถานี</button>
+                data-si="${si}">ลบสถานี</button>
             </div>
 
             ${station.processes.map((process,pi) => `
@@ -1043,19 +1034,15 @@ function editorHtml() {
                   type="number" required min="0" step="0.01"
                   value="${process.wt}">
 
-                <button
-                  class="danger"
+                <button class="danger"
                   data-action="remove-process"
-                  data-si="${si}" data-pi="${pi}"
-                >×</button>
+                  data-si="${si}" data-pi="${pi}">×</button>
               </div>
             `).join("")}
 
-            <button
-              style="margin-top:12px"
+            <button style="margin-top:12px"
               data-action="add-process"
-              data-si="${si}"
-            >＋ เพิ่มกระบวนการ</button>
+              data-si="${si}">＋ เพิ่มกระบวนการ</button>
           </div>
         `).join("")}
 
@@ -1284,7 +1271,7 @@ function normalizeDate(value,date1904=false) {
 }
 
 /* =====================================================
-   อ่านไฟล์ XLSX
+   อ่านไฟล์ Excel XLSX
    ===================================================== */
 
 async function openWorkbook(buffer) {
@@ -1402,7 +1389,6 @@ async function openWorkbook(buffer) {
 
   const workbook = await readXml("xl/workbook.xml");
   const relsXml = await readXml("xl/_rels/workbook.xml.rels");
-
   const properties = nodes(workbook,"workbookPr")[0];
 
   const date1904 = Boolean(properties &&
@@ -1527,8 +1513,12 @@ function parseMatrix(rows,date1904) {
     String(value ?? "").trim().toLowerCase();
 
   const header = rows.findIndex(row =>
-    row.some(cell => ["product","ผลิตภัณฑ์"].includes(normalize(cell))) &&
-    row.some(cell => ["model","รุ่น"].includes(normalize(cell)))
+    row.some(cell =>
+      ["product","ผลิตภัณฑ์"].includes(normalize(cell))
+    ) &&
+    row.some(cell =>
+      ["model","รุ่น"].includes(normalize(cell))
+    )
   );
 
   if (header<0) {
@@ -1559,7 +1549,8 @@ function parseMatrix(rows,date1904) {
     const text = String(cell ?? "").trim();
     if (!text) return;
 
-    if (["total","total order","รวม","ยอดรวม"].includes(normalize(text))) {
+    if (["total","total order","รวม","ยอดรวม"]
+        .includes(normalize(text))) {
       return;
     }
 
@@ -1713,8 +1704,13 @@ async function previewSheet() {
       rows,selectedWorkbook.date1904
     );
 
+    const productCount = new Set(
+      stagedPlans.map(row => row.product)
+    ).size;
+
     message(
       `ตรวจสอบแล้ว ${fmt(stagedPlans.length)} แถว Model\n`+
+      `รวม ${fmt(productCount)} Product\n`+
       `Total Order: ${fmt(totalOrders(stagedPlans))}\n`+
       "กดยืนยันเพื่อนำเข้าและแทนที่แผนเดิม"
     );
@@ -1734,7 +1730,6 @@ $("plan-file").addEventListener("change",async event => {
 
   resetPreview();
   selectedWorkbook=null;
-
   $("plan-sheet").innerHTML="";
   $("plan-sheet").disabled=true;
 
@@ -1811,7 +1806,7 @@ $("confirm-import").addEventListener("click",() => {
 });
 
 /* =====================================================
-   แสดงแผนผลิต Product / Model / วันที่
+   หน้าแผนผลิต: รวมแยกเฉพาะ Product
    ===================================================== */
 
 function updateProductOptions() {
@@ -1840,11 +1835,9 @@ function displayDate(date) {
 function renderPlans() {
   const selectedDate = $("plan-date").value;
   const selectedProduct = $("plan-product").value;
-  const query = $("plan-search").value.trim().toLowerCase();
 
   const filtered = plans.filter(row =>
-    (!selectedProduct || row.product===selectedProduct) &&
-    (!query || row.model.toLowerCase().includes(query))
+    !selectedProduct || row.product===selectedProduct
   );
 
   const allDates = [...new Set(
@@ -1858,7 +1851,6 @@ function renderPlans() {
   $("plan-head").innerHTML = `
     <tr>
       <th class="product-cell">Product</th>
-      <th class="model-cell">Model</th>
 
       ${dates.length ? dates.map(date => `
         <th class="number">
@@ -1872,7 +1864,7 @@ function renderPlans() {
   if (!filtered.length || !dates.length) {
     $("plan-body").innerHTML = `
       <tr>
-        <td colspan="3" class="empty">
+        <td colspan="2" class="empty">
           ยังไม่มีข้อมูลที่ตรงกับตัวกรอง
           กรุณานำเข้าไฟล์แผนผลิต
         </td>
@@ -1880,64 +1872,85 @@ function renderPlans() {
     `;
 
     $("plan-total").textContent="0";
-    $("plan-summary").textContent="0 แถว Model";
+    $("plan-summary").textContent="0 Product";
     return;
   }
 
-  const totals = Object.fromEntries(
+  /* รวมยอดทุกรุ่นใน Product เดียวกัน */
+  const productOrders = new Map();
+
+  filtered.forEach(row => {
+    if (!productOrders.has(row.product)) {
+      productOrders.set(row.product,new Map());
+    }
+
+    const values = productOrders.get(row.product);
+
+    dates.forEach(date => {
+      if (Object.prototype.hasOwnProperty.call(row.values,date)) {
+        values.set(
+          date,
+          (values.get(date) || 0)+row.values[date]
+        );
+      }
+    });
+  });
+
+  const totals = new Map(
     dates.map(date => [date,0])
   );
 
-  const body = filtered.map(row => {
-    dates.forEach(date => {
-      totals[date]+=row.values[date] ?? 0;
-    });
+  const body = [...productOrders.entries()].map(
+    ([product,values]) => {
+      dates.forEach(date => {
+        totals.set(
+          date,
+          totals.get(date)+(values.get(date) || 0)
+        );
+      });
 
-    return `
-      <tr>
-        <td class="product-cell">${esc(row.product)}</td>
-        <td class="model-cell">${esc(row.model)}</td>
+      return `
+        <tr>
+          <td class="product-cell">${esc(product)}</td>
 
-        ${dates.map(date => `
-          <td class="number">
-            ${Object.prototype.hasOwnProperty.call(row.values,date)
-              ? fmt(row.values[date])
-              : "—"}
-          </td>
-        `).join("")}
-      </tr>
-    `;
-  }).join("");
+          ${dates.map(date => `
+            <td class="number">
+              ${values.has(date)
+                ? fmt(values.get(date))
+                : "—"}
+            </td>
+          `).join("")}
+        </tr>
+      `;
+    }
+  ).join("");
 
   $("plan-body").innerHTML = body+`
     <tr class="total-row">
       <td class="product-cell">Total Order</td>
-      <td class="model-cell"></td>
 
       ${dates.map(date => `
-        <td class="number">${fmt(totals[date])}</td>
+        <td class="number">${fmt(totals.get(date))}</td>
       `).join("")}
     </tr>
   `;
 
   $("plan-total").textContent = fmt(
-    Object.values(totals).reduce(
+    [...totals.values()].reduce(
       (sum,value) => sum+value,0
     )
   );
 
   $("plan-summary").textContent =
-    `${fmt(filtered.length)} แถว Model · ${fmt(dates.length)} วัน`;
+    `${fmt(productOrders.size)} Product · ${fmt(dates.length)} วัน`;
 }
 
 $("plan-date").addEventListener("change",renderPlans);
 $("plan-product").addEventListener("change",renderPlans);
-$("plan-search").addEventListener("input",renderPlans);
 
 $("reset-plan-filter").addEventListener("click",() => {
   $("plan-date").value="";
   $("plan-product").value="";
-  $("plan-search").value="";
   renderPlans();
 });
 
