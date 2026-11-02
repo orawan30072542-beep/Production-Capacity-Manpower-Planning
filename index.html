@@ -1828,8 +1828,15 @@ function updateProductOptions() {
 }
 
 function displayDate(date) {
-  const [year,month,day]=date.split("-");
-  return `${day}/${month}/${year}`;
+  const [, month, day] = date.split("-");
+
+  const months = [
+    "Jan", "Feb", "Mar", "Apr",
+    "May", "Jun", "Jul", "Aug",
+    "Sep", "Oct", "Nov", "Dec"
+  ];
+
+  return `${day}/${months[Number(month) - 1]}`;
 }
 
 function renderPlans() {
