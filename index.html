@@ -1,1750 +1,200 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Haier Door Line</title>
-
-<style>
-:root {
-  --blue: #0066b3;
-  --ink: #20344c;
-  --muted: #718096;
-  --border: #dfe7ef;
-  --background: #f3f6fa;
-  --green: #16836c;
-  --red: #d95056;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  background: var(--background);
-  color: var(--ink);
-  font-family: Tahoma, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-button, input, select {
-  font: inherit;
-}
-
-button, .button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 9px 16px;
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  background: white;
-  color: var(--ink);
-  cursor: pointer;
-  text-decoration: none;
-}
-
-button:hover, .button:hover {
-  background: #edf4fb;
-}
-
-button.primary {
-  background: var(--blue);
-  border-color: var(--blue);
-  color: white;
-}
-
-button.danger {
-  color: var(--red);
-  background: #fff4f4;
-}
-
-button:disabled {
-  opacity: .45;
-  cursor: not-allowed;
-}
-
-input, select {
-  min-height: 40px;
-  padding: 8px 10px;
-  border: 1px solid #cbd7e3;
-  border-radius: 8px;
-  background: white;
-  color: var(--ink);
-  max-width: 100%;
-}
-
-input[type="number"] { width: 100px; }
-
-:focus-visible {
-  outline: 3px solid #9dd3ff;
-  outline-offset: 2px;
-}
-
-[hidden] { display: none !important; }
-
-.container {
-  max-width: 1440px;
-  margin: auto;
-  padding: 26px;
-}
-
-.card {
-  margin-bottom: 20px;
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  background: white;
-  overflow: hidden;
-  box-shadow: 0 5px 24px #17344e05;
-}
-
-.header {
-  padding: 26px;
-  border-top: 4px solid var(--blue);
-}
-
-.brand {
-  color: var(--blue);
-  font-size: 35px;
-  font-weight: 800;
-  letter-spacing: -2px;
-}
-
-.company {
-  margin-bottom: 16px;
-  color: var(--muted);
-  font-size: 10px;
-  letter-spacing: 1px;
-}
-
-h1, h2, h3, p { margin: 0; }
-
-h1 { font-size: 23px; }
-h2 { font-size: 19px; }
-h3 { font-size: 16px; }
-
-.muted {
-  color: var(--muted);
-  font-size: 12px;
-}
-
-.navigation {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 22px;
-  flex-wrap: wrap;
-}
-
-.navigation a {
-  padding: 11px 22px;
-  border-radius: 10px;
-  color: var(--muted);
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.navigation a[aria-current="page"] {
-  background: var(--blue);
-  color: white;
-}
-
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.metric {
-  padding: 22px;
-  border-left: 4px solid var(--blue);
-  margin: 0;
-}
-
-.metric strong {
-  display: block;
-  margin-top: 6px;
-  font-size: 31px;
-  line-height: 1.3;
-}
-
-.metric.red { border-left-color: var(--red); }
-.metric.green { border-left-color: var(--green); }
-
-.red-text { color: var(--red); }
-.green-text { color: var(--green); }
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 14px;
-  padding: 18px 22px;
-}
-
-.controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-label {
-  display: grid;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.section-header {
-  padding: 22px;
-  border-bottom: 1px solid var(--border);
-}
-
-.badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: #eaf4ff;
-  color: var(--blue);
-  font-size: 11px;
-}
-
-.models {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 10px;
-}
-
-.table-scroll { overflow-x: auto; }
-
-table {
-  width: 100%;
-  min-width: 800px;
-  border-collapse: collapse;
-  font-variant-numeric: tabular-nums;
-}
-
-th {
-  padding: 14px 18px;
-  text-align: left;
-  background: #f4f8fc;
-  color: #62758c;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-td {
-  padding: 16px 18px;
-  border-bottom: 1px solid #edf1f6;
-  vertical-align: top;
-}
-
-tbody tr:nth-child(even) { background: #fbfcfe; }
-tbody tr:hover { background: #f0f7ff; }
-
-.number {
-  text-align: right;
-  white-space: nowrap;
-}
-
-.bottleneck {
-  box-shadow: inset 3px 0 var(--red);
-}
-
-.process {
-  display: flex;
-  justify-content: space-between;
-  gap: 22px;
-  margin-bottom: 5px;
-}
-
-.process span:last-child {
-  white-space: nowrap;
-  color: var(--muted);
-}
-
-.chart {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
-  gap: 12px;
-  padding: 20px 22px;
-  background: #fbfdff;
-}
-
-.chart-item {
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: white;
-}
-
-.track {
-  height: 7px;
-  margin: 10px 0;
-  border-radius: 10px;
-  background: #e9eff5;
-  overflow: hidden;
-}
-
-.bar {
-  height: 100%;
-  background: var(--green);
-}
-
-.bar.over { background: #e57b80; }
-
-.notice {
-  padding: 0 22px 16px;
-  color: var(--muted);
-  font-size: 12px;
-  white-space: pre-line;
-}
-
-#plan-message {
-  color: var(--blue);
-}
-
-.summary {
-  margin-left: auto;
-  text-align: right;
-}
-
-.summary strong {
-  margin: 0 7px;
-  color: var(--blue);
-  font-size: 28px;
-}
-
-.empty {
-  padding: 36px;
-  text-align: center;
-  color: var(--muted);
-}
-
-.editor {
-  padding: 20px 22px;
-}
-
-.station-editor {
-  padding: 16px;
-  margin-bottom: 14px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: #fafcfe;
-}
-
-.edit-process {
-  display: grid;
-  grid-template-columns: 1fr 100px auto;
-  gap: 9px;
-  margin-top: 9px;
-}
-
-footer {
-  padding: 20px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 11px;
-}
-
-@media (max-width: 700px) {
-  .container { padding: 12px; }
-  .header { padding: 20px; }
-  .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .metric { padding: 16px; }
-  .metric strong { font-size: 26px; }
-  .edit-process { grid-template-columns: 1fr 80px auto; }
-  .summary { width: 100%; text-align: left; }
-}
-
-@media print {
-  body { background: white; }
-  .navigation, button, .import-controls { display: none !important; }
-  .container { padding: 0; }
-  .card { box-shadow: none; }
-}
-</style>
-</head>
-
-<body>
-<div class="container">
-
-  <header class="card header">
-    <div class="brand">Haier</div>
-    <div class="company">
-      HAIER ELECTRIC (THAILAND) PUBLIC COMPANY LIMITED
-    </div>
-    <h1 id="page-title">Door Line · Production Capacity</h1>
-    <p id="page-description" class="muted"></p>
-  </header>
-
-  <nav class="navigation" aria-label="เมนูหลัก">
-    <a id="nav-capacity" href="#capacity">กำลังการผลิต</a>
-    <a id="nav-plan" href="#production-plan">แผนผลิต</a>
-  </nav>
-
-  <noscript>
-    <div class="card empty">
-      กรุณาเปิด JavaScript และเปิดไฟล์ด้วย Chrome หรือ Edge
-    </div>
-  </noscript>
-
-  <main>
-    <!-- หน้า 1: กำลังการผลิต -->
-    <section id="capacity-page">
-      <div class="metrics">
-        <div class="card metric">
-          <span class="muted">Target Takt Time</span>
-          <strong id="metric-takt">—</strong>
-          <span class="muted">วินาที</span>
-        </div>
-
-        <div class="card metric red">
-          <span class="muted">Bottleneck</span>
-          <strong id="metric-bottleneck" class="red-text">—</strong>
-          <span id="metric-station" class="muted">—</span>
-        </div>
-
-        <div class="card metric">
-          <span class="muted">จำนวนสถานี</span>
-          <strong id="metric-count">—</strong>
-          <span class="muted">สถานี</span>
-        </div>
-
-        <div class="card metric green">
-          <span class="muted">Line Balance Efficiency</span>
-          <strong id="metric-balance" class="green-text">—</strong>
-          <span class="muted">ประสิทธิภาพสมดุลไลน์</span>
-        </div>
-      </div>
-
-      <div class="card toolbar">
-        <div class="controls">
-          <label>
-            ประเภทพาร์ท
-            <select id="capacity-filter">
-              <option value="">ทั้งหมด</option>
-              <option>Back plate</option>
-              <option>Bottom plate</option>
-            </select>
-          </label>
-
-          <label>
-            ค้นหา
-            <input id="capacity-search"
-              placeholder="ไลน์ รุ่น สถานี หรือกระบวนการ">
-          </label>
-        </div>
-
-        <button id="add-line" class="primary">＋ เพิ่มไลน์ / พาร์ท</button>
-      </div>
-
-      <p class="notice">
-        ภาพรวมด้านบนอ้างอิงไลน์แรก • Cycle Time = เวลางานรวม + Loss
-      </p>
-
-      <div id="capacity-content"></div>
-      <p id="capacity-message" class="notice" role="status"></p>
-    </section>
-
-    <!-- หน้า 2: แผนผลิต -->
-    <section id="plan-page" hidden>
-      <div class="card">
-        <div class="section-header">
-          <h2>แผนผลิต / Production Plan</h2>
-          <p class="muted">นำเข้าแผนจาก Excel แยกวันที่ กะ ไลน์ และรุ่น</p>
-        </div>
-
-        <div class="toolbar import-controls">
-          <div class="controls">
-            <button id="download-template">
-              ↓ ดาวน์โหลดตารางตัวอย่าง
-            </button>
-
-            <label>
-              ไฟล์ Excel (.xlsx)
-              <input id="plan-file" type="file" accept=".xlsx">
-            </label>
-
-            <label>
-              ชีต
-              <select id="plan-sheet" disabled></select>
-            </label>
-          </div>
-
-          <button id="confirm-import" class="primary" disabled>
-            ยืนยันนำเข้า / แทนที่แผนเดิม
-          </button>
-        </div>
-
-        <p class="notice">
-หัวคอลัมน์: Date, Shift, Line, Model, Plan Qty
-วันที่: YYYY-MM-DD หรือ DD/MM/YYYY • กะ: A/B • จำนวน: ชิ้น
-ตารางตัวอย่างเป็น CSV เปิดด้วย Excel ได้ ให้กรอกข้อมูลแล้วบันทึกเป็น .xlsx ก่อนนำเข้า
-รองรับไฟล์ .xlsx ไม่เกิน 10 MB
-        </p>
-
-        <p id="plan-message" class="notice" role="status"
-          aria-live="polite"></p>
-
-        <div class="toolbar">
-          <div class="controls">
-            <label>
-              วันที่
-              <input id="plan-date" type="date">
-            </label>
-
-            <label>
-              ไลน์
-              <select id="plan-line">
-                <option value="">ทุกไลน์</option>
-              </select>
-            </label>
-
-            <button id="reset-plan-filter">ล้างตัวกรอง</button>
-          </div>
-
-          <div class="summary">
-            แผนรวม <strong id="plan-total">0</strong> ชิ้น
-            <div class="muted">
-              <span id="plan-count">0</span> รายการตามตัวกรอง
-            </div>
-          </div>
-        </div>
-
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>วันที่</th>
-                <th>กะ</th>
-                <th>ไลน์</th>
-                <th>รุ่น</th>
-                <th class="number">แผนผลิต (ชิ้น)</th>
-              </tr>
-            </thead>
-            <tbody id="plan-body"></tbody>
-          </table>
-        </div>
-
-        <p class="notice" style="padding-top:16px">
-          ข้อมูลบันทึกเฉพาะเบราว์เซอร์เครื่องนี้ กรุณาเก็บไฟล์ Excel ไว้สำรอง
-        </p>
-      </div>
-    </section>
-  </main>
-
-  <footer>HAIER · DOOR LINE PRODUCTION</footer>
-</div>
-
-<script>
-"use strict";
-
-/* =========================================================
-   1. เครื่องมือและข้อมูลเริ่มต้น
-   ========================================================= */
-
-const $ = id => document.getElementById(id);
-
-const escapeHtml = value =>
-  String(value ?? "").replace(/[&<>"']/g, character => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[character]));
-
-const clone = value => JSON.parse(JSON.stringify(value));
-
-const numeric = value => {
-  const result = Number(value);
-  return Number.isFinite(result) ? Math.max(0, result) : 0;
-};
-
-const format = value =>
-  Number(value).toLocaleString("th-TH", { maximumFractionDigits: 2 });
-
-function loadArray(key, fallback) {
-  try {
-    const value = JSON.parse(localStorage.getItem(key));
-    return Array.isArray(value) ? value : clone(fallback);
-  } catch {
-    return clone(fallback);
-  }
-}
-
-function saveArray(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-const CAPACITY_KEY = "haier-capacity-v2";
-const PLAN_KEY = "haier-door-production-plans-v1";
-
-const defaultLines = [{
-  id: "back-plate-b",
-  title: "Back Plate #B",
-  partType: "Back plate",
-  lineTag: "B line",
-  takt: 20,
-  models: [
-    "T DOOR H Metal",
-    "T DOOR H Metal WD",
-    "T DOOR H Glass",
-    "T DOOR H Glass WD"
-  ],
-  stations: [
-    {
-      station: "BP01", loss: 0,
-      processes: [
-        { name: "ประกอบ Cover", wt: 12.56 },
-        { name: "ติด Injection Hold 1 PC.", wt: 7.72 }
-      ]
-    },
-    {
-      station: "BP02", loss: 0,
-      processes: [
-        { name: "ยึดสกรู Cover 2 PC.", wt: 8.96 },
-        { name: "ติด Injection Hold 1 PC.", wt: 7.46 }
-      ]
-    },
-    {
-      station: "BP03", loss: 0,
-      processes: [
-        { name: "ติดเทปใส Injection Hold 1 PC.", wt: 8.26 },
-        { name: "ติด Seal รูระบาย 5 PC", wt: 6.73 },
-        { name: "ติด Seal รูระบาย 3 PC", wt: 23.93 }
-      ]
-    },
-    {
-      station: "BP04", loss: 0,
-      processes: [
-        { name: "ติดเทปใส Injection Hold 1 PC.", wt: 4.57 },
-        { name: "ติด REINF 1 PC + ติด AL Tape", wt: 21.92 },
-        { name: "ติดเทปใส Cover BOX 3 PC", wt: 21.40 }
-      ]
-    },
-    {
-      station: "BP05", loss: 0,
-      processes: [
-        { name: "ติด Seal รูระบาย 2 PC", wt: 19.10 },
-        { name: "ติดเทปเหนียว Cover BOX 4 PC", wt: 40.14 }
-      ]
-    },
-    {
-      station: "BP06", loss: 0,
-      processes: [
-        { name: "วางท่อ Hot Line", wt: 16.75 },
-        { name: "ติดเทปล็อกท่อ 1 PC", wt: 9.12 }
-      ]
-    },
-    {
-      station: "BP07", loss: 0,
-      processes: [
-        { name: "ติด Seal ต่ำ 2 pcs.", wt: 13.76 },
-        { name: "ติดเทปล็อกท่อ 1 PC", wt: 9.12 },
-        { name: "ติด AL tape 3 PC", wt: 32.95 }
-      ]
-    },
-    {
-      station: "BP08", loss: 0,
-      processes: [{ name: "ติด AL tape 6 PC", wt: 57.51 }]
-    },
-    {
-      station: "BP09", loss: 0,
-      processes: [{ name: "ยก Back Plate ไปที่รถเข็น", wt: 15.23 }]
-    }
-  ]
-}];
-
-function validLine(line) {
-  return line &&
-    typeof line.id === "string" &&
-    typeof line.title === "string" &&
-    typeof line.partType === "string" &&
-    Array.isArray(line.models) &&
-    line.models.every(model => typeof model === "string") &&
-    Number.isFinite(line.takt) &&
-    line.takt >= 0 &&
-    Array.isArray(line.stations) &&
-    line.stations.every(station =>
-      typeof station.station === "string" &&
-      Number.isFinite(station.loss) &&
-      station.loss >= 0 &&
-      Array.isArray(station.processes) &&
-      station.processes.every(process =>
-        typeof process.name === "string" &&
-        Number.isFinite(process.wt) &&
-        process.wt >= 0
-      )
-    );
-}
-
-let lines = loadArray(CAPACITY_KEY, defaultLines);
-
-if (!lines.every(validLine)) {
-  lines = clone(defaultLines);
-}
-
-let plans = loadArray(PLAN_KEY, []).filter(row =>
-  row && validDate(row.date) &&
-  ["A", "B"].includes(row.shift) &&
-  typeof row.line === "string" &&
-  typeof row.model === "string" &&
-  Number.isSafeInteger(row.quantity) &&
-  row.quantity >= 0
-);
-
-let editingId = null;
-let draft = null;
-let draftIsNew = false;
-
-/* =========================================================
-   2. เปลี่ยนหน้า
-   ========================================================= */
-
-function showPage() {
-  const isPlan = location.hash === "#production-plan";
-
-  $("capacity-page").hidden = isPlan;
-  $("plan-page").hidden = !isPlan;
-
-  $("nav-capacity").setAttribute(
-    "aria-current", isPlan ? "false" : "page"
-  );
-
-  $("nav-plan").setAttribute(
-    "aria-current", isPlan ? "page" : "false"
-  );
-
-  $("page-title").textContent = isPlan
-    ? "Door Line · Production Plan"
-    : "Door Line · Production Capacity";
-
-  $("page-description").textContent = isPlan
-    ? "จัดการแผนผลิตจาก Excel แยกวันที่ กะ ไลน์ และรุ่น"
-    : "วิเคราะห์เวลาสถานี คอขวด และประสิทธิภาพสมดุลไลน์";
-
-  document.title = $("page-title").textContent;
-}
-
-window.addEventListener("hashchange", showPage);
-
-/* =========================================================
-   3. คำนวณกำลังการผลิต
-   ========================================================= */
-
-function workTime(station) {
-  return station.processes.reduce(
-    (sum, process) => sum + numeric(process.wt), 0
-  );
-}
-
-function cycleTime(station) {
-  return workTime(station) + numeric(station.loss);
-}
-
-function lineMetrics(line) {
-  const cycles = line.stations.map(cycleTime);
-  const maximum = Math.max(0, ...cycles);
-  const total = cycles.reduce((sum, value) => sum + value, 0);
-
-  return {
-    maximum,
-    count: cycles.length,
-    bottleneck: maximum > 0
-      ? line.stations[cycles.indexOf(maximum)].station
-      : "—",
-    balance: maximum > 0 && cycles.length > 0
-      ? total / (cycles.length * maximum) * 100
-      : 0
-  };
-}
-
-function renderMetrics() {
-  const line = lines[0];
-
-  if (!line) {
-    [
-      "metric-takt",
-      "metric-bottleneck",
-      "metric-station",
-      "metric-count",
-      "metric-balance"
-    ].forEach(id => $(id).textContent = "—");
-    return;
-  }
-
-  const result = lineMetrics(line);
-
-  $("metric-takt").textContent = line.takt.toFixed(2);
-  $("metric-bottleneck").textContent = result.maximum.toFixed(2);
-  $("metric-station").textContent = result.bottleneck;
-  $("metric-count").textContent = result.count;
-  $("metric-balance").textContent = result.balance.toFixed(1) + "%";
-}
-
 function chartHtml(line) {
-  const maximum = Math.max(
-    1, line.takt, ...line.stations.map(cycleTime)
-  );
+  const width = Math.max(760, line.stations.length * 90);
+  const height = 340;
 
-  return `<div class="chart">
-    ${line.stations.map(station => {
-      const cycle = cycleTime(station);
-      return `
-        <div class="chart-item">
-          <strong>${escapeHtml(station.station)}</strong>
-          <div class="track">
-            <div class="bar ${cycle > line.takt ? "over" : ""}"
-              style="width:${cycle / maximum * 100}%"></div>
-          </div>
-          <div class="muted">${cycle.toFixed(2)} s</div>
-        </div>`;
-    }).join("")}
-  </div>`;
-}
-
-function lineHtml(line) {
-  const result = lineMetrics(line);
-
-  return `
-    <article class="card">
-      <div class="toolbar">
-        <div>
-          <h2>${escapeHtml(line.title)}</h2>
-          <span class="badge">${escapeHtml(line.partType)}</span>
-          <span class="badge">${escapeHtml(line.lineTag)}</span>
-        </div>
-
-        <div class="controls">
-          <button data-action="edit" data-id="${escapeHtml(line.id)}">
-            แก้ไข
-          </button>
-          <button class="danger" data-action="delete"
-            data-id="${escapeHtml(line.id)}">ลบ</button>
-        </div>
-      </div>
-
-      <div class="notice">
-        Takt ${line.takt.toFixed(2)} s ·
-        Bottleneck ${result.maximum.toFixed(2)} s ·
-        Balance ${result.balance.toFixed(1)}%
-        <div class="models">
-          ${line.models.map(model =>
-            `<span class="badge">${escapeHtml(model)}</span>`
-          ).join("")}
-        </div>
-      </div>
-
-      <p class="notice">
-        เวลาของแต่ละสถานี • สีแดง = เกิน Takt Time
-      </p>
-
-      ${chartHtml(line)}
-
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>สถานี</th>
-              <th>กระบวนการ / เวลางาน</th>
-              <th class="number">Work Time (s)</th>
-              <th class="number">Loss (s)</th>
-              <th class="number">Cycle (s)</th>
-              <th>สถานะ</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${line.stations.map(station => {
-              const cycle = cycleTime(station);
-              const bottleneck = result.maximum > 0 &&
-                Math.abs(cycle - result.maximum) < 0.000001;
-
-              return `
-                <tr class="${bottleneck ? "bottleneck" : ""}">
-                  <td>
-                    <strong>${escapeHtml(station.station)}</strong>
-                    ${bottleneck
-                      ? '<div class="muted red-text">คอขวด</div>'
-                      : ""}
-                  </td>
-
-                  <td>
-                    ${station.processes.map((process, index) => `
-                      <div class="process">
-                        <span>${index + 1}.
-                          ${escapeHtml(process.name)}
-                        </span>
-                        <span>${process.wt.toFixed(2)} s</span>
-                      </div>
-                    `).join("") || "—"}
-                  </td>
-
-                  <td class="number">
-                    ${workTime(station).toFixed(2)}
-                  </td>
-                  <td class="number">${station.loss.toFixed(2)}</td>
-                  <td class="number">
-                    <strong>${cycle.toFixed(2)}</strong>
-                  </td>
-                  <td class="${cycle > line.takt
-                    ? "red-text" : "green-text"}">
-                    ${cycle > line.takt
-                      ? "เกินเป้าหมาย" : "ตามเป้าหมาย"}
-                  </td>
-                </tr>`;
-            }).join("")}
-          </tbody>
-        </table>
-      </div>
-    </article>`;
-}
-
-function editorHtml() {
-  return `
-    <article class="card">
-      <div class="toolbar">
-        <h2>แก้ไขข้อมูลไลน์</h2>
-        <div class="controls">
-          <button data-action="cancel">ยกเลิก</button>
-          <button class="primary" data-action="save">บันทึก</button>
-        </div>
-      </div>
-
-      <div class="editor">
-        <div class="controls">
-          <label>ชื่อไลน์
-            <input data-field="title"
-              value="${escapeHtml(draft.title)}">
-          </label>
-
-          <label>ประเภท
-            <select data-field="partType">
-              <option ${draft.partType === "Back plate"
-                ? "selected" : ""}>Back plate</option>
-              <option ${draft.partType === "Bottom plate"
-                ? "selected" : ""}>Bottom plate</option>
-            </select>
-          </label>
-
-          <label>Line Tag
-            <input data-field="lineTag"
-              value="${escapeHtml(draft.lineTag)}">
-          </label>
-
-          <label>Takt Time (s)
-            <input data-field="takt" type="number"
-              min="0" step="0.01" value="${draft.takt}">
-          </label>
-        </div>
-
-        <label style="margin:16px 0">
-          รุ่นสินค้า — คั่นแต่ละรุ่นด้วยเครื่องหมายจุลภาค
-          <input data-field="models"
-            value="${escapeHtml(draft.models.join(", "))}">
-        </label>
-
-        ${draft.stations.map((station, stationIndex) => `
-          <div class="station-editor">
-            <div class="toolbar" style="padding:0">
-              <div class="controls">
-                <label>สถานี
-                  <input data-field="station"
-                    data-station="${stationIndex}"
-                    value="${escapeHtml(station.station)}">
-                </label>
-
-                <label>Loss (s)
-                  <input data-field="loss"
-                    data-station="${stationIndex}"
-                    type="number" min="0" step="0.01"
-                    value="${station.loss}">
-                </label>
-              </div>
-
-              <button class="danger" data-action="remove-station"
-                data-station="${stationIndex}">ลบสถานี</button>
-            </div>
-
-            ${station.processes.map((process, processIndex) => `
-              <div class="edit-process">
-                <input aria-label="ชื่อกระบวนการ"
-                  data-field="process-name"
-                  data-station="${stationIndex}"
-                  data-process="${processIndex}"
-                  value="${escapeHtml(process.name)}">
-
-                <input aria-label="เวลางาน วินาที"
-                  data-field="process-time"
-                  data-station="${stationIndex}"
-                  data-process="${processIndex}"
-                  type="number" min="0" step="0.01"
-                  value="${process.wt}">
-
-                <button class="danger"
-                  data-action="remove-process"
-                  data-station="${stationIndex}"
-                  data-process="${processIndex}">×</button>
-              </div>
-            `).join("")}
-
-            <button style="margin-top:12px"
-              data-action="add-process"
-              data-station="${stationIndex}">＋ เพิ่มกระบวนการ</button>
-          </div>
-        `).join("")}
-
-        <button data-action="add-station">＋ เพิ่มสถานี</button>
-      </div>
-    </article>`;
-}
-
-function renderCapacity() {
-  renderMetrics();
-
-  if (draft) {
-    $("capacity-content").innerHTML = editorHtml();
-    return;
-  }
-
-  const type = $("capacity-filter").value;
-  const query = $("capacity-search").value.trim().toLowerCase();
-
-  const filtered = lines.filter(line => {
-    const searchable = [
-      line.title,
-      line.lineTag,
-      ...line.models,
-      ...line.stations.flatMap(station => [
-        station.station,
-        ...station.processes.map(process => process.name)
-      ])
-    ].join(" ").toLowerCase();
-
-    return (!type || line.partType === type) &&
-      (!query || searchable.includes(query));
-  });
-
-  $("capacity-content").innerHTML = filtered.length
-    ? filtered.map(lineHtml).join("")
-    : '<div class="card empty">ไม่พบข้อมูล</div>';
-}
-
-$("capacity-filter").addEventListener("change", renderCapacity);
-$("capacity-search").addEventListener("input", renderCapacity);
-
-$("add-line").addEventListener("click", () => {
-  if (draft && !confirm("ยกเลิกข้อมูลที่กำลังแก้ไขเพื่อเพิ่มไลน์ใหม่?")) {
-    return;
-  }
-
-  editingId = "line-" + Date.now();
-  draftIsNew = true;
-
-  draft = {
-    id: editingId,
-    title: "New Production Line",
-    partType: "Back plate",
-    lineTag: "",
-    takt: 20,
-    models: [],
-    stations: [{
-      station: "ST01",
-      loss: 0,
-      processes: [{ name: "กระบวนการใหม่", wt: 0 }]
-    }]
+  const margin = {
+    top: 35,
+    right: 25,
+    bottom: 55,
+    left: 60
   };
 
-  renderCapacity();
-});
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
 
-$("capacity-content").addEventListener("input", event => {
-  if (!draft) return;
+  const cycles = line.stations.map(cycleTime);
 
-  const input = event.target;
-  const field = input.dataset.field;
-  const stationIndex = Number(input.dataset.station);
-  const processIndex = Number(input.dataset.process);
+  // เผื่อพื้นที่เหนือแท่งสำหรับแสดงตัวเลข
+  const maximum = Math.max(1, line.takt, ...cycles);
+  const step = Math.max(1, Math.ceil(maximum * 1.15 / 5));
+  const axisMaximum = step * 5;
 
-  if (["title", "partType", "lineTag"].includes(field)) {
-    draft[field] = input.value;
-  } else if (field === "takt") {
-    draft.takt = numeric(input.value);
-  } else if (field === "models") {
-    draft.models = input.value.split(",").map(s => s.trim()).filter(Boolean);
-  } else if (field === "station") {
-    draft.stations[stationIndex].station = input.value;
-  } else if (field === "loss") {
-    draft.stations[stationIndex].loss = numeric(input.value);
-  } else if (field === "process-name") {
-    draft.stations[stationIndex].processes[processIndex].name = input.value;
-  } else if (field === "process-time") {
-    draft.stations[stationIndex].processes[processIndex].wt =
-      numeric(input.value);
-  }
-});
+  const yPosition = value =>
+    margin.top + plotHeight -
+    (value / axisMaximum) * plotHeight;
 
-$("capacity-content").addEventListener("click", event => {
-  const button = event.target.closest("button[data-action]");
-  if (!button) return;
+  const baseline = margin.top + plotHeight;
 
-  const action = button.dataset.action;
-  const stationIndex = Number(button.dataset.station);
-  const processIndex = Number(button.dataset.process);
+  const gridLines = Array.from({ length: 6 }, (_, index) => {
+    const value = index * step;
+    const y = yPosition(value);
 
-  if (action === "edit") {
-    editingId = button.dataset.id;
-    draft = clone(lines.find(line => line.id === editingId));
-    draftIsNew = false;
-  } else if (action === "delete") {
-    if (!confirm("ยืนยันลบไลน์นี้?")) return;
-    lines = lines.filter(line => line.id !== button.dataset.id);
-    saveArray(CAPACITY_KEY, lines);
-  } else if (action === "cancel") {
-    draft = null;
-    editingId = null;
-  } else if (action === "save") {
-    if (!draft.title.trim() ||
-        draft.stations.some(station =>
-          !station.station.trim() ||
-          station.processes.some(process => !process.name.trim())
-        )) {
-      alert("กรุณากรอกชื่อไลน์ สถานี และกระบวนการให้ครบ");
-      return;
-    }
+    return `
+      <line
+        x1="${margin.left}"
+        y1="${y}"
+        x2="${width - margin.right}"
+        y2="${y}"
+        stroke="#e4ebf3"
+        stroke-width="1"
+      />
 
-    if (draftIsNew) {
-      lines.unshift(clone(draft));
-    } else {
-      const index = lines.findIndex(line => line.id === editingId);
-      lines[index] = clone(draft);
-    }
+      <text
+        x="${margin.left - 12}"
+        y="${y + 4}"
+        text-anchor="end"
+        fill="#718096"
+        font-size="11"
+      >
+        ${value}
+      </text>
+    `;
+  }).join("");
 
-    const saved = saveArray(CAPACITY_KEY, lines);
-    $("capacity-message").textContent = saved
-      ? "บันทึกข้อมูลแล้ว"
-      : "บันทึกได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้เก็บข้อมูล";
+  const slotWidth = line.stations.length
+    ? plotWidth / line.stations.length
+    : plotWidth;
 
-    draft = null;
-    editingId = null;
-  } else if (draft && action === "add-station") {
-    draft.stations.push({
-      station: "ST" + String(draft.stations.length + 1).padStart(2, "0"),
-      loss: 0,
-      processes: [{ name: "กระบวนการใหม่", wt: 0 }]
-    });
-  } else if (draft && action === "remove-station") {
-    draft.stations.splice(stationIndex, 1);
-  } else if (draft && action === "add-process") {
-    draft.stations[stationIndex].processes.push({
-      name: "กระบวนการใหม่",
-      wt: 0
-    });
-  } else if (draft && action === "remove-process") {
-    draft.stations[stationIndex].processes.splice(processIndex, 1);
-  }
+  const barWidth = Math.min(48, slotWidth * 0.55);
 
-  renderCapacity();
-});
+  const bars = line.stations.map((station, index) => {
+    const cycle = cycles[index];
 
-/* =========================================================
-   4. ตรวจสอบแผนผลิต
-   ========================================================= */
+    const centerX =
+      margin.left + slotWidth * (index + 0.5);
 
-function validDate(value) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return false;
+    const y = yPosition(cycle);
+    const barHeight = baseline - y;
 
-  const date = new Date(value + "T00:00:00Z");
+    const color = cycle > line.takt
+      ? "#e57b80"
+      : "#16836c";
 
-  return Number.isFinite(date.getTime()) &&
-    date.toISOString().slice(0, 10) === value;
+    return `
+      <g>
+        <title>
+          ${escapeHtml(station.station)}:
+          ${cycle.toFixed(2)} วินาที
+        </title>
+
+        <rect
+          x="${centerX - barWidth / 2}"
+          y="${y}"
+          width="${barWidth}"
+          height="${barHeight}"
+          rx="5"
+          fill="${color}"
+        />
+
+        <text
+          x="${centerX}"
+          y="${y - 9}"
+          text-anchor="middle"
+          fill="#20344c"
+          font-size="12"
+          font-weight="700"
+        >
+          ${cycle.toFixed(2)}
+        </text>
+
+        <text
+          x="${centerX}"
+          y="${baseline + 25}"
+          text-anchor="middle"
+          fill="#20344c"
+          font-size="12"
+          font-weight="700"
+        >
+          ${escapeHtml(station.station)}
+        </text>
+      </g>
+    `;
+  }).join("");
+
+  const taktY = yPosition(line.takt);
+
+  return `
+    <div style="
+      padding:20px 22px;
+      background:#fbfdff;
+      border-top:1px solid #edf1f6;
+    ">
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:12px;
+        margin-bottom:12px;
+      ">
+        <strong>Cycle Time ของแต่ละสถานี</strong>
+
+        <div style="
+          display:flex;
+          flex-wrap:wrap;
+          gap:16px;
+          font-size:12px;
+        ">
+          <span style="color:#16836c">
+            ● ตามเป้าหมาย
+          </span>
+
+          <span style="color:#d95056">
+            ● เกิน Takt Time
+          </span>
+
+          <span style="color:#0066b3">
+            ┄ Takt ${line.takt.toFixed(2)} s
+          </span>
+        </div>
+      </div>
+
+      <div style="overflow-x:auto">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 ${width} ${height}"
+          role="img"
+          aria-label="กราฟแท่งแนวตั้งแสดงเวลาของแต่ละสถานีเทียบกับ Takt Time"
+          style="
+            display:block;
+            width:100%;
+            min-width:${width}px;
+            font-family:Tahoma,Arial,sans-serif;
+          "
+        >
+          <text
+            x="${margin.left}"
+            y="16"
+            fill="#718096"
+            font-size="11"
+          >
+            เวลา (วินาที)
+          </text>
+
+          ${gridLines}
+          ${bars}
+
+          <line
+            x1="${margin.left}"
+            y1="${taktY}"
+            x2="${width - margin.right}"
+            y2="${taktY}"
+            stroke="#0066b3"
+            stroke-width="2"
+            stroke-dasharray="7 5"
+          />
+
+          <text
+            x="${width - margin.right}"
+            y="${height - 8}"
+            text-anchor="end"
+            fill="#718096"
+            font-size="11"
+          >
+            สถานีงาน
+          </text>
+        </svg>
+      </div>
+    </div>
+  `;
 }
-
-function normalizeDate(value) {
-  if (typeof value === "number") {
-    if (value < 1 || value > 100000) return null;
-
-    // Excel 1900 date system.
-    const serial = Math.floor(value);
-    if (serial === 60) return null;
-
-    const days = serial < 60 ? serial + 1 : serial;
-
-    return new Date(
-      Date.UTC(1899, 11, 30) + days * 86400000
-    ).toISOString().slice(0, 10);
-  }
-
-  let text = String(value ?? "").trim();
-
-  if (/^\d{4}-\d{2}-\d{2}T00:00:00(?:\.000)?Z?$/.test(text)) {
-    text = text.slice(0, 10);
-  }
-
-  const parts = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/.exec(text);
-
-  if (parts) {
-    let year = Number(parts[3]);
-    if (year > 2400) year -= 543;
-
-    text = `${year}-${parts[2].padStart(2, "0")}-${parts[1].padStart(2, "0")}`;
-  }
-
-  return validDate(text) ? text : null;
-}
-
-function validatePlan(rows) {
-  const normalize = value =>
-    String(value ?? "").trim().toLowerCase().replace(/[\s_]+/g, "");
-
-  const aliases = [
-    ["date", "วันที่"],
-    ["shift", "กะ"],
-    ["line", "ไลน์", "สายการผลิต"],
-    ["model", "รุ่น"],
-    ["planqty", "quantity", "จำนวน", "แผนผลิต", "จำนวนแผนผลิต"]
-  ];
-
-  const headerIndex = rows.findIndex(row =>
-    aliases.every(names =>
-      row.some(cell => names.includes(normalize(cell)))
-    )
-  );
-
-  if (headerIndex < 0) {
-    throw Error("ไม่พบหัวคอลัมน์ Date, Shift, Line, Model, Plan Qty");
-  }
-
-  const columns = aliases.map(names => {
-    const matches = [];
-
-    rows[headerIndex].forEach((cell, index) => {
-      if (names.includes(normalize(cell))) matches.push(index);
-    });
-
-    if (matches.length !== 1) {
-      throw Error("พบหัวคอลัมน์ซ้ำ กรุณาตรวจสอบไฟล์");
-    }
-
-    return matches[0];
-  });
-
-  const result = [];
-  const errors = [];
-
-  rows.slice(headerIndex + 1).forEach((row, index) => {
-    if (!row.some(cell => cell !== "" && cell != null)) return;
-
-    const [rawDate, rawShift, rawLine, rawModel, rawQty] =
-      columns.map(column => row[column]);
-
-    const date = normalizeDate(rawDate);
-    const shift = String(rawShift ?? "")
-      .trim().toUpperCase().replace(/^SHIFT\s*/, "");
-
-    const line = String(rawLine ?? "").trim();
-    const model = String(rawModel ?? "").trim();
-
-    const quantity = typeof rawQty === "number"
-      ? rawQty
-      : Number(String(rawQty ?? "").replace(/,/g, "").trim());
-
-    const quantityBlank = rawQty == null ||
-      String(rawQty).trim() === "";
-
-    if (!date || !["A", "B"].includes(shift) ||
-        !line || !model || quantityBlank ||
-        !Number.isSafeInteger(quantity) || quantity < 0) {
-      errors.push(
-        `แถว ${headerIndex + index + 2}: ตรวจวันที่ กะ ไลน์ รุ่น และจำนวนเต็มตั้งแต่ 0`
-      );
-    } else {
-      result.push({ date, shift, line, model, quantity });
-    }
-  });
-
-  if (errors.length) {
-    throw Error(
-      errors.slice(0, 6).join("\n") +
-      (errors.length > 6 ? `\nและอีก ${errors.length - 6} แถว` : "")
-    );
-  }
-
-  if (!result.length) throw Error("ไม่พบรายการแผนผลิต");
-  if (result.length > 20000) throw Error("รองรับสูงสุด 20,000 รายการ");
-
-  return result;
-}
-
-/* =========================================================
-   5. อ่าน Excel XLSX ภายในเครื่อง
-   ========================================================= */
-
-async function openWorkbook(buffer) {
-  const bytes = new Uint8Array(buffer);
-  const view = new DataView(buffer);
-  const decoder = new TextDecoder();
-
-  let end = -1;
-
-  for (let i = bytes.length - 22;
-       i >= Math.max(0, bytes.length - 65557);
-       i--) {
-    if (view.getUint32(i, true) === 0x06054b50) {
-      end = i;
-      break;
-    }
-  }
-
-  if (end < 0) {
-    throw Error("ไฟล์ไม่ใช่ XLSX ที่ถูกต้อง กรุณาบันทึกเป็น .xlsx ใหม่");
-  }
-
-  if (view.getUint16(end + 4, true) !== 0 ||
-      view.getUint16(end + 6, true) !== 0) {
-    throw Error("ไม่รองรับไฟล์ Excel แบบแบ่งหลายส่วน");
-  }
-
-  const count = view.getUint16(end + 10, true);
-  let offset = view.getUint32(end + 16, true);
-  let expandedTotal = 0;
-
-  if (count > 10000) throw Error("ไฟล์มีข้อมูลมากเกินไป");
-
-  const entries = new Map();
-
-  for (let index = 0; index < count; index++) {
-    if (view.getUint32(offset, true) !== 0x02014b50) {
-      throw Error("โครงสร้างไฟล์ Excel ไม่สมบูรณ์");
-    }
-
-    const flags = view.getUint16(offset + 8, true);
-    const method = view.getUint16(offset + 10, true);
-    const size = view.getUint32(offset + 20, true);
-    const expanded = view.getUint32(offset + 24, true);
-    const nameLength = view.getUint16(offset + 28, true);
-    const extraLength = view.getUint16(offset + 30, true);
-    const commentLength = view.getUint16(offset + 32, true);
-    const local = view.getUint32(offset + 42, true);
-
-    const name = decoder.decode(
-      bytes.slice(offset + 46, offset + 46 + nameLength)
-    );
-
-    expandedTotal += expanded;
-
-    if (expanded > 30000000 || expandedTotal > 80000000) {
-      throw Error("ข้อมูลในไฟล์ใหญ่เกินไป กรุณาแยกไฟล์");
-    }
-
-    entries.set(name, { flags, method, size, expanded, local });
-
-    offset += 46 + nameLength + extraLength + commentLength;
-  }
-
-  async function readXml(path) {
-    const entry = entries.get(path);
-
-    if (!entry) throw Error("ไม่พบส่วนประกอบ Excel: " + path);
-    if (entry.flags & 1) throw Error("ไม่รองรับไฟล์ที่ตั้งรหัสผ่าน");
-
-    const start = entry.local + 30 +
-      view.getUint16(entry.local + 26, true) +
-      view.getUint16(entry.local + 28, true);
-
-    let data = bytes.slice(start, start + entry.size);
-
-    if (entry.method === 8) {
-      try {
-        const stream = new Blob([data]).stream().pipeThrough(
-          new DecompressionStream("deflate-raw")
-        );
-
-        data = new Uint8Array(
-          await new Response(stream).arrayBuffer()
-        );
-      } catch {
-        throw Error("ไม่สามารถคลายไฟล์ได้ กรุณาใช้ Chrome หรือ Edge รุ่นปัจจุบัน");
-      }
-    } else if (entry.method !== 0) {
-      throw Error("ไม่รองรับรูปแบบการบีบอัดไฟล์นี้");
-    }
-
-    if (data.length !== entry.expanded) {
-      throw Error("ไฟล์ Excel ไม่สมบูรณ์");
-    }
-
-    const documentXml = new DOMParser().parseFromString(
-      decoder.decode(data),
-      "application/xml"
-    );
-
-    if (documentXml.getElementsByTagName("parsererror").length) {
-      throw Error("โครงสร้างข้อมูล Excel ไม่ถูกต้อง");
-    }
-
-    return documentXml;
-  }
-
-  const nodes = (node, name) =>
-    Array.from(node.getElementsByTagNameNS("*", name));
-
-  const workbook = await readXml("xl/workbook.xml");
-  const relationshipsXml = await readXml(
-    "xl/_rels/workbook.xml.rels"
-  );
-
-  const properties = nodes(workbook, "workbookPr")[0];
-
-  const uses1904 = properties &&
-    ["1", "true"].includes(properties.getAttribute("date1904"));
-
-  let sharedStrings = [];
-
-  if (entries.has("xl/sharedStrings.xml")) {
-    sharedStrings = nodes(
-      await readXml("xl/sharedStrings.xml"), "si"
-    ).map(item =>
-      nodes(item, "t").map(text => text.textContent).join("")
-    );
-  }
-
-  const relationships = new Map(
-    nodes(relationshipsXml, "Relationship")
-      .filter(item => item.getAttribute("TargetMode") !== "External")
-      .map(item => [
-        item.getAttribute("Id"),
-        item.getAttribute("Target")
-      ])
-  );
-
-  const sheets = nodes(workbook, "sheet").map(sheet => {
-    const relationshipId = sheet.getAttributeNS(
-      "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
-      "id"
-    );
-
-    return {
-      name: sheet.getAttribute("name"),
-      target: relationships.get(relationshipId)
-    };
-  }).filter(sheet => sheet.target);
-
-  if (!sheets.length) throw Error("ไม่พบชีตในไฟล์");
-
-  return {
-    sheets,
-
-    async getRows(index) {
-      const target = sheets[index].target;
-
-      const path = target.startsWith("/")
-        ? target.slice(1)
-        : new URL(target, "https://local/xl/").pathname.slice(1);
-
-      if (!path.startsWith("xl/worksheets/")) {
-        throw Error("ชีตนี้ไม่ใช่ตารางข้อมูล");
-      }
-
-      const sheet = await readXml(path);
-      const rows = [];
-
-      for (const row of nodes(sheet, "row")) {
-        const rowNumber = Number(row.getAttribute("r"));
-
-        if (!Number.isInteger(rowNumber) ||
-            rowNumber < 1 || rowNumber > 25000) {
-          throw Error("รองรับข้อมูลภายใน 25,000 แถวแรก");
-        }
-
-        const values = [];
-
-        for (const cell of nodes(row, "c")) {
-          const match = /^[A-Z]+/.exec(cell.getAttribute("r") || "");
-          if (!match) continue;
-
-          const column = Array.from(match[0]).reduce(
-            (sum, letter) => sum * 26 + letter.charCodeAt(0) - 64,
-            0
-          ) - 1;
-
-          if (column > 200) {
-            throw Error("รองรับตารางไม่เกิน 201 คอลัมน์");
-          }
-
-          const type = cell.getAttribute("t");
-          const raw = nodes(cell, "v")[0]?.textContent;
-
-          if (type === "s") {
-            values[column] = sharedStrings[Number(raw)] ?? "";
-          } else if (type === "inlineStr") {
-            values[column] = nodes(cell, "t")
-              .map(text => text.textContent).join("");
-          } else if (type === "str" || type === "d" ||
-                     type === "e") {
-            values[column] = raw ?? "";
-          } else {
-            values[column] = raw == null ? "" : Number(raw);
-          }
-        }
-
-        rows[rowNumber - 1] = values;
-      }
-
-      const denseRows = Array.from(
-        { length: rows.length },
-        (_, rowIndex) => rows[rowIndex] || []
-      );
-
-      // Adjust the Date column only when the workbook uses 1904 dates.
-      if (uses1904) {
-        const header = denseRows.findIndex(row =>
-          row.some(value =>
-            ["date", "วันที่"].includes(
-              String(value ?? "").trim().toLowerCase()
-            )
-          )
-        );
-
-        if (header >= 0) {
-          const dateColumn = denseRows[header].findIndex(value =>
-            ["date", "วันที่"].includes(
-              String(value ?? "").trim().toLowerCase()
-            )
-          );
-
-          denseRows.slice(header + 1).forEach(row => {
-            if (typeof row[dateColumn] === "number") {
-              row[dateColumn] += 1462;
-            }
-          });
-        }
-      }
-
-      return denseRows;
-    }
-  };
-}
-
-/* =========================================================
-   6. นำเข้าและแสดงแผนผลิต
-   ========================================================= */
-
-let selectedWorkbook = null;
-let stagedPlans = null;
-let importRevision = 0;
-
-function setPlanMessage(message) {
-  $("plan-message").textContent = message;
-}
-
-function resetPreview() {
-  stagedPlans = null;
-  $("confirm-import").disabled = true;
-}
-
-async function previewSelectedSheet() {
-  const revision = ++importRevision;
-  resetPreview();
-
-  if (!selectedWorkbook) return;
-
-  setPlanMessage("กำลังตรวจสอบข้อมูล…");
-
-  try {
-    const rows = await selectedWorkbook.getRows(
-      Number($("plan-sheet").value)
-    );
-
-    if (revision !== importRevision) return;
-
-    stagedPlans = validatePlan(rows);
-
-    const total = stagedPlans.reduce(
-      (sum, row) => sum + row.quantity, 0
-    );
-
-    setPlanMessage(
-      `ตรวจสอบแล้ว ${format(stagedPlans.length)} รายการ ` +
-      `รวม ${format(total)} ชิ้น\n` +
-      "กดยืนยันเพื่อนำเข้าและแทนที่แผนทั้งหมดที่มีอยู่"
-    );
-
-    $("confirm-import").disabled = false;
-  } catch (error) {
-    if (revision !== importRevision) return;
-    resetPreview();
-    setPlanMessage(error.message || "อ่านข้อมูลไม่สำเร็จ");
-  }
-}
-
-$("plan-file").addEventListener("change", async event => {
-  const revision = ++importRevision;
-
-  resetPreview();
-  selectedWorkbook = null;
-
-  $("plan-sheet").innerHTML = "";
-  $("plan-sheet").disabled = true;
-
-  const file = event.target.files[0];
-  if (!file) return;
-
-  if (!/\.xlsx$/i.test(file.name)) {
-    setPlanMessage("กรุณาเลือกไฟล์ .xlsx เท่านั้น");
-    return;
-  }
-
-  if (file.size > 10 * 1024 * 1024) {
-    setPlanMessage("ไฟล์ต้องมีขนาดไม่เกิน 10 MB");
-    return;
-  }
-
-  setPlanMessage("กำลังอ่านไฟล์ Excel…");
-
-  try {
-    const workbook = await openWorkbook(await file.arrayBuffer());
-
-    if (revision !== importRevision) return;
-
-    selectedWorkbook = workbook;
-
-    $("plan-sheet").innerHTML = workbook.sheets.map(
-      (sheet, index) =>
-        `<option value="${index}">${escapeHtml(sheet.name)}</option>`
-    ).join("");
-
-    $("plan-sheet").disabled = false;
-
-    await previewSelectedSheet();
-  } catch (error) {
-    if (revision !== importRevision) return;
-
-    setPlanMessage(
-      error instanceof RangeError
-        ? "ไฟล์ Excel ไม่สมบูรณ์ กรุณาบันทึกไฟล์ใหม่"
-        : error.message || "ไม่สามารถอ่านไฟล์ Excel ได้"
-    );
-  }
-});
-
-$("plan-sheet").addEventListener("change", previewSelectedSheet);
-
-$("confirm-import").addEventListener("click", () => {
-  if (!stagedPlans) return;
-
-  plans = clone(stagedPlans);
-
-  const saved = saveArray(PLAN_KEY, plans);
-
-  resetPreview();
-  updatePlanLineOptions();
-  renderPlans();
-
-  setPlanMessage(saved
-    ? "นำเข้าแผนผลิตเรียบร้อยแล้ว"
-    : "นำเข้าแล้ว แต่ข้อมูลเก็บได้เฉพาะรอบนี้ เพราะเบราว์เซอร์ไม่อนุญาตให้บันทึก"
-  );
-});
-
-function updatePlanLineOptions() {
-  const previous = $("plan-line").value;
-  const lineNames = [...new Set(plans.map(row => row.line))].sort();
-
-  $("plan-line").innerHTML =
-    '<option value="">ทุกไลน์</option>' +
-    lineNames.map(line =>
-      `<option value="${escapeHtml(line)}">${escapeHtml(line)}</option>`
-    ).join("");
-
-  $("plan-line").value = lineNames.includes(previous) ? previous : "";
-}
-
-function renderPlans() {
-  const date = $("plan-date").value;
-  const line = $("plan-line").value;
-
-  const filtered = plans.filter(row =>
-    (!date || row.date === date) &&
-    (!line || row.line === line)
-  ).sort((a, b) =>
-    a.date.localeCompare(b.date) ||
-    a.shift.localeCompare(b.shift) ||
-    a.line.localeCompare(b.line) ||
-    a.model.localeCompare(b.model)
-  );
-
-  $("plan-total").textContent = format(
-    filtered.reduce((sum, row) => sum + row.quantity, 0)
-  );
-
-  $("plan-count").textContent = format(filtered.length);
-
-  $("plan-body").innerHTML = filtered.length
-    ? filtered.map(row => `
-        <tr>
-          <td>${escapeHtml(row.date)}</td>
-          <td>Shift ${escapeHtml(row.shift)}</td>
-          <td>${escapeHtml(row.line)}</td>
-          <td>${escapeHtml(row.model)}</td>
-          <td class="number"><strong>${format(row.quantity)}</strong></td>
-        </tr>
-      `).join("")
-    : `<tr>
-        <td colspan="5" class="empty">
-          ยังไม่มีแผนผลิตที่ตรงกับตัวกรอง
-        </td>
-      </tr>`;
-}
-
-$("plan-date").addEventListener("change", renderPlans);
-$("plan-line").addEventListener("change", renderPlans);
-
-$("reset-plan-filter").addEventListener("click", () => {
-  $("plan-date").value = "";
-  $("plan-line").value = "";
-  renderPlans();
-});
-
-/* ตารางตัวอย่าง: เปิด CSV ใน Excel แล้ว Save As เป็น XLSX */
-$("download-template").addEventListener("click", () => {
-  const csv = "\uFEFF" + [
-    "Date,Shift,Line,Model,Plan Qty",
-    "2026-11-02,A,Back Plate #B,T DOOR H Metal,150",
-    "2026-11-02,B,Back Plate #B,T DOOR H Glass,120"
-  ].join("\r\n");
-
-  const url = URL.createObjectURL(
-    new Blob([csv], { type: "text/csv;charset=utf-8" })
-  );
-
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "production_plan_template.csv";
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-});
-
-/* เริ่มแสดงผลทันที */
-showPage();
-renderCapacity();
-updatePlanLineOptions();
-renderPlans();
-</script>
-</body>
-</html>
