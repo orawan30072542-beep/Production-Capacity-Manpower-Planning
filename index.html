@@ -400,7 +400,7 @@ footer{
       <p class="notice">ใช้ไฟล์รูปแบบเดียวกับ “แผนผลิต.xlsx” ที่แนบมาได้โดยตรง
 คอลัมน์ Product / Model ตามด้วยวันที่ในแต่ละคอลัมน์
 ช่อง Product ที่ว่างจะใช้กลุ่มจากแถวก่อนหน้า
-เก็บแถว Model ซ้ำแยกตามต้นฉบับ และรองรับยอดทศนิยม
+เก็บแถว Model ซ้ำแยกตามต้นฉบับ
 รองรับไฟล์ .xlsx ไม่เกิน 10 MB</p>
 
       <p id="plan-message" class="notice"
@@ -440,13 +440,12 @@ footer{
               <th class="number">DATE / Order</th>
             </tr>
           </thead>
-
           <tbody id="plan-body"></tbody>
         </table>
       </div>
 
-      <p class="notice" style="padding-top:16px">ข้อมูลบันทึกเฉพาะเบราว์เซอร์เครื่องนี้ ยังไม่ซิงก์ข้ามเครื่อง กรุณาเก็บไฟล์ Excel ไว้สำรอง
-ตัวเลขบนหน้าจอแสดงสูงสุด 3 ตำแหน่งทศนิยม โดยยังเก็บค่าที่นำเข้าไว้สำหรับคำนวณ</p>
+      <p class="notice" style="padding-top:16px">Order และยอดรวมแสดงเป็นจำนวนเต็ม โดยปัดเศษเฉพาะการแสดงผล และยังคำนวณจากค่าต้นฉบับ
+ข้อมูลบันทึกเฉพาะเบราว์เซอร์เครื่องนี้ ยังไม่ซิงก์ข้ามเครื่อง กรุณาเก็บไฟล์ Excel ไว้สำรอง</p>
     </div>
   </section>
 
@@ -478,9 +477,11 @@ function numberValue(value) {
   return Number.isFinite(result) ? Math.max(0,result) : 0;
 }
 
+/* แสดง Order และยอดรวมเป็นจำนวนเต็ม */
 function fmt(value) {
   return Number(value).toLocaleString("en-US",{
-    maximumFractionDigits:3
+    minimumFractionDigits:0,
+    maximumFractionDigits:0
   });
 }
 
@@ -1283,7 +1284,7 @@ function normalizeDate(value,date1904=false) {
 }
 
 /* =====================================================
-   อ่านไฟล์ XLSX โดยไม่ใช้ส่วนเสริมภายนอก
+   อ่านไฟล์ XLSX
    ===================================================== */
 
 async function openWorkbook(buffer) {
@@ -1565,9 +1566,7 @@ function parseMatrix(rows,date1904) {
     const date = normalizeDate(cell,date1904);
 
     if (!date) {
-      throw Error(
-        `หัววันที่คอลัมน์ ${column+1} ไม่ถูกต้อง`
-      );
+      throw Error(`หัววันที่คอลัมน์ ${column+1} ไม่ถูกต้อง`);
     }
 
     dateColumns.push({column,date});
@@ -1584,8 +1583,10 @@ function parseMatrix(rows,date1904) {
 
   const result = [];
   const errors = [];
+
   const totalLabels = new Set([
-    "total","total order","grand total","รวม","รวมทั้งหมด","ยอดรวม"
+    "total","total order","grand total",
+    "รวม","รวมทั้งหมด","ยอดรวม"
   ]);
 
   let currentProduct = "";
@@ -1810,7 +1811,7 @@ $("confirm-import").addEventListener("click",() => {
 });
 
 /* =====================================================
-   แสดงแผนผลิตตามรูปแบบ Excel
+   แสดงแผนผลิต Product / Model / วันที่
    ===================================================== */
 
 function updateProductOptions() {
