@@ -395,10 +395,18 @@ footer{
         </div>
         <button id="lob-upload-confirm" class="primary" type="button" disabled>ยืนยันนำเข้าข้อมูล</button>
       </div>
-      <p class="notice">หัวคอลัมน์: Line, Model, Station, Process, Work Time, Loss, Takt Time, Type, Line Tag
-Work Time / Loss / Takt Time มีหน่วยเป็นวินาที • Loss คิดครั้งเดียวต่อสถานี
+      <p class="notice">หัวคอลัมน์: Line, Model, Station, Process, Work Time, Loss, Type, Line Tag
+Work Time / Loss มีหน่วยเป็นวินาที • ไม่ต้องใส่ Takt Time ในไฟล์ • Loss คิดครั้งเดียวต่อสถานี
 หากสถานีมีหลายกระบวนการ ให้ใช้ชื่อสถานีเดิมซ้ำ และกรอก Loss แถวแรก แถวถัดไปเว้นว่าง
 Line / Model ต่างกันจะแยกเป็นคนละรายการ • ข้อมูลตัวอย่างเป็นข้อมูลสมมติ กรุณาแก้ก่อนนำเข้า</p>
+      <div class="controls" style="padding:16px">
+        <label>แหล่ง UPH<select id="lob-uph-mode"><option value="foam">DOOR FOAM</option><option value="bend">DOOR BEND</option></select></label>
+        <label>ไลน์ผลิต<select id="lob-uph-line"><option value="Door A">Door A</option><option value="Door B">Door B</option><option value="Door C">Door C</option></select></label>
+        <label>วันที่<input id="lob-uph-date" type="date"></label>
+        <label>วัสดุสำหรับ DOOR BEND<select id="lob-uph-material"><option value="metal">ฝาเหล็ก</option><option value="glass">กระจก</option></select></label>
+      </div>
+      <p class="notice">Takt Time = 3,600 ÷ UPH เป้าหมายจากแผนผลิต DOOR (รวม Efficiency แล้ว) • เลือกแหล่ง UPH ก่อนยืนยันนำเข้า • ค่านี้ใช้กับทุกรายการในไฟล์และบันทึกเป็นค่าขณะนำเข้า หากแผนเปลี่ยนให้นำเข้าใหม่</p>
+      <p id="lob-uph-result" class="notice" role="status"></p>
       <p id="lob-upload-message" class="notice" role="status" aria-live="polite"></p>
       <div id="lob-upload-preview"></div>
     </section>
@@ -894,6 +902,14 @@ function renderMetrics() {
    กราฟแท่งแนวตั้ง
    ===================================================== */
 
+function taktTargets(line) {
+  // Imported Takt already includes the selected efficiency. Recover the 100% baseline first.
+  const efficiency=Number(line.uphSource?.efficiency);
+  const factor=Number.isFinite(efficiency)&&efficiency>0&&efficiency<=100 ? efficiency/100 : 1;
+  const hundred=line.takt/factor;
+  return {hundred,eightyFive:hundred*.85};
+}
+
 function chartHtml(line) {
   if (!line.stations.length) {
     return '<div class="empty">เพิ่มสถานีเพื่อแสดงกราฟ</div>';
@@ -911,7 +927,8 @@ function chartHtml(line) {
   const baseline = top+plotHeight;
 
   const cycles = line.stations.map(cycleTime);
-  const maximum = Math.max(1,line.takt,...cycles);
+  const targets=taktTargets(line);
+  const maximum = Math.max(1,targets.hundred,targets.eightyFive,...cycles);
   const step = Math.max(1,Math.ceil(maximum*1.15/5));
   const axisMaximum = step*5;
 
@@ -978,9 +995,8 @@ function chartHtml(line) {
         <div class="legend">
           <span class="green-text">● ตามเป้าหมาย</span>
           <span class="red-text">● เกิน Takt Time</span>
-          <span style="color:#0066b3">
-            ┄ Takt ${line.takt.toFixed(2)} s
-          </span>
+          <span style="color:#0066b3">━ Takt 100%: ${targets.hundred.toFixed(2)} s</span>
+          <span style="color:#d97706">┄ Takt 85%: ${targets.eightyFive.toFixed(2)} s (เส้นประ)</span>
         </div>
       </div>
 
@@ -989,7 +1005,7 @@ function chartHtml(line) {
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 ${width} ${height}"
           role="img"
-          aria-label="กราฟแท่งแนวตั้งแสดงเวลาสถานีเทียบกับ Takt Time"
+          aria-label="กราฟแท่งแนวตั้งแสดงเวลาสถานีเทียบกับ Takt Time 100% และ 85%"
           style="
             display:block;
             width:100%;
@@ -1005,13 +1021,10 @@ function chartHtml(line) {
           ${grid}
           ${bars}
 
-          <line
-            x1="${left}" y1="${y(line.takt)}"
-            x2="${width-right}" y2="${y(line.takt)}"
-            stroke="#0066b3"
-            stroke-width="2"
-            stroke-dasharray="7 5"
-          />
+          <line x1="${left}" y1="${y(targets.hundred)}" x2="${width-right}" y2="${y(targets.hundred)}"
+            stroke="#0066b3" stroke-width="2"><title>Takt 100%: ${targets.hundred.toFixed(2)} s</title></line>
+          <line x1="${left}" y1="${y(targets.eightyFive)}" x2="${width-right}" y2="${y(targets.eightyFive)}"
+            stroke="#d97706" stroke-width="2" stroke-dasharray="7 5"><title>Takt 85%: ${targets.eightyFive.toFixed(2)} s</title></line>
 
           <text
             x="${width-right}" y="${height-8}"
@@ -1088,7 +1101,7 @@ function lineHtml(line) {
       </div>
 
       <div class="notice">
-        Takt ${line.takt.toFixed(2)} s ·
+        Takt ${line.takt.toFixed(2)} s ${line.uphSource ? `จาก UPH ${fmt(line.uph)} (${displayDate(line.uphSource.date)} / ${esc(line.uphSource.line)})` : ""} ·
         Bottleneck ${result.maximum.toFixed(2)} s ·
         Balance ${result.balance.toFixed(1)}%
 
@@ -1303,6 +1316,8 @@ function updateDraft(event) {
     draft[field] = input.value;
   } else if (field==="takt") {
     draft.takt = numberValue(input.value);
+    delete draft.uph;
+    delete draft.uphSource;
   } else if (field==="models") {
     draft.models = input.value.split(",")
       .map(value => value.trim()).filter(Boolean);
@@ -2320,6 +2335,7 @@ function buildDoorPlanView(source,filters) {
 }
 
 function renderDoorPlans() {
+  refreshLOBUPH();
   renderUPHNote();
   const bend=doorPlanMode==="bend";
   $("door-foam-content").hidden=bend;
@@ -2462,6 +2478,39 @@ $("door-plan-reset").addEventListener("click",() => {
 });
 
 /* LINE OF BALANCE file import: one source row per process. */
+function resolveLOBUPH() {
+  const date=$("lob-uph-date").value,line=$("lob-uph-line").value;
+  const mode=$("lob-uph-mode").value;
+  const material=mode==='bend'?$("lob-uph-material").value:'';
+  if(!date || !PRODUCT_LINES.includes(line))throw Error('เลือกวันที่และไลน์ผลิตสำหรับ UPH');
+  const hours=getUPHHours(),efficiency=getUPHEfficiency();
+  if(!hours || !efficiency)throw Error('กรอกชั่วโมงสุทธิและ Efficiency ให้ถูกต้องในหน้าแผนผลิต DOOR');
+  const view=buildDoorPlanView(plans,{date,line,material,product:''});
+  const total=view.totals.get(date);
+  if(!total || !total.known)throw Error('ไม่พบแผนผลิต DOOR ของวันที่ / ไลน์ / วัสดุที่เลือก');
+  if(total.unknown)throw Error('จำนวนฝา (Radio) ของ Product ยังไม่ครบ กรุณาตั้งค่าในแผนผลิตก่อน');
+  const rate=total.quantity/hours/(efficiency/100);
+  const uph=Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4);
+  if(!Number.isFinite(uph)||uph<=0)throw Error('UPH ต้องมากกว่า 0 จึงคำนวณ Takt Time ได้');
+  return {date,line,mode,material,hours,efficiency,uph,takt:3600/uph};
+}
+function lobUPHPreviewText() {
+  try {return resolveLOBUPH().takt.toFixed(2);}catch{return 'รอเลือก UPH';}
+}
+function refreshLOBUPH() {
+  $("lob-uph-material").disabled=$("lob-uph-mode").value!=='bend';
+  try {
+    const source=resolveLOBUPH();
+    $("lob-uph-result").textContent=`${source.line} • ${displayDate(source.date)} • UPH ${fmt(source.uph)} • Takt Time ${source.takt.toFixed(2)} วินาที`;
+    $("lob-upload-confirm").disabled=!lobImportDraft;
+  } catch(error) {
+    $("lob-uph-result").textContent=error.message;
+    $("lob-upload-confirm").disabled=true;
+  }
+  if(lobImportDraft)$("lob-upload-preview").querySelectorAll?.('tbody tr').forEach(row=>{row.lastElementChild.textContent=lobUPHPreviewText();});
+}
+['lob-uph-mode','lob-uph-line','lob-uph-date','lob-uph-material','door-plan-hours','door-plan-efficiency'].forEach(id=>$(id).addEventListener('change',refreshLOBUPH));
+
 let lobImportWorkbook=null;
 let lobImportDraft=null;
 let lobImportRevision=0;
@@ -2498,14 +2547,13 @@ function parseLOBImportRows(rows) {
     station:['station','stationname','สถานี','ชื่อสถานี'],
     process:['process','processname','กระบวนการ','ชื่อกระบวนการ'],
     wt:['worktime','worktimes','wt','เวลางาน','เวลางานวินาที'],
-    takt:['takttime','takttimes','takt','แทคไทม์'],
     loss:['loss','losss','เวลาสูญเสีย'],
     type:['type','parttype','worktype','ประเภทงาน','ประเภท'],
     tag:['linetag','ไลน์ผลิต','ป้ายไลน์']
   };
-  const required=['title','model','station','process','wt','takt'];
+  const required=['title','model','station','process','wt'];
   const header=rows.findIndex(row=>required.every(key=>row.some(value=>aliases[key].includes(norm(value)))));
-  if(header<0)throw Error('ไม่พบหัวตาราง Line, Model, Station, Process, Work Time, Takt Time กรุณาใช้ไฟล์ตัวอย่าง');
+  if(header<0)throw Error('ไม่พบหัวตาราง Line, Model, Station, Process, Work Time กรุณาใช้ไฟล์ตัวอย่าง');
   const cols={};
   for(const [key,names] of Object.entries(aliases)) {
     const matches=[];rows[header].forEach((value,index)=>{if(names.includes(norm(value)))matches.push(index);});
@@ -2529,15 +2577,13 @@ function parseLOBImportRows(rows) {
       const title=String(get('title')??"").trim(),model=String(get('model')??"").trim();
       const station=String(get('station')??"").trim(),process=String(get('process')??"").trim();
       if(!title||!model||!station||!process)throw Error(`แถว ${n}: กรอก Line, Model, Station และ Process ให้ครบ`);
-      const wt=numericInput(get('wt'),'Work Time',n),takt=numericInput(get('takt'),'Takt Time',n);
+      const wt=numericInput(get('wt'),'Work Time',n);
       const loss=numericInput(get('loss'),'Loss',n,true);
-      if(takt<=0)throw Error(`แถว ${n}: Takt Time ต้องมากกว่า 0`);
       const type=String(get('type')??"").trim()||'ทั่วไป';
       const tag=String(get('tag')??"").trim();
       const key=JSON.stringify([title,model,type,tag]);
-      if(!groups.has(key))groups.set(key,{title,partType:type,lineTag:tag,models:[model],takt,stations:new Map()});
+      if(!groups.has(key))groups.set(key,{title,partType:type,lineTag:tag,models:[model],takt:0,stations:new Map()});
       const line=groups.get(key);
-      if(line.takt!==takt)throw Error(`แถว ${n}: Takt Time ของ Line / Model เดียวกันไม่ตรงกัน`);
       if(!line.stations.has(station))line.stations.set(station,{station,processes:[],loss:0,declaredLoss:null});
       const item=line.stations.get(station);
       if(loss!==null) {
@@ -2560,8 +2606,8 @@ function showLOBImportPreview(rows) {
   const stationCount=lobImportDraft.reduce((sum,line)=>sum+line.stations.length,0);
   const processCount=lobImportDraft.reduce((sum,line)=>sum+line.stations.reduce((count,station)=>count+station.processes.length,0),0);
   lobImportMessage(`ตรวจสอบแล้ว ${lobImportDraft.length} รายการ Line / Model • ${stationCount} สถานี • ${processCount} กระบวนการ\nเลือกวิธีนำเข้าแล้วกดยืนยัน ข้อมูลเดิมจะยังไม่เปลี่ยนจนกว่าจะยืนยัน`);
-  $("lob-upload-preview").innerHTML='<div class="scroll"><table><thead><tr><th>Line</th><th>Model</th><th>ประเภทงาน</th><th>สถานี</th><th>Takt (s)</th></tr></thead><tbody>'+lobImportDraft.slice(0,30).map(line=>`<tr><td>${esc(line.title)}</td><td>${esc(line.models.join(', '))}</td><td>${esc(line.partType)}</td><td>${line.stations.length}</td><td>${line.takt.toFixed(2)}</td></tr>`).join('')+'</tbody></table></div>'+(lobImportDraft.length>30?'<p class="notice">แสดงตัวอย่าง 30 รายการแรก</p>':'');
-  $("lob-upload-confirm").disabled=false;
+  $("lob-upload-preview").innerHTML='<div class="scroll"><table><thead><tr><th>Line</th><th>Model</th><th>ประเภทงาน</th><th>สถานี</th><th>Takt (s)</th></tr></thead><tbody>'+lobImportDraft.slice(0,30).map(line=>`<tr><td>${esc(line.title)}</td><td>${esc(line.models.join(', '))}</td><td>${esc(line.partType)}</td><td>${line.stations.length}</td><td>${esc(lobUPHPreviewText())}</td></tr>`).join('')+'</tbody></table></div>'+(lobImportDraft.length>30?'<p class="notice">แสดงตัวอย่าง 30 รายการแรก</p>':'');
+  refreshLOBUPH();
 }
 async function previewLOBSheet() {
   const revision=++lobImportRevision;resetLOBPreview();
@@ -2598,6 +2644,12 @@ $("lob-upload-sheet").addEventListener('change',previewLOBSheet);
 $("lob-upload-confirm").addEventListener('click',()=>{
   if(!lobImportDraft)return;
   if(draft){lobImportMessage('กรุณาบันทึกหรือยกเลิกรายการที่กำลังแก้ไขก่อนยืนยันนำเข้า');return;}
+  let source;
+  try { source=resolveLOBUPH(); } catch(error) {lobImportMessage(error.message);return;}
+  if(lobImportDraft.some(line=>line.lineTag && line.lineTag!==source.line)) {
+    lobImportMessage('Line Tag ในไฟล์ต้องตรงกับไลน์ของ UPH ที่เลือก กรุณาแยกไฟล์ตามไลน์ผลิต');return;
+  }
+  lobImportDraft=lobImportDraft.map(line=>({...line,lineTag:source.line,takt:source.takt,uph:source.uph,uphSource:source}));
   const replacement=$("lob-upload-mode").value==='replace';
   lines=replacement?clone(lobImportDraft):[...lines,...clone(lobImportDraft)];
   const saved=save(CAPACITY_KEY,lines);
@@ -2606,10 +2658,10 @@ $("lob-upload-confirm").addEventListener('click',()=>{
 });
 $("lob-download-template").addEventListener('click',()=>{
   const csv='\uFEFF'+[
-    'Line,Model,Station,Process,Work Time,Loss,Takt Time,Type,Line Tag',
-    'Door Foam A,MODEL-EXAMPLE,ST01,Assembly,12.5,1,20,Door Foam,Door A',
-    'Door Foam A,MODEL-EXAMPLE,ST01,Inspection,3,,20,Door Foam,Door A',
-    'Door Foam A,MODEL-EXAMPLE,ST02,Packing,18,0,20,Door Foam,Door A'
+    'Line,Model,Station,Process,Work Time,Loss,Type,Line Tag',
+    'Door Foam A,MODEL-EXAMPLE,ST01,Assembly,12.5,1,Door Foam,Door A',
+    'Door Foam A,MODEL-EXAMPLE,ST01,Inspection,3,,Door Foam,Door A',
+    'Door Foam A,MODEL-EXAMPLE,ST02,Packing,18,0,Door Foam,Door A'
   ].join('\r\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;link.download='line_of_balance_template.csv';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
