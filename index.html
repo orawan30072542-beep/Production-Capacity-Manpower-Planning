@@ -501,12 +501,16 @@ footer{
           </select></label>
           <label>Product<select id="door-plan-product"><option value="">ทุก Product</option></select></label>
           <label>วันที่<input id="door-plan-date" type="date"></label>
+          <label>ชั่วโมงทำงานสุทธิ / วัน
+            <input id="door-plan-hours" type="number" min="0.01" max="24" step="any" value="8" required aria-describedby="door-plan-uph-note">
+          </label>
           <button id="door-plan-reset" type="button">ล้างตัวกรอง</button>
         </div>
         <div class="summary"><span id="door-plan-total-label">รวมแผนฝา</span><strong id="door-plan-total">0</strong> ฝา
           <div id="door-plan-summary" class="muted"></div>
         </div>
       </div>
+      <p id="door-plan-uph-note" class="notice" role="status">UPH = ยอดฝารายวัน ÷ ชั่วโมงทำงานสุทธิ (ไม่รวมเวลาพัก) • ปัดขึ้นเป็นจำนวนเต็ม</p>
       <p id="door-plan-warning" class="notice red-text" role="status" aria-live="polite"></p>
       <div id="door-foam-content" class="scroll" style="max-height:650px;overflow:auto">
         <table id="door-plan-table" style="width:max-content;min-width:100%">
@@ -2201,6 +2205,36 @@ $("reset-plan-filter").addEventListener("click",() => {
    ===================================================== */
 
 let doorPlanMode="foam";
+const UPH_HOURS_KEY=MATRIX_PLAN_KEY+"-uph-net-hours";
+try {
+  const storedHours=localStorage.getItem(UPH_HOURS_KEY);
+  const hours=Number(storedHours);
+  if (storedHours!==null && Number.isFinite(hours) && hours>0 && hours<=24) $("door-plan-hours").value=hours;
+} catch { /* ค่าเริ่มต้น 8 ชั่วโมง */ }
+
+function getUPHHours() {
+  const raw=String($("door-plan-hours").value).trim();
+  const hours=Number(raw);
+  return raw && Number.isFinite(hours) && hours>0 && hours<=24 ? hours : null;
+}
+
+function formatUPH(total) {
+  const hours=getUPHHours();
+  if (hours===null) return "กรอกชั่วโมง";
+  if (total.unknown && !total.known) return "ยังไม่ครบ";
+  const rate=total.quantity/hours;
+  // Avoid floating-point noise making an exact integer round up twice.
+  const rounded=rate===0 ? 0 : Math.max(1,Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4));
+  return fmt(rounded)+(total.unknown ? " *" : "");
+}
+
+function renderUPHNote() {
+  const hours=getUPHHours();
+  $("door-plan-uph-note").textContent=hours===null
+    ? "กรุณากรอกชั่วโมงทำงานสุทธิมากกว่า 0 ถึง 24 ชั่วโมง เพื่อคำนวณ UPH"
+    : `UPH เป้าหมาย = ยอดฝารายวัน ÷ ${hours} ชั่วโมงทำงานสุทธิ (ไม่รวมเวลาพัก) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้ชั่วโมงเดียวกันกับทุกวันที่แสดง`;
+  $("door-plan-uph-note").className=hours===null ? "notice red-text" : "notice";
+}
 
 function buildDoorPlanView(source,filters) {
   const products=new Map();
@@ -2236,6 +2270,7 @@ function buildDoorPlanView(source,filters) {
 }
 
 function renderDoorPlans() {
+  renderUPHNote();
   const bend=doorPlanMode==="bend";
   $("door-foam-content").hidden=bend;
   $("door-bend-content").hidden=!bend;
@@ -2276,7 +2311,8 @@ function renderDoorPlans() {
     <td>${item.settings.material==="metal" ? "ฝาเหล็ก" : item.settings.material==="glass" ? "กระจก" : "ยังไม่ระบุ"}</td>
     <td class="number">${item.hasCount ? item.settings.doorCount : '<span class="red-text">ยังไม่ตั้งค่า</span>'}</td>
     ${dates.map(date => `<td class="number">${!item.orders.has(date) ? "—" : !item.hasCount ? '<span class="red-text">ยังไม่ตั้งค่า</span>' : `<span title="Order ${esc(item.orders.get(date))} × ${item.settings.doorCount} ฝา/รุ่น">${fmt(item.doors.get(date))}</span>`}</td>`).join("")}
-  </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="4">${missing.length ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมแผนฝา"}</td>${dates.map(date => `<td class="number">${formatTotal(totals.get(date))}</td>`).join("")}</tr>`;
+  </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="4">${missing.length ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมแผนฝา"}</td>${dates.map(date => `<td class="number">${formatTotal(totals.get(date))}</td>`).join("")}</tr>
+  <tr style="background:#eaf8f2;color:#16836c;font-weight:700"><td colspan="4">UPH เป้าหมาย (ฝา/ชั่วโมง)${missing.length ? " • ยังไม่ครบ *" : ""}</td>${dates.map(date => `<td class="number">${formatUPH(totals.get(date))}</td>`).join("")}</tr>`;
   const knownItems=items.filter(item => item.hasCount);
   const total=[...totals.values()].reduce((sum,item) => sum+item.quantity,0);
   $("door-plan-total").textContent=knownItems.length ? fmt(total) : "—";
@@ -2316,7 +2352,7 @@ function preparationSection(title,items,dates,color) {
         <td style="white-space:nowrap">${esc(item.settings.line || "ยังไม่ระบุ")}</td>
         <td class="number">${item.hasCount ? item.settings.doorCount : '<span class="red-text">ยังไม่ตั้งค่า</span>'}</td>
         ${dates.map(date=>`<td class="number">${!item.orders.has(date) ? "—" : !item.hasCount ? '<span class="red-text">ยังไม่ตั้งค่า</span>' : fmt(item.doors.get(date))}</td>`).join("")}
-      </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="3">${partial ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมเตรียมงาน"}</td>${dates.map(date=>`<td class="number">${dailyValue(daily.get(date))}</td>`).join("")}</tr>` : `<tr><td colspan="${3+dates.length}" class="empty">ไม่พบรายการในประเภทนี้ตามตัวกรอง</td></tr>`}</tbody></table>
+      </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="3">${partial ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมเตรียมงาน"}</td>${dates.map(date=>`<td class="number">${dailyValue(daily.get(date))}</td>`).join("")}</tr><tr style="background:#eaf8f2;color:#16836c;font-weight:700"><td colspan="3">UPH เป้าหมาย (ฝา/ชั่วโมง)${partial ? " • ยังไม่ครบ *" : ""}</td>${dates.map(date=>`<td class="number">${formatUPH(daily.get(date))}</td>`).join("")}</tr>` : `<tr><td colspan="${3+dates.length}" class="empty">ไม่พบรายการในประเภทนี้ตามตัวกรอง</td></tr>`}</tbody></table>
     </div>
   </section>`;
 }
@@ -2349,6 +2385,14 @@ function renderDoorBendPlans(view) {
   if (unassigned.length) warnings.push(`ยังไม่กำหนดประเภทฝา ${unassigned.length} Product (${unassigned.map(item=>item.product).join(", ")}) แสดงแยกไว้ด้านล่าง`);
   $("door-plan-warning").textContent=warnings.join("\n");
 }
+
+$("door-plan-hours").addEventListener("input",() => {
+  const hours=getUPHHours();
+  if (hours!==null) {
+    try { localStorage.setItem(UPH_HOURS_KEY,String(hours)); } catch { /* ใช้ได้ในรอบนี้ */ }
+  }
+  renderDoorPlans();
+});
 
 $("door-foam-mode").addEventListener("click",()=>{doorPlanMode="foam";renderDoorPlans();});
 $("door-bend-mode").addEventListener("click",()=>{doorPlanMode="bend";renderDoorPlans();});
