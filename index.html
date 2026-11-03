@@ -504,13 +504,16 @@ footer{
           <label>ชั่วโมงทำงานสุทธิ / วัน
             <input id="door-plan-hours" type="number" min="0.01" max="24" step="any" value="8" required aria-describedby="door-plan-uph-note">
           </label>
+          <label>Efficiency (%)
+            <input id="door-plan-efficiency" type="number" min="0.01" max="100" step="any" value="100" required aria-describedby="door-plan-uph-note">
+          </label>
           <button id="door-plan-reset" type="button">ล้างตัวกรอง</button>
         </div>
         <div class="summary"><span id="door-plan-total-label">รวมแผนฝา</span><strong id="door-plan-total">0</strong> ฝา
           <div id="door-plan-summary" class="muted"></div>
         </div>
       </div>
-      <p id="door-plan-uph-note" class="notice" role="status">UPH = ยอดฝารายวัน ÷ ชั่วโมงทำงานสุทธิ (ไม่รวมเวลาพัก) • ปัดขึ้นเป็นจำนวนเต็ม</p>
+      <p id="door-plan-uph-note" class="notice" role="status">UPH เป้าหมาย = ยอดฝารายวัน ÷ ชั่วโมงทำงานสุทธิ ÷ (Efficiency / 100) • ปัดขึ้นเป็นจำนวนเต็ม</p>
       <p id="door-plan-warning" class="notice red-text" role="status" aria-live="polite"></p>
       <div id="door-foam-content" class="scroll" style="max-height:650px;overflow:auto">
         <table id="door-plan-table" style="width:max-content;min-width:100%">
@@ -2212,6 +2215,19 @@ try {
   if (storedHours!==null && Number.isFinite(hours) && hours>0 && hours<=24) $("door-plan-hours").value=hours;
 } catch { /* ค่าเริ่มต้น 8 ชั่วโมง */ }
 
+const UPH_EFFICIENCY_KEY=MATRIX_PLAN_KEY+"-uph-efficiency";
+try {
+  const stored=localStorage.getItem(UPH_EFFICIENCY_KEY);
+  const efficiency=Number(stored);
+  if (stored!==null && Number.isFinite(efficiency) && efficiency>0 && efficiency<=100) $("door-plan-efficiency").value=efficiency;
+} catch { /* ค่าเริ่มต้น 100% */ }
+
+function getUPHEfficiency() {
+  const raw=String($("door-plan-efficiency").value).trim();
+  const efficiency=Number(raw);
+  return raw && Number.isFinite(efficiency) && efficiency>0 && efficiency<=100 ? efficiency : null;
+}
+
 function getUPHHours() {
   const raw=String($("door-plan-hours").value).trim();
   const hours=Number(raw);
@@ -2221,8 +2237,10 @@ function getUPHHours() {
 function formatUPH(total) {
   const hours=getUPHHours();
   if (hours===null) return "กรอกชั่วโมง";
+  const efficiency=getUPHEfficiency();
+  if (efficiency===null) return "กรอก Efficiency";
   if (total.unknown && !total.known) return "ยังไม่ครบ";
-  const rate=total.quantity/hours;
+  const rate=total.quantity/hours/(efficiency/100);
   // Avoid floating-point noise making an exact integer round up twice.
   const rounded=rate===0 ? 0 : Math.max(1,Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4));
   return fmt(rounded)+(total.unknown ? " *" : "");
@@ -2230,10 +2248,13 @@ function formatUPH(total) {
 
 function renderUPHNote() {
   const hours=getUPHHours();
-  $("door-plan-uph-note").textContent=hours===null
-    ? "กรุณากรอกชั่วโมงทำงานสุทธิมากกว่า 0 ถึง 24 ชั่วโมง เพื่อคำนวณ UPH"
-    : `UPH เป้าหมาย = ยอดฝารายวัน ÷ ${hours} ชั่วโมงทำงานสุทธิ (ไม่รวมเวลาพัก) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้ชั่วโมงเดียวกันกับทุกวันที่แสดง`;
-  $("door-plan-uph-note").className=hours===null ? "notice red-text" : "notice";
+  const efficiency=getUPHEfficiency();
+  const errors=[];
+  if (hours===null) errors.push("กรุณากรอกชั่วโมงทำงานสุทธิมากกว่า 0 ถึง 24 ชั่วโมง");
+  if (efficiency===null) errors.push("กรุณากรอก Efficiency มากกว่า 0 ถึง 100%");
+  $("door-plan-uph-note").textContent=errors.length ? errors.join(" • ")
+    : `UPH เป้าหมาย = ยอดฝารายวัน ÷ ${hours} ชั่วโมงสุทธิ ÷ (${efficiency}/100) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้ค่าเดียวกันกับทุกวันที่แสดง`;
+  $("door-plan-uph-note").className=errors.length ? "notice red-text" : "notice";
 }
 
 function buildDoorPlanView(source,filters) {
@@ -2390,6 +2411,14 @@ $("door-plan-hours").addEventListener("input",() => {
   const hours=getUPHHours();
   if (hours!==null) {
     try { localStorage.setItem(UPH_HOURS_KEY,String(hours)); } catch { /* ใช้ได้ในรอบนี้ */ }
+  }
+  renderDoorPlans();
+});
+
+$("door-plan-efficiency").addEventListener("input",() => {
+  const efficiency=getUPHEfficiency();
+  if (efficiency!==null) {
+    try { localStorage.setItem(UPH_EFFICIENCY_KEY,String(efficiency)); } catch { /* ใช้ได้ในรอบนี้ */ }
   }
   renderDoorPlans();
 });
