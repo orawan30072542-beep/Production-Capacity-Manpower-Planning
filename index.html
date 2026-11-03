@@ -383,6 +383,26 @@ footer{
 
     <p class="notice">ภาพรวมด้านบนอ้างอิงไลน์แรก • Cycle Time = เวลางานรวม + Loss</p>
 
+
+    <section class="card" aria-labelledby="lob-upload-title">
+      <div class="section-header"><h2 id="lob-upload-title">อัปโหลดข้อมูล LINE OF BALANCE</h2><p class="muted">นำเข้า Excel หรือ CSV • 1 แถวต่อ 1 กระบวนการ</p></div>
+      <div class="toolbar">
+        <div class="controls">
+          <button id="lob-download-template" type="button">↓ ดาวน์โหลดไฟล์ตัวอย่าง CSV</button>
+          <label>ไฟล์ข้อมูล (.xlsx / .csv)<input id="lob-upload-file" type="file" accept=".xlsx,.csv"></label>
+          <label>ชีต<select id="lob-upload-sheet" disabled></select></label>
+          <label>วิธีนำเข้า<select id="lob-upload-mode"><option value="append">เพิ่มต่อจากข้อมูลเดิม</option><option value="replace">แทนที่รายการ LINE OF BALANCE ทั้งหมด</option></select></label>
+        </div>
+        <button id="lob-upload-confirm" class="primary" type="button" disabled>ยืนยันนำเข้าข้อมูล</button>
+      </div>
+      <p class="notice">หัวคอลัมน์: Line, Model, Station, Process, Work Time, Loss, Takt Time, Type, Line Tag
+Work Time / Loss / Takt Time มีหน่วยเป็นวินาที • Loss คิดครั้งเดียวต่อสถานี
+หากสถานีมีหลายกระบวนการ ให้ใช้ชื่อสถานีเดิมซ้ำ และกรอก Loss แถวแรก แถวถัดไปเว้นว่าง
+Line / Model ต่างกันจะแยกเป็นคนละรายการ • ข้อมูลตัวอย่างเป็นข้อมูลสมมติ กรุณาแก้ก่อนนำเข้า</p>
+      <p id="lob-upload-message" class="notice" role="status" aria-live="polite"></p>
+      <div id="lob-upload-preview"></div>
+    </section>
+
     <div id="capacity-content"></div>
     <p id="capacity-message" class="notice" role="status"></p>
   </section>
@@ -2440,6 +2460,161 @@ $("door-plan-reset").addEventListener("click",() => {
   ["door-plan-line","door-plan-material","door-plan-product","door-plan-date"].forEach(id => $(id).value="");
   renderDoorPlans();
 });
+
+/* LINE OF BALANCE file import: one source row per process. */
+let lobImportWorkbook=null;
+let lobImportDraft=null;
+let lobImportRevision=0;
+function lobImportMessage(text) { $("lob-upload-message").textContent=text; }
+function resetLOBPreview() {
+  lobImportDraft=null;
+  $("lob-upload-confirm").disabled=true;
+  $("lob-upload-preview").innerHTML="";
+}
+function parseLOBCSV(text) {
+  text=text.replace(/^\uFEFF/,"");
+  const rows=[];let row=[],value="",quoted=false,afterQuote=false;
+  function field(){row.push(value);value="";afterQuote=false;}
+  function record(){field();rows.push(row);row=[];}
+  for(let index=0;index<text.length;index++) {
+    const char=text[index];
+    if(quoted) {
+      if(char==='"') {if(text[index+1]==='"'){value+='"';index++;}else{quoted=false;afterQuote=true;}}
+      else value+=char;
+    } else if(char===',') field();
+    else if(char==='\n'||char==='\r') {record();if(char==='\r'&&text[index+1]==='\n')index++;}
+    else if(char==='"') {if(value||afterQuote)throw Error('CSV มีเครื่องหมายคำพูดไม่ถูกต้อง');quoted=true;}
+    else {if(afterQuote && !/\s/.test(char))throw Error('CSV มีข้อมูลต่อท้ายเครื่องหมายคำพูด');if(!afterQuote)value+=char;}
+  }
+  if(quoted)throw Error('CSV ปิดเครื่องหมายคำพูดไม่ครบ');
+  if(value||row.length||afterQuote)record();
+  return rows;
+}
+function parseLOBImportRows(rows) {
+  const norm=value=>String(value??"").trim().toLowerCase().replace(/[\s_()\/.-]+/g,"");
+  const aliases={
+    title:['line','linename','title','ชื่อไลน์','ชื่อรายการ'],
+    model:['model','models','รุ่น','รุ่นสินค้า'],
+    station:['station','stationname','สถานี','ชื่อสถานี'],
+    process:['process','processname','กระบวนการ','ชื่อกระบวนการ'],
+    wt:['worktime','worktimes','wt','เวลางาน','เวลางานวินาที'],
+    takt:['takttime','takttimes','takt','แทคไทม์'],
+    loss:['loss','losss','เวลาสูญเสีย'],
+    type:['type','parttype','worktype','ประเภทงาน','ประเภท'],
+    tag:['linetag','ไลน์ผลิต','ป้ายไลน์']
+  };
+  const required=['title','model','station','process','wt','takt'];
+  const header=rows.findIndex(row=>required.every(key=>row.some(value=>aliases[key].includes(norm(value)))));
+  if(header<0)throw Error('ไม่พบหัวตาราง Line, Model, Station, Process, Work Time, Takt Time กรุณาใช้ไฟล์ตัวอย่าง');
+  const cols={};
+  for(const [key,names] of Object.entries(aliases)) {
+    const matches=[];rows[header].forEach((value,index)=>{if(names.includes(norm(value)))matches.push(index);});
+    if(matches.length>1)throw Error('หัวคอลัมน์ซ้ำ: '+key);
+    cols[key]=matches[0]??-1;
+  }
+  const groups=new Map(),errors=[];
+  let populated=0;
+  function numericInput(raw,label,rowNumber,allowBlank=false) {
+    const value=String(raw??"").trim();
+    if(!value) {if(allowBlank)return null;throw Error(`แถว ${rowNumber}: ไม่ได้กรอก ${label}`);}
+    const parsed=typeof raw==='number'?raw:Number(value.replace(/,/g,''));
+    if(!Number.isFinite(parsed)||parsed<0||typeof raw==='boolean')throw Error(`แถว ${rowNumber}: ${label} ต้องเป็นตัวเลขตั้งแต่ 0`);
+    return parsed;
+  }
+  rows.slice(header+1).forEach((row,index)=>{
+    if(!row.some(value=>value!=null&&String(value).trim()!==""))return;
+    populated++;
+    const n=header+index+2,get=key=>cols[key]>=0?row[cols[key]]:null;
+    try {
+      const title=String(get('title')??"").trim(),model=String(get('model')??"").trim();
+      const station=String(get('station')??"").trim(),process=String(get('process')??"").trim();
+      if(!title||!model||!station||!process)throw Error(`แถว ${n}: กรอก Line, Model, Station และ Process ให้ครบ`);
+      const wt=numericInput(get('wt'),'Work Time',n),takt=numericInput(get('takt'),'Takt Time',n);
+      const loss=numericInput(get('loss'),'Loss',n,true);
+      if(takt<=0)throw Error(`แถว ${n}: Takt Time ต้องมากกว่า 0`);
+      const type=String(get('type')??"").trim()||'ทั่วไป';
+      const tag=String(get('tag')??"").trim();
+      const key=JSON.stringify([title,model,type,tag]);
+      if(!groups.has(key))groups.set(key,{title,partType:type,lineTag:tag,models:[model],takt,stations:new Map()});
+      const line=groups.get(key);
+      if(line.takt!==takt)throw Error(`แถว ${n}: Takt Time ของ Line / Model เดียวกันไม่ตรงกัน`);
+      if(!line.stations.has(station))line.stations.set(station,{station,processes:[],loss:0,declaredLoss:null});
+      const item=line.stations.get(station);
+      if(loss!==null) {
+        if(item.declaredLoss!==null&&item.declaredLoss!==loss)throw Error(`แถว ${n}: Loss ของสถานี ${station} ไม่ตรงกัน`);
+        item.declaredLoss=loss;item.loss=loss;
+      }
+      item.processes.push({name:process,wt});
+    } catch(error){errors.push(error.message);}
+  });
+  if(populated>20000)throw Error('รองรับไม่เกิน 20,000 แถว กรุณาแยกไฟล์');
+  if(errors.length)throw Error(errors.slice(0,8).join('\n')+(errors.length>8?`\nและอีก ${errors.length-8} แถว`:''));
+  if(!groups.size)throw Error('ไม่พบข้อมูลสำหรับนำเข้า');
+  return [...groups.values()].map((line,index)=>({
+    ...line,id:'lob-import-'+Date.now()+'-'+index,
+    stations:[...line.stations.values()].map(({declaredLoss,...station})=>station)
+  }));
+}
+function showLOBImportPreview(rows) {
+  lobImportDraft=parseLOBImportRows(rows);
+  const stationCount=lobImportDraft.reduce((sum,line)=>sum+line.stations.length,0);
+  const processCount=lobImportDraft.reduce((sum,line)=>sum+line.stations.reduce((count,station)=>count+station.processes.length,0),0);
+  lobImportMessage(`ตรวจสอบแล้ว ${lobImportDraft.length} รายการ Line / Model • ${stationCount} สถานี • ${processCount} กระบวนการ\nเลือกวิธีนำเข้าแล้วกดยืนยัน ข้อมูลเดิมจะยังไม่เปลี่ยนจนกว่าจะยืนยัน`);
+  $("lob-upload-preview").innerHTML='<div class="scroll"><table><thead><tr><th>Line</th><th>Model</th><th>ประเภทงาน</th><th>สถานี</th><th>Takt (s)</th></tr></thead><tbody>'+lobImportDraft.slice(0,30).map(line=>`<tr><td>${esc(line.title)}</td><td>${esc(line.models.join(', '))}</td><td>${esc(line.partType)}</td><td>${line.stations.length}</td><td>${line.takt.toFixed(2)}</td></tr>`).join('')+'</tbody></table></div>'+(lobImportDraft.length>30?'<p class="notice">แสดงตัวอย่าง 30 รายการแรก</p>':'');
+  $("lob-upload-confirm").disabled=false;
+}
+async function previewLOBSheet() {
+  const revision=++lobImportRevision;resetLOBPreview();
+  if(!lobImportWorkbook)return;
+  lobImportMessage('กำลังตรวจสอบชีต…');
+  try {
+    const rows=await lobImportWorkbook.getRows(Number($("lob-upload-sheet").value));
+    if(revision!==lobImportRevision)return;
+    showLOBImportPreview(rows);
+  } catch(error){if(revision===lobImportRevision)lobImportMessage(error.message||'อ่านไฟล์ไม่ได้');}
+}
+$("lob-upload-file").addEventListener('change',async event=>{
+  const revision=++lobImportRevision;resetLOBPreview();lobImportWorkbook=null;
+  $("lob-upload-sheet").innerHTML='';$("lob-upload-sheet").disabled=true;
+  const file=event.target.files[0];if(!file){lobImportMessage('');return;}
+  if(!/\.(xlsx|csv)$/i.test(file.name)){lobImportMessage('รองรับไฟล์ .xlsx และ .csv เท่านั้น');return;}
+  if(file.size>10*1024*1024){lobImportMessage('ไฟล์ต้องมีขนาดไม่เกิน 10 MB');return;}
+  lobImportMessage('กำลังอ่านไฟล์…');
+  try {
+    if(/\.csv$/i.test(file.name)) {
+      const text=await file.text();if(revision!==lobImportRevision)return;
+      showLOBImportPreview(parseLOBCSV(text));
+    } else {
+      const workbook=await openWorkbook(await file.arrayBuffer());if(revision!==lobImportRevision)return;
+      lobImportWorkbook=workbook;
+      $("lob-upload-sheet").innerHTML=workbook.sheets.map((sheet,index)=>`<option value="${index}">${esc(sheet.name)}</option>`).join('');
+      $("lob-upload-sheet").value=Math.max(0,workbook.sheets.findIndex(sheet=>!sheet.hidden));
+      $("lob-upload-sheet").disabled=false;
+      await previewLOBSheet();
+    }
+  } catch(error){if(revision===lobImportRevision)lobImportMessage(error instanceof RangeError?'ไฟล์ไม่สมบูรณ์ กรุณาบันทึกไฟล์ใหม่':error.message||'อ่านไฟล์ไม่ได้');}
+});
+$("lob-upload-sheet").addEventListener('change',previewLOBSheet);
+$("lob-upload-confirm").addEventListener('click',()=>{
+  if(!lobImportDraft)return;
+  if(draft){lobImportMessage('กรุณาบันทึกหรือยกเลิกรายการที่กำลังแก้ไขก่อนยืนยันนำเข้า');return;}
+  const replacement=$("lob-upload-mode").value==='replace';
+  lines=replacement?clone(lobImportDraft):[...lines,...clone(lobImportDraft)];
+  const saved=save(CAPACITY_KEY,lines);
+  resetLOBPreview();$("capacity-filter").value='';$("capacity-search").value='';renderCapacity();
+  lobImportMessage((replacement?'แทนที่รายการทั้งหมดแล้ว':'เพิ่มรายการเรียบร้อยแล้ว')+(saved?' • บันทึกแล้ว':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
+});
+$("lob-download-template").addEventListener('click',()=>{
+  const csv='\uFEFF'+[
+    'Line,Model,Station,Process,Work Time,Loss,Takt Time,Type,Line Tag',
+    'Door Foam A,MODEL-EXAMPLE,ST01,Assembly,12.5,1,20,Door Foam,Door A',
+    'Door Foam A,MODEL-EXAMPLE,ST01,Inspection,3,,20,Door Foam,Door A',
+    'Door Foam A,MODEL-EXAMPLE,ST02,Packing,18,0,20,Door Foam,Door A'
+  ].join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  const link=document.createElement('a');link.href=url;link.download='line_of_balance_template.csv';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+
 
 /* =====================================================
    เริ่มแสดงผล
