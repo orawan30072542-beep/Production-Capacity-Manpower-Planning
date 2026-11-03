@@ -362,7 +362,7 @@ footer{
 
     <div class="card toolbar">
       <div class="controls">
-        <label>ประเภทพาร์ท
+        <label>ประเภทงาน
           <select id="capacity-filter">
             <option value="">ทั้งหมด</option>
             <option>Back plate</option>
@@ -377,7 +377,7 @@ footer{
       </div>
 
       <button id="add-line" class="primary">
-        ＋ เพิ่มไลน์ / พาร์ท
+        ＋ เพิ่มข้อมูล LINE OF BALANCE
       </button>
     </div>
 
@@ -1109,7 +1109,7 @@ function editorHtml() {
   return `
     <article class="card">
       <div class="toolbar">
-        <h2>แก้ไขข้อมูลไลน์</h2>
+        <h2>${draftIsNew ? "เพิ่มข้อมูล LINE OF BALANCE" : "แก้ไขข้อมูล LINE OF BALANCE"}</h2>
 
         <div class="controls">
           <button data-action="cancel">ยกเลิก</button>
@@ -1118,24 +1118,25 @@ function editorHtml() {
       </div>
 
       <div class="editor">
+        <p class="muted" style="margin-bottom:16px">กรอกข้อมูลไลน์และรุ่นสินค้า แล้วเพิ่มสถานี กระบวนการ เวลางาน และ Loss ด้านล่าง • หน่วยเวลาเป็นวินาที</p>
         <div class="controls">
-          <label>ชื่อไลน์
-            <input data-field="title"
+          <label>ชื่อรายการ / ไลน์ผลิต
+            <input data-field="title" required placeholder="เช่น Door Foam A"
               value="${esc(draft.title)}">
           </label>
 
-          <label>ประเภท
-            <select data-field="partType">
-              <option ${draft.partType==="Back plate"
-                ? "selected" : ""}>Back plate</option>
-              <option ${draft.partType==="Bottom plate"
-                ? "selected" : ""}>Bottom plate</option>
-            </select>
+          <label>ประเภทงาน
+            <input data-field="partType" list="lob-work-types" required
+              placeholder="เลือกหรือพิมพ์ประเภทงาน" value="${esc(draft.partType)}">
+            <datalist id="lob-work-types">
+              ${[...new Set(["Door Foam","Door Bend","Door Glass","Back plate","Bottom plate",...lines.map(line=>line.partType)])].map(type=>`<option value="${esc(type)}"></option>`).join("")}
+            </datalist>
           </label>
 
-          <label>Line Tag
-            <input data-field="lineTag"
+          <label>ไลน์ผลิต / Line Tag
+            <input data-field="lineTag" list="lob-line-options" placeholder="เช่น Door A"
               value="${esc(draft.lineTag)}">
+            <datalist id="lob-line-options"><option value="Door A"></option><option value="Door B"></option><option value="Door C"></option></datalist>
           </label>
 
           <label>Takt Time (s)
@@ -1206,6 +1207,10 @@ function editorHtml() {
 }
 
 function renderCapacity() {
+  const selectedType=$("capacity-filter").value;
+  const types=[...new Set(lines.map(line=>line.partType))];
+  $("capacity-filter").innerHTML='<option value="">ทั้งหมด</option>'+types.map(type=>`<option value="${esc(type)}">${esc(type)}</option>`).join("");
+  $("capacity-filter").value=types.includes(selectedType) ? selectedType : "";
   renderMetrics();
 
   if (draft) {
@@ -1248,19 +1253,22 @@ $("add-line").addEventListener("click",() => {
 
   draft = {
     id:editingId,
-    title:"New Production Line",
-    partType:"Back plate",
+    title:"",
+    partType:"",
     lineTag:"",
-    takt:20,
+    takt:0,
     models:[],
     stations:[{
       station:"ST01",
       loss:0,
-      processes:[{name:"กระบวนการใหม่",wt:0}]
+      processes:[{name:"",wt:0}]
     }]
   };
 
+  $("capacity-filter").value="";
+  $("capacity-search").value="";
   renderCapacity();
+  $("capacity-content").scrollIntoView?.({behavior:"smooth",block:"start"});
 });
 
 function updateDraft(event) {
@@ -1327,12 +1335,13 @@ $("capacity-content").addEventListener("click",event => {
       return;
     }
 
-    if (!draft.title.trim() ||
+    if (!draft.title.trim() || !draft.partType.trim() ||
+        !draft.stations.length ||
         draft.stations.some(station =>
-          !station.station.trim() ||
+          !station.station.trim() || !station.processes.length ||
           station.processes.some(process => !process.name.trim())
         )) {
-      alert("กรุณากรอกชื่อไลน์ สถานี และกระบวนการให้ครบ");
+      alert("กรุณากรอกชื่อรายการ ประเภทงาน และเพิ่มอย่างน้อย 1 สถานีที่มีกระบวนการครบถ้วน");
       return;
     }
 
@@ -1344,7 +1353,7 @@ $("capacity-content").addEventListener("click",event => {
     }
 
     $("capacity-message").textContent = save(CAPACITY_KEY,lines)
-      ? "บันทึกข้อมูลแล้ว"
+      ? "บันทึกข้อมูลแล้ว • กราฟและตาราง LINE OF BALANCE อัปเดตเรียบร้อย"
       : "ข้อมูลใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก";
 
     draft = null;
