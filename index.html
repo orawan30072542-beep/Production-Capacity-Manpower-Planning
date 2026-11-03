@@ -322,6 +322,7 @@ footer{
   <nav class="navigation" aria-label="เมนูหลัก">
     <a id="nav-capacity" href="#capacity">กำลังการผลิต</a>
     <a id="nav-plan" href="#production-plan">แผนผลิต</a>
+    <a id="nav-door-plan" href="#door-production-plan">แผนผลิต DOOR</a>
   </nav>
 
   <noscript>
@@ -474,6 +475,42 @@ footer{
 
       <p class="notice" style="padding-top:16px">Order และยอดรวมแสดงเป็นจำนวนเต็ม โดยปัดเศษหลังรวมค่าต้นฉบับ
 ข้อมูลบันทึกเฉพาะเบราว์เซอร์เครื่องนี้ ยังไม่ซิงก์ข้ามเครื่อง กรุณาเก็บไฟล์ Excel ไว้สำรอง</p>
+    </div>
+  </section>
+
+
+  <!-- แผนผลิตฝา: คำนวณจาก Order และจำนวนฝาต่อรุ่น -->
+  <section id="door-plan-page" hidden>
+    <div class="card">
+      <div class="section-header">
+        <h2>แผนผลิต DOOR / Door Production Plan</h2>
+        <p class="muted">จำนวนฝาที่ต้องผลิต = Order × จำนวนฝาต่อรุ่นที่เลือกใน Radio</p>
+      </div>
+      <div class="toolbar">
+        <div class="controls">
+          <label>ไลน์ผลิต<select id="door-plan-line">
+            <option value="">ทุกไลน์</option><option value="unassigned">ยังไม่กำหนดไลน์</option>
+            <option>Door A</option><option>Door B</option><option>Door C</option>
+          </select></label>
+          <label>ประเภทฝา<select id="door-plan-material">
+            <option value="">ทุกประเภท</option><option value="metal">ฝาเหล็ก</option><option value="glass">กระจก</option><option value="unassigned">ยังไม่ระบุประเภท</option>
+          </select></label>
+          <label>Product<select id="door-plan-product"><option value="">ทุก Product</option></select></label>
+          <label>วันที่<input id="door-plan-date" type="date"></label>
+          <button id="door-plan-reset" type="button">ล้างตัวกรอง</button>
+        </div>
+        <div class="summary"><span id="door-plan-total-label">รวมแผนฝา</span><strong id="door-plan-total">0</strong> ฝา
+          <div id="door-plan-summary" class="muted"></div>
+        </div>
+      </div>
+      <p id="door-plan-warning" class="notice red-text" role="status" aria-live="polite"></p>
+      <div class="scroll" style="max-height:650px;overflow:auto">
+        <table id="door-plan-table" style="width:max-content;min-width:100%">
+          <thead id="door-plan-head"></thead><tbody id="door-plan-body"></tbody>
+        </table>
+      </div>
+      <p class="notice" style="padding-top:16px">กำหนดจำนวนฝาต่อรุ่นได้ที่หน้าแผนผลิต → แก้ไข Product
+จำนวนแผนฝาแสดงเป็นจำนวนเต็ม โดยคูณและรวมจากค่าต้นฉบับก่อนปัดเศษ</p>
     </div>
   </section>
 
@@ -752,28 +789,18 @@ let draftIsNew = false;
    ===================================================== */
 
 function showPage() {
-  const isPlan = location.hash==="#production-plan";
-
-  $("capacity-page").hidden = isPlan;
-  $("plan-page").hidden = !isPlan;
-
-  $("nav-capacity").setAttribute(
-    "aria-current",isPlan ? "false" : "page"
-  );
-
-  $("nav-plan").setAttribute(
-    "aria-current",isPlan ? "page" : "false"
-  );
-
-  $("page-title").textContent = isPlan
-    ? "Door Line · Production Plan"
-    : "Door Line · Production Capacity";
-
-  $("page-description").textContent = isPlan
-    ? "รวมแผนผลิตแยกตาม Product และวันที่"
-    : "วิเคราะห์เวลาสถานี คอขวด และประสิทธิภาพสมดุลไลน์";
-
-  document.title = $("page-title").textContent;
+  const isPlan=location.hash==="#production-plan";
+  const isDoorPlan=location.hash==="#door-production-plan";
+  $("capacity-page").hidden=isPlan || isDoorPlan;
+  $("plan-page").hidden=!isPlan;
+  $("door-plan-page").hidden=!isDoorPlan;
+  $("nav-capacity").setAttribute("aria-current",!isPlan && !isDoorPlan ? "page" : "false");
+  $("nav-plan").setAttribute("aria-current",isPlan ? "page" : "false");
+  $("nav-door-plan").setAttribute("aria-current",isDoorPlan ? "page" : "false");
+  $("page-title").textContent=isDoorPlan ? "Door Line · Door Production Plan" : isPlan ? "Door Line · Production Plan" : "Door Line · Production Capacity";
+  $("page-description").textContent=isDoorPlan ? "แผนผลิตฝา = Order × จำนวนฝาต่อรุ่น" : isPlan ? "รวมแผนผลิตแยกตาม Product และวันที่" : "วิเคราะห์เวลาสถานี คอขวด และประสิทธิภาพสมดุลไลน์";
+  document.title=$("page-title").textContent;
+  if (isDoorPlan) renderDoorPlans();
 }
 
 window.addEventListener("hashchange",showPage);
@@ -1954,6 +1981,7 @@ function displayDate(date) {
 }
 
 function renderPlans() {
+  renderDoorPlans();
   const selectedDate = $("plan-date").value;
   const selectedProduct = $("plan-product").value;
   const selectedLine = $("product-line-filter").value;
@@ -2161,6 +2189,87 @@ $("reset-plan-filter").addEventListener("click",() => {
   $("plan-product").value="";
   $("product-line-filter").value="";
   renderPlans();
+});
+
+/* =====================================================
+   แผนผลิต DOOR: Order × Radio จำนวนฝาต่อรุ่น
+   ===================================================== */
+
+function buildDoorPlanView(source,filters) {
+  const products=new Map();
+  source.forEach(row => {
+    const settings=getProductSettings(row.product);
+    const matchesLine=!filters.line || (filters.line==="unassigned" ? !settings.line : settings.line===filters.line);
+    const matchesMaterial=!filters.material || (filters.material==="unassigned" ? !settings.material : settings.material===filters.material);
+    if (!matchesLine || !matchesMaterial || (filters.product && row.product!==filters.product)) return;
+    if (!products.has(row.product)) products.set(row.product,{product:row.product,settings,orders:new Map()});
+    const item=products.get(row.product);
+    Object.entries(row.values).forEach(([date,quantity]) => {
+      if (filters.date && date!==filters.date) return;
+      item.orders.set(date,(item.orders.get(date)||0)+quantity);
+    });
+  });
+  const items=[...products.values()].filter(item => item.orders.size>0);
+  const dates=[...new Set(items.flatMap(item => [...item.orders.keys()]))].sort();
+  const totals=new Map(dates.map(date => [date,{quantity:0,unknown:false,known:false}]));
+  items.forEach(item => {
+    const count=item.settings.doorCount;
+    item.hasCount=Number.isInteger(count) && count>=1;
+    item.doors=new Map();
+    item.orders.forEach((order,date) => {
+      const total=totals.get(date);
+      if (!item.hasCount) { total.unknown=true; return; }
+      const doors=order*count;
+      item.doors.set(date,doors);
+      total.quantity+=doors;
+      total.known=true;
+    });
+  });
+  return {items,dates,totals};
+}
+
+function renderDoorPlans() {
+  const previous=$("door-plan-product").value;
+  const names=[...new Set(plans.map(row => row.product))];
+  $("door-plan-product").innerHTML='<option value="">ทุก Product</option>'+names.map(product => `<option value="${esc(product)}">${esc(product)}</option>`).join("");
+  $("door-plan-product").value=names.includes(previous) ? previous : "";
+  const view=buildDoorPlanView(plans,{
+    line:$("door-plan-line").value,
+    material:$("door-plan-material").value,
+    product:$("door-plan-product").value,
+    date:$("door-plan-date").value
+  });
+  const {items,dates,totals}=view;
+  const missing=items.filter(item => !item.hasCount);
+  $("door-plan-head").innerHTML=`<tr><th>Product</th><th>ไลน์ผลิต</th><th>ประเภทฝา</th><th>ฝา / รุ่น</th>${dates.length ? dates.map(date => `<th class="number">${displayDate(date)}<div class="muted">แผนฝา (ฝา)</div></th>`).join("") : '<th>วันที่ / แผนฝา</th>'}</tr>`;
+  if (!items.length) {
+    $("door-plan-body").innerHTML='<tr><td colspan="5" class="empty">ไม่พบแผนผลิตตามตัวกรอง • นำเข้า Excel ที่หน้าแผนผลิต</td></tr>';
+    $("door-plan-total").textContent="0";
+    $("door-plan-total-label").textContent="รวมแผนฝา";
+    $("door-plan-summary").textContent="0 Product";
+    $("door-plan-warning").textContent="";
+    return;
+  }
+  const formatTotal=total => !total.known && total.unknown ? "ยังไม่ครบ" : fmt(total.quantity)+(total.unknown ? " *" : "");
+  $("door-plan-body").innerHTML=items.map(item => `<tr>
+    <td style="white-space:nowrap;font-weight:700">${esc(item.product)}</td>
+    <td style="white-space:nowrap">${esc(item.settings.line || "ยังไม่ระบุ")}</td>
+    <td>${item.settings.material==="metal" ? "ฝาเหล็ก" : item.settings.material==="glass" ? "กระจก" : "ยังไม่ระบุ"}</td>
+    <td class="number">${item.hasCount ? item.settings.doorCount : '<span class="red-text">ยังไม่ตั้งค่า</span>'}</td>
+    ${dates.map(date => `<td class="number">${!item.orders.has(date) ? "—" : !item.hasCount ? '<span class="red-text">ยังไม่ตั้งค่า</span>' : `<span title="Order ${esc(item.orders.get(date))} × ${item.settings.doorCount} ฝา/รุ่น">${fmt(item.doors.get(date))}</span>`}</td>`).join("")}
+  </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="4">${missing.length ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมแผนฝา"}</td>${dates.map(date => `<td class="number">${formatTotal(totals.get(date))}</td>`).join("")}</tr>`;
+  const knownItems=items.filter(item => item.hasCount);
+  const total=[...totals.values()].reduce((sum,item) => sum+item.quantity,0);
+  $("door-plan-total").textContent=knownItems.length ? fmt(total) : "—";
+  $("door-plan-total-label").textContent=missing.length ? "ยอดเฉพาะที่ตั้งค่าครบ" : "รวมแผนฝา";
+  $("door-plan-summary").textContent=`${fmt(items.length)} Product · ${fmt(dates.length)} วัน`;
+  $("door-plan-warning").textContent=missing.length ? `* ยอดรวมยังไม่ครบ: ${missing.length} Product ยังไม่เลือกจำนวนฝาต่อรุ่น ได้แก่ ${missing.map(item => item.product).join(", ")} • กำหนดในหน้าแผนผลิต → แก้ไข` : "";
+}
+
+["door-plan-line","door-plan-material","door-plan-product","door-plan-date"].forEach(id => $(id).addEventListener("change",renderDoorPlans));
+$("door-plan-reset").addEventListener("click",() => {
+  ["door-plan-line","door-plan-material","door-plan-product","door-plan-date"].forEach(id => $(id).value="");
+  renderDoorPlans();
 });
 
 /* =====================================================
