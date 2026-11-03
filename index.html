@@ -320,7 +320,7 @@ footer{
   </header>
 
   <nav class="navigation" aria-label="เมนูหลัก">
-    <a id="nav-capacity" href="#capacity">กำลังการผลิต</a>
+    <a id="nav-capacity" href="#capacity">LINE OF BALANCE</a>
     <a id="nav-plan" href="#production-plan">แผนผลิต</a>
     <a id="nav-door-plan" href="#door-production-plan">แผนผลิต DOOR</a>
   </nav>
@@ -809,7 +809,7 @@ function showPage() {
   $("nav-capacity").setAttribute("aria-current",!isPlan && !isDoorPlan ? "page" : "false");
   $("nav-plan").setAttribute("aria-current",isPlan ? "page" : "false");
   $("nav-door-plan").setAttribute("aria-current",isDoorPlan ? "page" : "false");
-  $("page-title").textContent=isDoorPlan ? "Door Line · Door Production Plan" : isPlan ? "Door Line · Production Plan" : "Door Line · Production Capacity";
+  $("page-title").textContent=isDoorPlan ? "Door Line · Door Production Plan" : isPlan ? "Door Line · Production Plan" : "Door Line · LINE OF BALANCE";
   $("page-description").textContent=isDoorPlan ? "แผนผลิตฝา = Order × จำนวนฝาต่อรุ่น" : isPlan ? "รวมแผนผลิตแยกตาม Product และวันที่" : "วิเคราะห์เวลาสถานี คอขวด และประสิทธิภาพสมดุลไลน์";
   document.title=$("page-title").textContent;
   if (isDoorPlan) renderDoorPlans();
