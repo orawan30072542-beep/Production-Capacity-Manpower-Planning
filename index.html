@@ -291,6 +291,19 @@ footer{
   .container{padding:0}
   .plan-scroll{max-height:none}
 }
+
+/* Product settings editor */
+.product-settings-dialog{width:min(560px,calc(100vw - 28px));max-height:90vh;overflow:auto;border:1px solid var(--border);border-radius:16px;padding:0;color:var(--ink);background:white;box-shadow:0 20px 80px #10243c40}
+.product-settings-dialog::backdrop{background:#10243c70}
+.settings-form{padding:24px;display:grid;gap:18px}
+.settings-form h2{font-size:20px}
+.settings-form fieldset{margin:0;padding:16px;border:1px solid var(--border);border-radius:10px;min-width:0}
+.settings-form legend{padding:0 6px;font-size:13px;font-weight:700}
+.settings-radios{display:flex;flex-wrap:wrap;gap:10px}
+.settings-radios label{display:flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--ink);font-size:13px;cursor:pointer}
+.settings-radios input[type=radio]{min-height:0;width:16px;height:16px;margin:0;accent-color:var(--blue)}
+.settings-actions{display:flex;justify-content:flex-end;gap:10px}
+.product-config-cell{white-space:nowrap}
 </style>
 </head>
 
@@ -378,7 +391,7 @@ footer{
     <div class="card">
 
       <div class="section-header">
-        <h2 id="plan-heading">แผนผลิต / Production Plan</h2>
+        <h2>แผนผลิต / Production Plan</h2>
         <p class="muted">
           รวม Order ทุกรุ่น แยกตาม Product และวันที่
         </p>
@@ -386,13 +399,8 @@ footer{
 
       <div class="toolbar import-controls">
         <div class="controls">
-          <label>เลือกไลน์ผลิต
-            <select id="plan-line-select">
-              <option value="">เลือกไลน์ / ดูแผนเดิม</option>
-              <option value="Door A">Door A</option>
-              <option value="Door B">Door B</option>
-              <option value="Door C">Door C</option>
-            </select>
+          <label id="saved-plan-source-label" hidden>ชุดแผนที่บันทึกไว้
+            <select id="saved-plan-source"></select>
           </label>
           <label>ไฟล์แผนผลิต Excel (.xlsx)
             <input id="plan-file" type="file" accept=".xlsx">
@@ -404,11 +412,11 @@ footer{
         </div>
 
         <button id="confirm-import" class="primary" disabled>
-          ยืนยันนำเข้า / แทนที่แผนไลน์นี้
+          ยืนยันนำเข้า / แทนที่แผนเดิม
         </button>
       </div>
 
-      <p class="notice">เลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel • แผนแต่ละไลน์เก็บแยกกัน
+      <p class="notice">กดแก้ไขที่แต่ละ Product เพื่อเลือกไลน์ผลิต ประเภทฝา และจำนวนฝาต่อรุ่น
 นำเข้า Excel รูปแบบ Product / Model ตามด้วยวันที่
 ระบบรวม Order ของทุกรุ่นใน Product เดียวกันตามวันที่
 ช่อง Product ที่ว่างจะใช้กลุ่มจากแถวก่อนหน้า
@@ -420,6 +428,15 @@ footer{
 
       <div class="toolbar">
         <div class="controls">
+          <label>กรองไลน์ผลิต
+            <select id="product-line-filter">
+              <option value="">ทุกไลน์</option>
+              <option value="unassigned">ยังไม่กำหนดไลน์</option>
+              <option>Door A</option>
+              <option>Door B</option>
+              <option>Door C</option>
+            </select>
+          </label>
           <label>วันที่
             <input id="plan-date" type="date">
           </label>
@@ -444,6 +461,10 @@ footer{
           <thead id="plan-head">
             <tr>
               <th class="product-cell">Product</th>
+              <th>ไลน์ผลิต</th>
+      <th>ประเภทฝา</th>
+      <th>จำนวนฝา / รุ่น</th>
+      <th>จัดการ</th>
               <th class="number">DATE / Order</th>
             </tr>
           </thead>
@@ -458,6 +479,44 @@ footer{
 
   <footer>HAIER · DOOR LINE PRODUCTION</footer>
 </div>
+
+
+<dialog id="product-settings-dialog" class="product-settings-dialog" aria-labelledby="product-settings-title">
+  <form id="product-settings-form" class="settings-form">
+    <div><h2 id="product-settings-title">แก้ไขข้อมูล Product</h2><p id="product-settings-name" class="muted"></p></div>
+    <label>ผลิตที่ไลน์ไหน
+      <select id="product-settings-line" required>
+        <option value="">เลือกไลน์ผลิต</option>
+        <option>Door A</option><option>Door B</option><option>Door C</option>
+      </select>
+    </label>
+    <fieldset>
+      <legend>ประเภทฝา</legend>
+      <div class="settings-radios">
+        <label><input type="radio" name="door-material" value="metal" required>ฝาเหล็ก</label>
+        <label><input type="radio" name="door-material" value="glass" required>กระจก</label>
+      </div>
+    </fieldset>
+    <fieldset>
+      <legend>จำนวนฝาต่อรุ่น</legend>
+      <div class="settings-radios">
+        <label><input type="radio" name="door-count" value="1" required>1 ฝา</label>
+        <label><input type="radio" name="door-count" value="2" required>2 ฝา</label>
+        <label><input type="radio" name="door-count" value="3" required>3 ฝา</label>
+        <label><input type="radio" name="door-count" value="4" required>4 ฝา</label>
+        <label><input type="radio" name="door-count" value="other" required>อื่น ๆ</label>
+      </div>
+      <label id="product-settings-custom-label" hidden style="margin-top:12px">ระบุจำนวนฝา
+        <input id="product-settings-custom-count" type="number" min="1" max="99" step="1" disabled>
+      </label>
+    </fieldset>
+    <p id="product-settings-error" role="alert" class="red-text"></p>
+    <div class="settings-actions">
+      <button id="product-settings-cancel" type="button">ยกเลิก</button>
+      <button class="primary" type="submit">บันทึก</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 "use strict";
@@ -623,19 +682,37 @@ let lines = load(CAPACITY_KEY,defaultLines);
 if (!lines.every(validLine)) lines = clone(defaultLines);
 
 /* เก็บข้อมูลรุ่นต้นทางไว้ แต่แสดงรวมเฉพาะ Product */
-const PRODUCTION_LINES = ["Door A","Door B","Door C"];
-let selectedPlanLine = "";
-try {
-  const previousLine = localStorage.getItem(MATRIX_PLAN_KEY+"-selected-line");
-  if (PRODUCTION_LINES.includes(previousLine)) selectedPlanLine=previousLine;
-} catch { /* ใช้ได้แม้เบราว์เซอร์ไม่อนุญาตให้บันทึก */ }
+const PRODUCT_LINES = ["Door A","Door B","Door C"];
+const PRODUCT_LINE_KEY = MATRIX_PLAN_KEY+"-product-lines";
+let productLineAssignments = new Map(
+  load(PRODUCT_LINE_KEY,[]).filter(item =>
+    Array.isArray(item) && typeof item[0]==="string" && PRODUCT_LINES.includes(item[1])
+  )
+);
+const PRODUCT_CONFIG_KEY = MATRIX_PLAN_KEY+"-product-settings";
+const productSettings = new Map(
+  load(PRODUCT_CONFIG_KEY,[]).filter(item =>
+    Array.isArray(item) && typeof item[0]==="string" && item[1] &&
+    PRODUCT_LINES.includes(item[1].line) &&
+    ["metal","glass"].includes(item[1].material) &&
+    Number.isInteger(item[1].doorCount) && item[1].doorCount>=1 && item[1].doorCount<=99
+  )
+);
+productSettings.forEach((settings,product) => productLineAssignments.set(product,settings.line));
+let editingPlanProduct = null;
 
-function planStorageKey(line=selectedPlanLine) {
-  return line ? MATRIX_PLAN_KEY+"-"+line.replace(/ /g,"-") : MATRIX_PLAN_KEY;
+function getProductSettings(product) {
+  return productSettings.get(product) || {
+    line:productLineAssignments.get(product) || "",
+    material:"",
+    doorCount:null
+  };
 }
 
-function readPlansForLine(line) {
-  return load(planStorageKey(line),[]).filter(row =>
+let activePlanSource = MATRIX_PLAN_KEY;
+
+function readPlanSource(key) {
+  return load(key,[]).filter(row =>
   row &&
   Number.isInteger(row.sourceRow) &&
   typeof row.product==="string" &&
@@ -651,8 +728,20 @@ function readPlansForLine(line) {
 );
 }
 
-let plans = readPlansForLine(selectedPlanLine);
-$("plan-line-select").value=selectedPlanLine;
+let plans = readPlanSource(activePlanSource);
+
+function refreshSavedPlanSources() {
+  const options=[{key:MATRIX_PLAN_KEY,label:"แผนหลัก / แผนเดิม"}];
+  PRODUCT_LINES.forEach(line => {
+    const key=MATRIX_PLAN_KEY+"-"+line.replace(/ /g,"-");
+    if (readPlanSource(key).length) options.push({key,label:"แผนที่เคยบันทึก: "+line});
+  });
+  $("saved-plan-source").innerHTML=options.map(option =>
+    `<option value="${esc(option.key)}">${esc(option.label)}</option>`
+  ).join("");
+  $("saved-plan-source").value=activePlanSource;
+  $("saved-plan-source-label").hidden=options.length===1;
+}
 
 let draft = null;
 let editingId = null;
@@ -1714,13 +1803,9 @@ async function previewSheet() {
   const revision = ++importRevision;
   resetPreview();
 
-  if (!selectedPlanLine) {
-    message("กรุณาเลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel");
-    return;
-  }
   if (!selectedWorkbook) return;
 
-  message("กำลังตรวจสอบข้อมูล "+selectedPlanLine+"…");
+  message("กำลังตรวจสอบข้อมูล…");
 
   try {
     const rows = await selectedWorkbook.getRows(
@@ -1741,7 +1826,7 @@ async function previewSheet() {
       `ตรวจสอบแล้ว ${fmt(stagedPlans.length)} แถว Model\n`+
       `รวม ${fmt(productCount)} Product\n`+
       `Total Order: ${fmt(totalOrders(stagedPlans))}\n`+
-      `กดยืนยันเพื่อนำเข้าและแทนที่แผนของ ${selectedPlanLine} เท่านั้น`
+      "กดยืนยันเพื่อนำเข้าและแทนที่แผนเดิม"
     );
 
     $("confirm-import").disabled=false;
@@ -1766,12 +1851,6 @@ $("plan-file").addEventListener("change",async event => {
 
   if (!file) {
     message("");
-    return;
-  }
-
-  if (!selectedPlanLine) {
-    event.target.value="";
-    message("กรุณาเลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel");
     return;
   }
 
@@ -1825,18 +1904,18 @@ $("plan-file").addEventListener("change",async event => {
 $("plan-sheet").addEventListener("change",previewSheet);
 
 $("confirm-import").addEventListener("click",() => {
-  if (!stagedPlans || !selectedPlanLine) return;
+  if (!stagedPlans) return;
 
   plans=clone(stagedPlans);
 
-  const saved = save(planStorageKey(),plans);
+  const saved = save(activePlanSource,plans);
 
   resetPreview();
   updateProductOptions();
   renderPlans();
 
   message(saved
-    ? "นำเข้าแผนผลิต "+selectedPlanLine+" เรียบร้อยแล้ว"
+    ? "นำเข้าแผนผลิตเรียบร้อยแล้ว"
     : "นำเข้าแล้ว แต่ข้อมูลใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก");
 });
 
@@ -1875,15 +1954,15 @@ function displayDate(date) {
 }
 
 function renderPlans() {
-  $("plan-heading").textContent = selectedPlanLine
-    ? "แผนผลิต / Production Plan · "+selectedPlanLine
-    : "แผนผลิต / Production Plan · แผนเดิมที่ยังไม่ระบุไลน์";
   const selectedDate = $("plan-date").value;
   const selectedProduct = $("plan-product").value;
+  const selectedLine = $("product-line-filter").value;
 
-  const filtered = plans.filter(row =>
-    !selectedProduct || row.product===selectedProduct
-  );
+  const filtered = plans.filter(row => {
+    const line=productLineAssignments.get(row.product) || "";
+    return (!selectedProduct || row.product===selectedProduct) &&
+      (!selectedLine || (selectedLine==="unassigned" ? !line : line===selectedLine));
+  });
 
   const allDates = [...new Set(
     filtered.flatMap(row => Object.keys(row.values))
@@ -1896,6 +1975,7 @@ function renderPlans() {
   $("plan-head").innerHTML = `
     <tr>
       <th class="product-cell">Product</th>
+      <th>ไลน์ผลิต</th>
 
       ${dates.length ? dates.map(date => `
         <th class="number">
@@ -1909,11 +1989,9 @@ function renderPlans() {
   if (!filtered.length || !dates.length) {
     $("plan-body").innerHTML = `
       <tr>
-        <td colspan="2" class="empty">
+        <td colspan="6" class="empty">
           ยังไม่มีข้อมูลที่ตรงกับตัวกรอง
-          ${selectedPlanLine
-            ? "กรุณานำเข้าไฟล์แผนผลิต "+esc(selectedPlanLine)
-            : "กรุณาเลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel"}
+          กรุณานำเข้าไฟล์แผนผลิต
         </td>
       </tr>
     `;
@@ -1959,6 +2037,10 @@ function renderPlans() {
       return `
         <tr>
           <td class="product-cell">${esc(product)}</td>
+          <td class="product-config-cell">${esc(getProductSettings(product).line || "ยังไม่ระบุ")}</td>
+          <td class="product-config-cell">${getProductSettings(product).material === "metal" ? "ฝาเหล็ก" : getProductSettings(product).material === "glass" ? "กระจก" : "ยังไม่ระบุ"}</td>
+          <td class="product-config-cell">${getProductSettings(product).doorCount ? getProductSettings(product).doorCount+" ฝา" : "ยังไม่ระบุ"}</td>
+          <td><button type="button" data-edit-product="${esc(product)}" aria-label="แก้ไขข้อมูล ${esc(product)}">แก้ไข</button></td>
 
           ${dates.map(date => `
             <td class="number">
@@ -1975,6 +2057,7 @@ function renderPlans() {
   $("plan-body").innerHTML = body+`
     <tr class="total-row">
       <td class="product-cell">Total Order</td>
+      <td colspan="4"></td>
 
       ${dates.map(date => `
         <td class="number">${fmt(totals.get(date))}</td>
@@ -1992,9 +2075,66 @@ function renderPlans() {
     `${fmt(productOrders.size)} Product · ${fmt(dates.length)} วัน`;
 }
 
-$("plan-line-select").addEventListener("change",() => {
-  const line=$("plan-line-select").value;
-  selectedPlanLine=PRODUCTION_LINES.includes(line) ? line : "";
+function syncCustomDoorCount() {
+  const other=$("product-settings-form").querySelector('input[name="door-count"]:checked')?.value === "other";
+  $("product-settings-custom-label").hidden=!other;
+  $("product-settings-custom-count").disabled=!other;
+  $("product-settings-custom-count").required=other;
+}
+
+function openProductSettings(product) {
+  if (!plans.some(row => row.product===product)) return;
+  editingPlanProduct=product;
+  const settings=getProductSettings(product);
+  const form=$("product-settings-form");
+  form.reset();
+  $("product-settings-name").textContent=product;
+  $("product-settings-line").value=settings.line;
+  $("product-settings-error").textContent="";
+  if (settings.material) form.querySelector(`input[name="door-material"][value="${settings.material}"]`).checked=true;
+  if (settings.doorCount) {
+    const value=settings.doorCount<=4 ? String(settings.doorCount) : "other";
+    form.querySelector(`input[name="door-count"][value="${value}"]`).checked=true;
+    if (value==="other") $("product-settings-custom-count").value=settings.doorCount;
+  }
+  syncCustomDoorCount();
+  $("product-settings-dialog").showModal();
+}
+
+$("plan-body").addEventListener("click",event => {
+  const button=event.target.closest("button[data-edit-product]");
+  if (button) openProductSettings(button.dataset.editProduct);
+});
+$("product-settings-form").addEventListener("change",syncCustomDoorCount);
+$("product-settings-cancel").addEventListener("click",() => $("product-settings-dialog").close());
+$("product-settings-dialog").addEventListener("close",() => { editingPlanProduct=null; });
+$("product-settings-form").addEventListener("submit",event => {
+  event.preventDefault();
+  const form=$("product-settings-form");
+  if (!form.reportValidity()) return;
+  const product=editingPlanProduct;
+  if (!product || !plans.some(row => row.product===product)) return;
+  const line=$("product-settings-line").value;
+  const material=form.querySelector('input[name="door-material"]:checked')?.value;
+  const countChoice=form.querySelector('input[name="door-count"]:checked')?.value;
+  const doorCount=Number(countChoice==="other" ? $("product-settings-custom-count").value : countChoice);
+  if (!PRODUCT_LINES.includes(line) || !["metal","glass"].includes(material) || !Number.isInteger(doorCount) || doorCount<1 || doorCount>99) {
+    $("product-settings-error").textContent="กรุณาเลือกไลน์ ประเภทฝา และจำนวนฝาให้ครบถ้วน";
+    return;
+  }
+  productSettings.set(product,{line,material,doorCount});
+  productLineAssignments.set(product,line);
+  const saved=save(PRODUCT_CONFIG_KEY,[...productSettings]);
+  renderPlans();
+  $("product-settings-dialog").close();
+  message(product+" • "+line+" • "+(material==="metal" ? "ฝาเหล็ก" : "กระจก")+" • "+doorCount+" ฝา/รุ่น"+
+    (saved ? " • บันทึกแล้ว" : " • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก"));
+});
+$("product-line-filter").addEventListener("change",renderPlans);
+$("saved-plan-source").addEventListener("change",() => {
+  const allowed=[MATRIX_PLAN_KEY,...PRODUCT_LINES.map(line => MATRIX_PLAN_KEY+"-"+line.replace(/ /g,"-"))];
+  if (!allowed.includes($("saved-plan-source").value)) return;
+  activePlanSource=$("saved-plan-source").value;
   ++importRevision;
   resetPreview();
   selectedWorkbook=null;
@@ -2003,15 +2143,11 @@ $("plan-line-select").addEventListener("change",() => {
   $("plan-sheet").disabled=true;
   $("plan-date").value="";
   $("plan-product").value="";
-  plans=readPlansForLine(selectedPlanLine);
-  try {
-    localStorage.setItem(MATRIX_PLAN_KEY+"-selected-line",selectedPlanLine);
-  } catch { /* ไม่กระทบการสลับไลน์ในรอบนี้ */ }
+  $("product-line-filter").value="";
+  plans=readPlanSource(activePlanSource);
   updateProductOptions();
   renderPlans();
-  message(selectedPlanLine
-    ? "กำลังแสดง "+selectedPlanLine+" • การนำเข้าจะเปลี่ยนเฉพาะแผนของไลน์นี้"
-    : "แผนเดิมยังเก็บไว้โดยไม่ระบุไลน์ • เลือกไลน์ก่อนนำเข้า Excel");
+  message("เลือกไลน์ผลิตได้ที่แต่ละแถว Product");
 });
 
 $("plan-date").addEventListener("change",renderPlans);
@@ -2020,6 +2156,7 @@ $("plan-product").addEventListener("change",renderPlans);
 $("reset-plan-filter").addEventListener("click",() => {
   $("plan-date").value="";
   $("plan-product").value="";
+  $("product-line-filter").value="";
   renderPlans();
 });
 
@@ -2027,13 +2164,11 @@ $("reset-plan-filter").addEventListener("click",() => {
    เริ่มแสดงผล
    ===================================================== */
 
+refreshSavedPlanSources();
 showPage();
 renderCapacity();
 updateProductOptions();
 renderPlans();
-message(selectedPlanLine
-  ? "กำลังแสดง "+selectedPlanLine
-  : "เลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel • แผนเดิมยังเก็บแยกไว้");
 </script>
 </body>
 </html>
