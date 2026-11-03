@@ -378,7 +378,7 @@ footer{
     <div class="card">
 
       <div class="section-header">
-        <h2 id="plan-heading">แผนผลิต / Production Plan</h2>
+        <h2>แผนผลิต / Production Plan</h2>
         <p class="muted">
           รวม Order ทุกรุ่น แยกตาม Product และวันที่
         </p>
@@ -386,13 +386,8 @@ footer{
 
       <div class="toolbar import-controls">
         <div class="controls">
-          <label>เลือกไลน์ผลิต
-            <select id="plan-line-select">
-              <option value="">เลือกไลน์ / ดูแผนเดิม</option>
-              <option value="Door A">Door A</option>
-              <option value="Door B">Door B</option>
-              <option value="Door C">Door C</option>
-            </select>
+          <label id="saved-plan-source-label" hidden>ชุดแผนที่บันทึกไว้
+            <select id="saved-plan-source"></select>
           </label>
           <label>ไฟล์แผนผลิต Excel (.xlsx)
             <input id="plan-file" type="file" accept=".xlsx">
@@ -404,11 +399,11 @@ footer{
         </div>
 
         <button id="confirm-import" class="primary" disabled>
-          ยืนยันนำเข้า / แทนที่แผนไลน์นี้
+          ยืนยันนำเข้า / แทนที่แผนเดิม
         </button>
       </div>
 
-      <p class="notice">เลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel • แผนแต่ละไลน์เก็บแยกกัน
+      <p class="notice">เลือก Door A / Door B / Door C ได้ที่แต่ละแถว Product หลังนำเข้า
 นำเข้า Excel รูปแบบ Product / Model ตามด้วยวันที่
 ระบบรวม Order ของทุกรุ่นใน Product เดียวกันตามวันที่
 ช่อง Product ที่ว่างจะใช้กลุ่มจากแถวก่อนหน้า
@@ -420,6 +415,15 @@ footer{
 
       <div class="toolbar">
         <div class="controls">
+          <label>กรองไลน์ผลิต
+            <select id="product-line-filter">
+              <option value="">ทุกไลน์</option>
+              <option value="unassigned">ยังไม่กำหนดไลน์</option>
+              <option>Door A</option>
+              <option>Door B</option>
+              <option>Door C</option>
+            </select>
+          </label>
           <label>วันที่
             <input id="plan-date" type="date">
           </label>
@@ -444,6 +448,7 @@ footer{
           <thead id="plan-head">
             <tr>
               <th class="product-cell">Product</th>
+              <th>ไลน์ผลิต</th>
               <th class="number">DATE / Order</th>
             </tr>
           </thead>
@@ -623,19 +628,17 @@ let lines = load(CAPACITY_KEY,defaultLines);
 if (!lines.every(validLine)) lines = clone(defaultLines);
 
 /* เก็บข้อมูลรุ่นต้นทางไว้ แต่แสดงรวมเฉพาะ Product */
-const PRODUCTION_LINES = ["Door A","Door B","Door C"];
-let selectedPlanLine = "";
-try {
-  const previousLine = localStorage.getItem(MATRIX_PLAN_KEY+"-selected-line");
-  if (PRODUCTION_LINES.includes(previousLine)) selectedPlanLine=previousLine;
-} catch { /* ใช้ได้แม้เบราว์เซอร์ไม่อนุญาตให้บันทึก */ }
+const PRODUCT_LINES = ["Door A","Door B","Door C"];
+const PRODUCT_LINE_KEY = MATRIX_PLAN_KEY+"-product-lines";
+let productLineAssignments = new Map(
+  load(PRODUCT_LINE_KEY,[]).filter(item =>
+    Array.isArray(item) && typeof item[0]==="string" && PRODUCT_LINES.includes(item[1])
+  )
+);
+let activePlanSource = MATRIX_PLAN_KEY;
 
-function planStorageKey(line=selectedPlanLine) {
-  return line ? MATRIX_PLAN_KEY+"-"+line.replace(/ /g,"-") : MATRIX_PLAN_KEY;
-}
-
-function readPlansForLine(line) {
-  return load(planStorageKey(line),[]).filter(row =>
+function readPlanSource(key) {
+  return load(key,[]).filter(row =>
   row &&
   Number.isInteger(row.sourceRow) &&
   typeof row.product==="string" &&
@@ -651,8 +654,20 @@ function readPlansForLine(line) {
 );
 }
 
-let plans = readPlansForLine(selectedPlanLine);
-$("plan-line-select").value=selectedPlanLine;
+let plans = readPlanSource(activePlanSource);
+
+function refreshSavedPlanSources() {
+  const options=[{key:MATRIX_PLAN_KEY,label:"แผนหลัก / แผนเดิม"}];
+  PRODUCT_LINES.forEach(line => {
+    const key=MATRIX_PLAN_KEY+"-"+line.replace(/ /g,"-");
+    if (readPlanSource(key).length) options.push({key,label:"แผนที่เคยบันทึก: "+line});
+  });
+  $("saved-plan-source").innerHTML=options.map(option =>
+    `<option value="${esc(option.key)}">${esc(option.label)}</option>`
+  ).join("");
+  $("saved-plan-source").value=activePlanSource;
+  $("saved-plan-source-label").hidden=options.length===1;
+}
 
 let draft = null;
 let editingId = null;
@@ -1714,13 +1729,9 @@ async function previewSheet() {
   const revision = ++importRevision;
   resetPreview();
 
-  if (!selectedPlanLine) {
-    message("กรุณาเลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel");
-    return;
-  }
   if (!selectedWorkbook) return;
 
-  message("กำลังตรวจสอบข้อมูล "+selectedPlanLine+"…");
+  message("กำลังตรวจสอบข้อมูล…");
 
   try {
     const rows = await selectedWorkbook.getRows(
@@ -1741,7 +1752,7 @@ async function previewSheet() {
       `ตรวจสอบแล้ว ${fmt(stagedPlans.length)} แถว Model\n`+
       `รวม ${fmt(productCount)} Product\n`+
       `Total Order: ${fmt(totalOrders(stagedPlans))}\n`+
-      `กดยืนยันเพื่อนำเข้าและแทนที่แผนของ ${selectedPlanLine} เท่านั้น`
+      "กดยืนยันเพื่อนำเข้าและแทนที่แผนเดิม"
     );
 
     $("confirm-import").disabled=false;
@@ -1766,12 +1777,6 @@ $("plan-file").addEventListener("change",async event => {
 
   if (!file) {
     message("");
-    return;
-  }
-
-  if (!selectedPlanLine) {
-    event.target.value="";
-    message("กรุณาเลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel");
     return;
   }
 
@@ -1825,18 +1830,18 @@ $("plan-file").addEventListener("change",async event => {
 $("plan-sheet").addEventListener("change",previewSheet);
 
 $("confirm-import").addEventListener("click",() => {
-  if (!stagedPlans || !selectedPlanLine) return;
+  if (!stagedPlans) return;
 
   plans=clone(stagedPlans);
 
-  const saved = save(planStorageKey(),plans);
+  const saved = save(activePlanSource,plans);
 
   resetPreview();
   updateProductOptions();
   renderPlans();
 
   message(saved
-    ? "นำเข้าแผนผลิต "+selectedPlanLine+" เรียบร้อยแล้ว"
+    ? "นำเข้าแผนผลิตเรียบร้อยแล้ว"
     : "นำเข้าแล้ว แต่ข้อมูลใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก");
 });
 
@@ -1875,15 +1880,15 @@ function displayDate(date) {
 }
 
 function renderPlans() {
-  $("plan-heading").textContent = selectedPlanLine
-    ? "แผนผลิต / Production Plan · "+selectedPlanLine
-    : "แผนผลิต / Production Plan · แผนเดิมที่ยังไม่ระบุไลน์";
   const selectedDate = $("plan-date").value;
   const selectedProduct = $("plan-product").value;
+  const selectedLine = $("product-line-filter").value;
 
-  const filtered = plans.filter(row =>
-    !selectedProduct || row.product===selectedProduct
-  );
+  const filtered = plans.filter(row => {
+    const line=productLineAssignments.get(row.product) || "";
+    return (!selectedProduct || row.product===selectedProduct) &&
+      (!selectedLine || (selectedLine==="unassigned" ? !line : line===selectedLine));
+  });
 
   const allDates = [...new Set(
     filtered.flatMap(row => Object.keys(row.values))
@@ -1896,6 +1901,7 @@ function renderPlans() {
   $("plan-head").innerHTML = `
     <tr>
       <th class="product-cell">Product</th>
+      <th>ไลน์ผลิต</th>
 
       ${dates.length ? dates.map(date => `
         <th class="number">
@@ -1909,11 +1915,9 @@ function renderPlans() {
   if (!filtered.length || !dates.length) {
     $("plan-body").innerHTML = `
       <tr>
-        <td colspan="2" class="empty">
+        <td colspan="3" class="empty">
           ยังไม่มีข้อมูลที่ตรงกับตัวกรอง
-          ${selectedPlanLine
-            ? "กรุณานำเข้าไฟล์แผนผลิต "+esc(selectedPlanLine)
-            : "กรุณาเลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel"}
+          กรุณานำเข้าไฟล์แผนผลิต
         </td>
       </tr>
     `;
@@ -1959,6 +1963,14 @@ function renderPlans() {
       return `
         <tr>
           <td class="product-cell">${esc(product)}</td>
+          <td>
+            <select data-product-line="${esc(product)}"
+              aria-label="เลือกไลน์ผลิตสำหรับ ${esc(product)}"
+              style="min-width:130px">
+              <option value="">เลือกไลน์</option>
+              ${PRODUCT_LINES.map(line => `<option value="${line}" ${productLineAssignments.get(product)===line ? "selected" : ""}>${line}</option>`).join("")}
+            </select>
+          </td>
 
           ${dates.map(date => `
             <td class="number">
@@ -1975,6 +1987,7 @@ function renderPlans() {
   $("plan-body").innerHTML = body+`
     <tr class="total-row">
       <td class="product-cell">Total Order</td>
+      <td></td>
 
       ${dates.map(date => `
         <td class="number">${fmt(totals.get(date))}</td>
@@ -1992,9 +2005,24 @@ function renderPlans() {
     `${fmt(productOrders.size)} Product · ${fmt(dates.length)} วัน`;
 }
 
-$("plan-line-select").addEventListener("change",() => {
-  const line=$("plan-line-select").value;
-  selectedPlanLine=PRODUCTION_LINES.includes(line) ? line : "";
+$("plan-body").addEventListener("change",event => {
+  const input=event.target;
+  if (!input.matches("select[data-product-line]")) return;
+  const product=input.dataset.productLine;
+  if (!plans.some(row => row.product===product)) return;
+  const line=PRODUCT_LINES.includes(input.value) ? input.value : "";
+  if (line) productLineAssignments.set(product,line);
+  else productLineAssignments.delete(product);
+  const saved=save(PRODUCT_LINE_KEY,[...productLineAssignments]);
+  renderPlans();
+  message((line ? product+" → "+line : product+" ยังไม่กำหนดไลน์") +
+    (saved ? " • บันทึกแล้ว" : " • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก"));
+});
+$("product-line-filter").addEventListener("change",renderPlans);
+$("saved-plan-source").addEventListener("change",() => {
+  const allowed=[MATRIX_PLAN_KEY,...PRODUCT_LINES.map(line => MATRIX_PLAN_KEY+"-"+line.replace(/ /g,"-"))];
+  if (!allowed.includes($("saved-plan-source").value)) return;
+  activePlanSource=$("saved-plan-source").value;
   ++importRevision;
   resetPreview();
   selectedWorkbook=null;
@@ -2003,15 +2031,11 @@ $("plan-line-select").addEventListener("change",() => {
   $("plan-sheet").disabled=true;
   $("plan-date").value="";
   $("plan-product").value="";
-  plans=readPlansForLine(selectedPlanLine);
-  try {
-    localStorage.setItem(MATRIX_PLAN_KEY+"-selected-line",selectedPlanLine);
-  } catch { /* ไม่กระทบการสลับไลน์ในรอบนี้ */ }
+  $("product-line-filter").value="";
+  plans=readPlanSource(activePlanSource);
   updateProductOptions();
   renderPlans();
-  message(selectedPlanLine
-    ? "กำลังแสดง "+selectedPlanLine+" • การนำเข้าจะเปลี่ยนเฉพาะแผนของไลน์นี้"
-    : "แผนเดิมยังเก็บไว้โดยไม่ระบุไลน์ • เลือกไลน์ก่อนนำเข้า Excel");
+  message("เลือกไลน์ผลิตได้ที่แต่ละแถว Product");
 });
 
 $("plan-date").addEventListener("change",renderPlans);
@@ -2020,6 +2044,7 @@ $("plan-product").addEventListener("change",renderPlans);
 $("reset-plan-filter").addEventListener("click",() => {
   $("plan-date").value="";
   $("plan-product").value="";
+  $("product-line-filter").value="";
   renderPlans();
 });
 
@@ -2027,13 +2052,11 @@ $("reset-plan-filter").addEventListener("click",() => {
    เริ่มแสดงผล
    ===================================================== */
 
+refreshSavedPlanSources();
 showPage();
 renderCapacity();
 updateProductOptions();
 renderPlans();
-message(selectedPlanLine
-  ? "กำลังแสดง "+selectedPlanLine
-  : "เลือก Door A, Door B หรือ Door C ก่อนนำเข้า Excel • แผนเดิมยังเก็บแยกไว้");
 </script>
 </body>
 </html>
