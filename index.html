@@ -641,7 +641,7 @@ function fmt(value) {
 function load(key,fallback) {
   try {
     const value = JSON.parse(localStorage.getItem(key));
-    return Array.isArray(value) ? value : clone(fallback);
+    return Array.isArray(fallback) ? (Array.isArray(value) ? value : clone(fallback)) : (value ?? clone(fallback));
   } catch {
     return clone(fallback);
   }
@@ -1289,7 +1289,7 @@ $("lob-group-buttons").addEventListener('click',event=>{
   renderCapacity();
 });
 function renderCapacity() {
-  lines=lines.map(line=>({...prepareLOBLine(line),lineTag:line.lineTag}));
+  lines=lines.flatMap(expandLOBPlanLines).map(line=>({...prepareLOBLine(line),lineTag:line.lineTag}));
   $("lob-group-buttons").innerHTML=LOB_GROUPS.map(([key,label])=>`<button type="button" data-lob-group="${key}" class="${selectedLOBGroup===key?'primary':''}" aria-pressed="${selectedLOBGroup===key}">${label}</button>`).join('');
   const selectedType=$("capacity-filter").value;
   const types=[...new Set(lines.map(line=>line.partType))];
@@ -2526,21 +2526,17 @@ function renderDoorBendPlans(view) {
   $("door-plan-warning").textContent=warnings.join("\n");
 }
 
-$("door-plan-hours").addEventListener("input",() => {
-  const hours=getUPHHours();
-  if (hours!==null) {
-    try { localStorage.setItem(UPH_HOURS_KEY,String(hours)); } catch { /* ใช้ได้ในรอบนี้ */ }
-  }
+function persistDoorParameters() {
+  const hours=getUPHHours(),efficiency=getUPHEfficiency();
+  let saved=true;
+  try {
+    if(hours!==null)localStorage.setItem(UPH_HOURS_KEY,String(hours));
+    if(efficiency!==null)localStorage.setItem(UPH_EFFICIENCY_KEY,String(efficiency));
+  } catch {saved=false;}
   renderDoorPlans();
-});
-
-$("door-plan-efficiency").addEventListener("input",() => {
-  const efficiency=getUPHEfficiency();
-  if (efficiency!==null) {
-    try { localStorage.setItem(UPH_EFFICIENCY_KEY,String(efficiency)); } catch { /* ใช้ได้ในรอบนี้ */ }
-  }
-  renderDoorPlans();
-});
+  if(!saved)$("door-plan-uph-note").textContent+=' • บันทึกไม่ได้ เบราว์เซอร์ไม่อนุญาตให้เก็บข้อมูล';
+}
+['door-plan-hours','door-plan-efficiency'].forEach(id=>['input','change'].forEach(event=>$(id).addEventListener(event,persistDoorParameters)));
 
 $("door-foam-mode").addEventListener("click",()=>{doorPlanMode="foam";renderDoorPlans();});
 $("door-bend-mode").addEventListener("click",()=>{doorPlanMode="bend";renderDoorPlans();});
@@ -2592,6 +2588,15 @@ function resolveLOBUPH(line) {
   const uph=Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4);
   if(!Number.isFinite(uph)||uph<=0)throw Error('ยังไม่มีค่า Takt');
   return {date,line:productionLine,mode,material,hours,efficiency,uph,takt:3600/uph};
+}
+function expandLOBPlanLines(line) {
+  const group=lobGroup(line);
+  if(!['bottom','back'].includes(group)||normalizePlateLine(line.lineTag))return [line];
+  if(/(?:plate[\s_-]*|\b)([ab])(?:[\s_-]*line)?$/i.test(line.title))return [line];
+  const normalize=value=>String(value??'').trim().toLowerCase().replace(/\s+/g,'');
+  const models=new Set(line.models.map(normalize));
+  const candidates=[...new Set(plans.filter(row=>models.has(normalize(row.product))||models.has(normalize(row.model))).map(row=>normalizePlateLine(row.plateLine)).filter(Boolean))];
+  return candidates.length ? candidates.map(tag=>({...line,id:line.id+'-'+tag.replace(/ /g,''),lineTag:tag})) : [line];
 }
 function prepareLOBLine(line) {
   try {const source=resolveLOBUPH(line);return {...line,lineTag:source.line,takt:source.takt,uph:source.uph,uphSource:source,taktPending:false};}
@@ -2750,27 +2755,27 @@ function lobDataKey(line) {
   return JSON.stringify([lobModelKey(line),[...new Set(line.models.map(normalize))].sort()]);
 }
 function uniqueLOBModels(choices) {
-  const seen=new Set();
-  return choices.filter(line=>{const key=lobDataKey(line);if(seen.has(key))return false;seen.add(key);return true;});
+  const latest=new Map();choices.forEach(line=>latest.set(lobDataKey(line),line));return [...latest.values()];
 }
 function uniqueLOBImport(existing,incoming,replacement) {
-  const seen=new Set((replacement?[]:existing).map(lobDataKey)),added=[];
-  let skipped=0;
-  incoming.forEach(line=>{const key=lobDataKey(line);if(seen.has(key)){skipped++;return;}seen.add(key);added.push(line);});
-  return {lines:replacement?clone(added):[...existing,...clone(added)],added:added.length,skipped};
+  const records=new Map((replacement?[]:existing.flatMap(expandLOBPlanLines)).map(line=>[lobDataKey(line),line]));
+  let added=0,updated=0;
+  const newest=new Map(incoming.flatMap(expandLOBPlanLines).map(line=>[lobDataKey(line),line]));
+  newest.forEach((line,key)=>{if(records.has(key))updated++;else added++;records.set(key,clone(line));});
+  return {lines:[...records.values()],added,updated,skipped:0};
 }
 $("lob-upload-confirm").addEventListener('click',()=>{
   if(!lobImportDraft)return;
   if(draft){lobImportMessage('กรุณาบันทึกหรือยกเลิกรายการที่กำลังแก้ไขก่อนยืนยันนำเข้า');return;}
-  lobImportDraft=lobImportDraft.map(prepareLOBLine);
+  lobImportDraft=lobImportDraft.flatMap(expandLOBPlanLines).map(prepareLOBLine);
   const replacement=$("lob-upload-mode").value==='replace';
   const result=uniqueLOBImport(lines,lobImportDraft,replacement);
   lines=result.lines;
-  const saved=result.added||replacement ? save(CAPACITY_KEY,lines) : true;
+  const saved=result.added||result.updated||replacement ? save(CAPACITY_KEY,lines) : true;
   selectedLOBGroup="all";
   resetLOBPreview();$("capacity-filter").value='';$("capacity-search").value='';renderCapacity();
   $("capacity-content").scrollIntoView?.({behavior:"smooth",block:"start"});
-  lobImportMessage(`${replacement?'แทนที่รายการทั้งหมดแล้ว':'นำเข้าแล้ว'} • เพิ่ม ${result.added} รายการ • ข้ามข้อมูลซ้ำ ${result.skipped} รายการ`+(saved?'':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
+  lobImportMessage(`${replacement?'แทนที่รายการทั้งหมดแล้ว':'นำเข้าแล้ว'} • เพิ่ม ${result.added} รายการ • อัปเดตเป็นข้อมูลล่าสุด ${result.updated} รายการ`+(saved?'':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
 });
 $("lob-download-template").addEventListener('click',()=>{
   const csv='\uFEFF'+[
@@ -2861,11 +2866,12 @@ const savedPlateUPH=load(PLATE_UPH_KEY,null);
 if(savedPlateUPH && Number.isFinite(savedPlateUPH.hours)&&savedPlateUPH.hours>0&&savedPlateUPH.hours<=24&&Number.isFinite(savedPlateUPH.efficiency)&&savedPlateUPH.efficiency>0&&savedPlateUPH.efficiency<=100) {
   $("plate-plan-hours").value=savedPlateUPH.hours;$("plate-plan-efficiency").value=savedPlateUPH.efficiency;
 }
-['plate-plan-hours','plate-plan-efficiency'].forEach(id=>$(id).addEventListener('input',()=>{
+['plate-plan-hours','plate-plan-efficiency'].forEach(id=>['input','change'].forEach(event=>$(id).addEventListener(event,()=>{
   const {hours,efficiency,valid}=plateUPHParameters();
-  if(valid)save(PLATE_UPH_KEY,{hours,efficiency});
+  const saved=!valid||save(PLATE_UPH_KEY,{hours,efficiency});
   renderPlatePlans();
-}));
+  if(!saved)$("plate-plan-uph-note").textContent+=' • บันทึกไม่ได้ เบราว์เซอร์ไม่อนุญาตให้เก็บข้อมูล';
+})));
 ['plate-plan-line','plate-plan-date'].forEach(id=>$(id).addEventListener('change',renderPlatePlans));
 $("plate-plan-search").addEventListener('input',renderPlatePlans);
 $("plate-plan-reset").addEventListener('click',()=>{['plate-plan-line','plate-plan-date','plate-plan-search'].forEach(id=>$(id).value='');renderPlatePlans();});
