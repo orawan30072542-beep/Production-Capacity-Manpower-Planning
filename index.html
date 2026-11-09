@@ -1124,11 +1124,10 @@ function lineHtml(line,choices=[line]) {
         Balance ${result.balance.toFixed(1)}%
 
         <div>
-          <label style="display:inline-flex;flex-direction:column;gap:6px;margin-top:12px">เลือกรุ่น / Model
-            <select data-lob-model-group="${esc(lobModelKey(line))}" aria-label="เลือกรุ่น ${esc(line.title)}">
-              ${choices.map(item=>`<option value="${esc(item.id)}" ${item.id===line.id?'selected':''}>${esc(item.models.join(', ')||'ยังไม่ระบุรุ่น')}</option>`).join('')}
-            </select>
-          </label>
+          <div style="margin-top:12px">เลือกรุ่น / Model</div>
+          <div class="controls" role="group" aria-label="เลือกรุ่น ${esc(line.title)}" style="margin-top:8px;flex-wrap:wrap">
+            ${choices.map(item=>`<button type="button" data-lob-model-group="${esc(lobModelKey(line))}" data-lob-model-id="${esc(item.id)}" class="${item.id===line.id?'primary':''}" aria-pressed="${item.id===line.id}">${esc(item.models.join(', ')||'ยังไม่ระบุรุ่น')}</button>`).join('')}
+          </div>
         </div>
       </div>
 
@@ -1261,10 +1260,12 @@ function editorHtml() {
 
 const lobModelSelections=new Map();
 function lobModelKey(line) {return JSON.stringify([line.title.trim().toLowerCase(),line.partType.trim().toLowerCase(),line.lineTag.trim().toLowerCase()]);}
-$("capacity-content").addEventListener('change',event=>{
-  const input=event.target,key=input.dataset.lobModelGroup;
-  if(key===undefined || !lines.some(line=>lobModelKey(line)===key&&line.id===input.value))return;
-  lobModelSelections.set(key,input.value);renderCapacity();
+$("capacity-content").addEventListener('click',event=>{
+  const button=event.target.closest?.('button[data-lob-model-id]');
+  if(!button)return;
+  const key=button.dataset.lobModelGroup,id=button.dataset.lobModelId;
+  if(!lines.some(line=>lobModelKey(line)===key&&line.id===id))return;
+  lobModelSelections.set(key,id);renderCapacity();
 });
 let selectedLOBGroup='all';
 const LOB_GROUPS=[['all','ทั้งหมด'],['door-a','DOOR A'],['door-b','DOOR B'],['door-c','DOOR C'],['back','BACK PLATE'],['bottom','BOTTOM PLATE']];
