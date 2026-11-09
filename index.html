@@ -543,7 +543,7 @@ Line / Model ต่างกันจะแยกเป็นคนละรา�
           <div id="door-plan-summary" class="muted"></div>
         </div>
       </div>
-      <p id="door-plan-uph-note" class="notice" role="status">UPH เป้าหมาย = ยอดฝารายวัน ÷ ชั่วโมงทำงานสุทธิ ÷ (Efficiency / 100) • ปัดขึ้นเป็นจำนวนเต็ม</p>
+      <p id="door-plan-uph-note" class="notice" role="status">ยอดเป้าหมายต่อชั่วโมง = ยอดฝารายวัน ÷ ชั่วโมงทำงานสุทธิ ÷ (Efficiency / 100) • ปัดขึ้นเป็นจำนวนเต็ม</p>
       <p id="door-plan-warning" class="notice red-text" role="status" aria-live="polite"></p>
       <div id="door-foam-content" class="scroll" style="max-height:650px;overflow:auto">
         <table id="door-plan-table" style="width:max-content;min-width:100%">
@@ -551,7 +551,7 @@ Line / Model ต่างกันจะแยกเป็นคนละรา�
         </table>
       </div>
       <div id="door-bend-content" hidden></div>
-      <p class="notice" style="padding-top:16px">กำหนดจำนวนฝาต่อรุ่นได้ที่หน้าแผนผลิต → แก้ไข Product
+      <p class="notice" style="padding-top:16px">ตัวเลขใต้ยอดรวมรายวันคือยอดเป้าหมายต่อชั่วโมง คำนวณตามชั่วโมงสุทธิและ Efficiency ที่เลือก • กำหนดจำนวนฝาต่อรุ่นได้ที่หน้าแผนผลิต → แก้ไข Product
 จำนวนแผนฝาแสดงเป็นจำนวนเต็ม โดยคูณและรวมจากค่าต้นฉบับก่อนปัดเศษ</p>
     </div>
   </section>
@@ -2345,7 +2345,7 @@ function renderUPHNote() {
   if (hours===null) errors.push("กรุณากรอกชั่วโมงทำงานสุทธิมากกว่า 0 ถึง 24 ชั่วโมง");
   if (efficiency===null) errors.push("กรุณากรอก Efficiency มากกว่า 0 ถึง 100%");
   $("door-plan-uph-note").textContent=errors.length ? errors.join(" • ")
-    : `UPH เป้าหมาย = ยอดฝารายวัน ÷ ${hours} ชั่วโมงสุทธิ ÷ (${efficiency}/100) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้ค่าเดียวกันกับทุกวันที่แสดง`;
+    : `ยอดเป้าหมายต่อชั่วโมง = ยอดฝารายวัน ÷ ${hours} ชั่วโมงสุทธิ ÷ (${efficiency}/100) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้ค่าเดียวกันกับทุกวันที่แสดง`;
   $("door-plan-uph-note").className=errors.length ? "notice red-text" : "notice";
 }
 
@@ -2425,8 +2425,7 @@ function renderDoorPlans() {
     <td>${item.settings.material==="metal" ? "ฝาเหล็ก" : item.settings.material==="glass" ? "กระจก" : "ยังไม่ระบุ"}</td>
     <td class="number">${item.hasCount ? item.settings.doorCount : '<span class="red-text">ยังไม่ตั้งค่า</span>'}</td>
     ${dates.map(date => `<td class="number">${!item.orders.has(date) ? "—" : !item.hasCount ? '<span class="red-text">ยังไม่ตั้งค่า</span>' : `<span title="Order ${esc(item.orders.get(date))} × ${item.settings.doorCount} ฝา/รุ่น">${fmt(item.doors.get(date))}</span>`}</td>`).join("")}
-  </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="4">${missing.length ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมแผนฝา"}</td>${dates.map(date => `<td class="number">${formatTotal(totals.get(date))}</td>`).join("")}</tr>
-  <tr style="background:#eaf8f2;color:#16836c;font-weight:700"><td colspan="4">UPH เป้าหมาย (ฝา/ชั่วโมง)${missing.length ? " • ยังไม่ครบ *" : ""}</td>${dates.map(date => `<td class="number">${formatUPH(totals.get(date))}</td>`).join("")}</tr>`;
+  </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="4">${missing.length ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมแผนฝา"}</td>${dates.map(date => `<td class="number"><div>${formatTotal(totals.get(date))}</div><div class="muted" style="margin-top:6px;color:#16836c;font-size:12px" title="ยอดเป้าหมายต่อชั่วโมง">${formatUPH(totals.get(date))}</div></td>`).join("")}</tr>`;
   const knownItems=items.filter(item => item.hasCount);
   const total=[...totals.values()].reduce((sum,item) => sum+item.quantity,0);
   $("door-plan-total").textContent=knownItems.length ? fmt(total) : "—";
@@ -2466,7 +2465,7 @@ function preparationSection(title,items,dates,color) {
         <td style="white-space:nowrap">${esc(item.settings.line || "ยังไม่ระบุ")}</td>
         <td class="number">${item.hasCount ? item.settings.doorCount : '<span class="red-text">ยังไม่ตั้งค่า</span>'}</td>
         ${dates.map(date=>`<td class="number">${!item.orders.has(date) ? "—" : !item.hasCount ? '<span class="red-text">ยังไม่ตั้งค่า</span>' : fmt(item.doors.get(date))}</td>`).join("")}
-      </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="3">${partial ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมเตรียมงาน"}</td>${dates.map(date=>`<td class="number">${dailyValue(daily.get(date))}</td>`).join("")}</tr><tr style="background:#eaf8f2;color:#16836c;font-weight:700"><td colspan="3">UPH เป้าหมาย (ฝา/ชั่วโมง)${partial ? " • ยังไม่ครบ *" : ""}</td>${dates.map(date=>`<td class="number">${formatUPH(daily.get(date))}</td>`).join("")}</tr>` : `<tr><td colspan="${3+dates.length}" class="empty">ไม่พบรายการในประเภทนี้ตามตัวกรอง</td></tr>`}</tbody></table>
+      </tr>`).join("")+`<tr style="background:#eaf3fc;font-weight:700"><td colspan="3">${partial ? "รวมเฉพาะที่ตั้งค่าครบ *" : "รวมเตรียมงาน"}</td>${dates.map(date=>`<td class="number"><div>${dailyValue(daily.get(date))}</div><div class="muted" style="margin-top:6px;color:#16836c;font-size:12px" title="ยอดเป้าหมายต่อชั่วโมง">${formatUPH(daily.get(date))}</div></td>`).join("")}</tr>` : `<tr><td colspan="${3+dates.length}" class="empty">ไม่พบรายการในประเภทนี้ตามตัวกรอง</td></tr>`}</tbody></table>
     </div>
   </section>`;
 }
@@ -2759,11 +2758,11 @@ function plateUPH(total) {
   const {hours,efficiency,valid}=plateUPHParameters();
   if(!valid)return 'กรอกชั่วโมง / Efficiency';
   const rate=total/hours/(efficiency/100);
-  return fmt(Math.max(0,Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4)))+' UPH';
+  return fmt(Math.max(0,Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4)));
 }
 function renderPlatePlans() {
   const parameters=plateUPHParameters();
-  $("plate-plan-uph-note").textContent=parameters.valid ? `UPH เป้าหมาย = ยอดรายวัน ÷ ${parameters.hours} ชั่วโมง ÷ (${parameters.efficiency}/100) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้กับทุกไลน์ Bottom & Back Plate • ช่องรวมหลายวันแสดงเฉพาะจำนวนชิ้น` : 'กรุณากรอกชั่วโมงทำงานมากกว่า 0 ถึง 24 และ Efficiency มากกว่า 0 ถึง 100%';
+  $("plate-plan-uph-note").textContent=parameters.valid ? `ยอดเป้าหมายต่อชั่วโมง = ยอดรายวัน ÷ ${parameters.hours} ชั่วโมง ÷ (${parameters.efficiency}/100) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้กับทุกไลน์ Bottom & Back Plate • ช่องรวมหลายวันแสดงเฉพาะจำนวนชิ้น` : 'กรุณากรอกชั่วโมงทำงานมากกว่า 0 ถึง 24 และ Efficiency มากกว่า 0 ถึง 100%';
   $("plate-plan-uph-note").className=parameters.valid?'notice':'notice red-text';
   const view=buildPlatePlan(plans,{line:$("plate-plan-line").value,date:$("plate-plan-date").value,search:$("plate-plan-search").value.trim()});
   const {items,dates}=view;
