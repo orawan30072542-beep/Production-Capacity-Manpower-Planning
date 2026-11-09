@@ -398,7 +398,8 @@ footer{
         </div>
         <button id="lob-upload-confirm" class="primary" type="button" disabled>ยืนยันนำเข้าข้อมูล</button>
       </div>
-      <p class="notice">หัวคอลัมน์: Line, Model, Station, Process, Work Time, Loss, Type, Line Tag
+      <p class="notice">หัวคอลัมน์: Line, Model, Station, Process, Work Time, Loss, Type
+ระบุชื่อไลน์ที่ Line และรุ่นที่ Model • ไม่ต้องกรอก Line Tag / ไลน์ผลิตในไฟล์ ใช้ไลน์ที่เลือกตอนนำเข้า
 Work Time / Loss มีหน่วยเป็นวินาที • ไม่ต้องใส่ Takt Time ในไฟล์ • Loss คิดครั้งเดียวต่อสถานี
 หากสถานีมีหลายกระบวนการ ให้ใช้ชื่อสถานีเดิมซ้ำ และกรอก Loss แถวแรก แถวถัดไปเว้นว่าง
 Line / Model ต่างกันจะแยกเป็นคนละรายการ • ข้อมูลตัวอย่างเป็นข้อมูลสมมติ กรุณาแก้ก่อนนำเข้า</p>
@@ -2733,10 +2734,10 @@ $("lob-upload-confirm").addEventListener('click',()=>{
 });
 $("lob-download-template").addEventListener('click',()=>{
   const csv='\uFEFF'+[
-    'Line,Model,Station,Process,Work Time,Loss,Type,Line Tag',
-    'Door Foam A,MODEL-EXAMPLE,ST01,Assembly,12.5,1,Door Foam,Door A',
-    'Door Foam A,MODEL-EXAMPLE,ST01,Inspection,3,,Door Foam,Door A',
-    'Door Foam A,MODEL-EXAMPLE,ST02,Packing,18,0,Door Foam,Door A'
+    'Line,Model,Station,Process,Work Time,Loss,Type',
+    'Door Foam A,MODEL-EXAMPLE,ST01,Assembly,12.5,1,Door Foam',
+    'Door Foam A,MODEL-EXAMPLE,ST01,Inspection,3,,Door Foam',
+    'Door Foam A,MODEL-EXAMPLE,ST02,Packing,18,0,Door Foam'
   ].join('\r\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;link.download='line_of_balance_template.csv';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
