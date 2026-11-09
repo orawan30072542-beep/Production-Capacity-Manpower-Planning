@@ -1120,7 +1120,7 @@ function lineHtml(line,choices=[line]) {
       </div>
 
       <div class="notice">
-        Takt ${line.taktPending ? "ยังไม่มีค่า" : line.takt.toFixed(2)+" s"} ${line.uphSource ? `จาก UPH ${fmt(line.uph)} (${displayDate(line.uphSource.date)} / ${esc(line.uphSource.line)})` : ""} ·
+        Takt ${line.taktPending ? "ยังไม่มีค่า" : line.takt.toFixed(2)+" s"} ${line.uphSource ? `จาก UPH สูงสุด ${fmt(line.uph)} (${displayDate(line.uphSource.date)} / ${esc(line.uphSource.line)})` : ""} ·
         Bottleneck ${result.maximum.toFixed(2)} s ·
         Balance ${result.balance.toFixed(1)}%
 
@@ -2581,13 +2581,14 @@ function resolveLOBUPH(line) {
     if(!hours||!efficiency)throw Error('ชั่วโมงหรือ Efficiency ไม่ถูกต้อง');
     daily=buildDoorPlanView(plans,{date:'',line:productionLine,material,product:''}).totals;
   }
-  const date=[...daily.keys()].sort().reverse().find(day=>daily.get(day).quantity>0);
+  // All dates use the same hours and Efficiency, so maximum quantity gives maximum UPH.
+  const date=[...daily.keys()].filter(day=>daily.get(day).quantity>0).sort((a,b)=>daily.get(b).quantity-daily.get(a).quantity || b.localeCompare(a))[0];
   const total=daily.get(date);
   if(!total||total.unknown)throw Error('ยังไม่มีแผนผลิตที่ครบสำหรับคำนวณ Takt');
   const rate=total.quantity/hours/(efficiency/100);
   const uph=Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4);
   if(!Number.isFinite(uph)||uph<=0)throw Error('ยังไม่มีค่า Takt');
-  return {date,line:productionLine,mode,material,hours,efficiency,uph,takt:3600/uph};
+  return {date,line:productionLine,mode,material,hours,efficiency,uph,takt:3600/uph,basis:"maximum-uph"};
 }
 function expandLOBPlanLines(line) {
   const group=lobGroup(line);
