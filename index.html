@@ -563,9 +563,12 @@ Line / Model ต่างกันจะแยกเป็นคนละรา�
         <label>ไลน์ผลิต<select id="plate-plan-line"><option value="">ทุกไลน์</option><option>A Line</option><option>B Line</option><option value="unassigned">ยังไม่ระบุไลน์</option></select></label>
         <label>วันที่<input id="plate-plan-date" type="date"></label>
         <label>Product<input id="plate-plan-search" type="search" placeholder="ค้นหา Product"></label>
+        <label>ชั่วโมงทำงานสุทธิ / วัน<input id="plate-plan-hours" type="number" min="0.01" max="24" step="0.01" value="8"></label>
+        <label>Efficiency (%)<input id="plate-plan-efficiency" type="number" min="0.01" max="100" step="0.01" value="100"></label>
         <button id="plate-plan-reset" type="button">ล้างตัวกรอง</button>
       </div>
       <p id="plate-plan-summary" class="notice" role="status"></p>
+      <p id="plate-plan-uph-note" class="notice" role="status"></p>
       <div id="plate-plan-totals"></div>
       <div id="plate-plan-content"></div>
     </div>
@@ -2748,7 +2751,20 @@ function buildPlatePlan(source,filters) {
   const items=[...products.values()];
   return {items,dates:[...new Set(items.flatMap(item=>[...item.orders.keys()]))].sort()};
 }
+function plateUPHParameters() {
+  const hours=Number($("plate-plan-hours").value),efficiency=Number($("plate-plan-efficiency").value);
+  return {hours,efficiency,valid:Number.isFinite(hours)&&hours>0&&hours<=24&&Number.isFinite(efficiency)&&efficiency>0&&efficiency<=100};
+}
+function plateUPH(total) {
+  const {hours,efficiency,valid}=plateUPHParameters();
+  if(!valid)return 'กรอกชั่วโมง / Efficiency';
+  const rate=total/hours/(efficiency/100);
+  return fmt(Math.max(0,Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4)))+' UPH';
+}
 function renderPlatePlans() {
+  const parameters=plateUPHParameters();
+  $("plate-plan-uph-note").textContent=parameters.valid ? `UPH เป้าหมาย = ยอดรายวัน ÷ ${parameters.hours} ชั่วโมง ÷ (${parameters.efficiency}/100) • ปัดขึ้นเป็นจำนวนเต็ม • ใช้กับทุกไลน์ Bottom & Back Plate • ช่องรวมหลายวันแสดงเฉพาะจำนวนชิ้น` : 'กรุณากรอกชั่วโมงทำงานมากกว่า 0 ถึง 24 และ Efficiency มากกว่า 0 ถึง 100%';
+  $("plate-plan-uph-note").className=parameters.valid?'notice':'notice red-text';
   const view=buildPlatePlan(plans,{line:$("plate-plan-line").value,date:$("plate-plan-date").value,search:$("plate-plan-search").value.trim()});
   const {items,dates}=view;
   $("plate-plan-summary").textContent=`${fmt(items.length)} Product • ${fmt(dates.length)} วัน • รวมเฉพาะรายการที่เลือกผลิต • ไลน์อ่านจาก A Line / B Line ในไฟล์แผนผลิต`;
@@ -2756,7 +2772,7 @@ function renderPlatePlans() {
   const groups=parts.flatMap(([part,title])=>['A Line','B Line',''].map(line=>({part,title,line,items:items.filter(item=>item.line===line&&plateSettings.get(item.product)?.[part]==='yes')})));
   const totalsFor=group=>dates.map(date=>group.items.reduce((sum,item)=>sum+(item.orders.get(date)||0),0));
   $("plate-plan-totals").innerHTML=`<h2>ยอดรวมแผนผลิต Bottom &amp; Back Plate</h2><div class="scroll"><table style="min-width:100%;width:max-content"><thead><tr><th>ประเภท / ไลน์ผลิต</th>${dates.map(date=>`<th class="number">${displayDate(date)}</th>`).join('')}<th>รวม (ชิ้น)</th></tr></thead><tbody>${groups.filter(group=>group.line||items.some(item=>!item.line)).map(group=>{
-    const totals=totalsFor(group);return `<tr class="total-row"><td>${group.title} · ${esc(group.line||'ยังไม่ระบุไลน์')}</td>${totals.map(total=>`<td class="number">${fmt(total)}</td>`).join('')}<td class="number">${fmt(totals.reduce((a,b)=>a+b,0))}</td></tr>`;
+    const totals=totalsFor(group);return `<tr class="total-row"><td>${group.title} · ${esc(group.line||'ยังไม่ระบุไลน์')}</td>${totals.map(total=>`<td class="number"><div>${fmt(total)}</div><div class="muted" style="margin-top:6px;color:#0066b3;font-size:12px">${plateUPH(total)}</div></td>`).join('')}<td class="number">${fmt(totals.reduce((a,b)=>a+b,0))}</td></tr>`;
   }).join('')}</tbody></table></div>`;
   $("plate-plan-content").innerHTML=groups.filter(group=>group.line||items.some(item=>!item.line)).map(({part,title,line,items:included})=>{
     const scoped=items.filter(item=>item.line===line);
@@ -2772,6 +2788,16 @@ function renderPlatePlans() {
       </tbody></table></div></section>`;
   }).join('');
 }
+const PLATE_UPH_KEY=MATRIX_PLAN_KEY+'-plate-uph-v1';
+const savedPlateUPH=load(PLATE_UPH_KEY,null);
+if(savedPlateUPH && Number.isFinite(savedPlateUPH.hours)&&savedPlateUPH.hours>0&&savedPlateUPH.hours<=24&&Number.isFinite(savedPlateUPH.efficiency)&&savedPlateUPH.efficiency>0&&savedPlateUPH.efficiency<=100) {
+  $("plate-plan-hours").value=savedPlateUPH.hours;$("plate-plan-efficiency").value=savedPlateUPH.efficiency;
+}
+['plate-plan-hours','plate-plan-efficiency'].forEach(id=>$(id).addEventListener('input',()=>{
+  const {hours,efficiency,valid}=plateUPHParameters();
+  if(valid)save(PLATE_UPH_KEY,{hours,efficiency});
+  renderPlatePlans();
+}));
 ['plate-plan-line','plate-plan-date'].forEach(id=>$(id).addEventListener('change',renderPlatePlans));
 $("plate-plan-search").addEventListener('input',renderPlatePlans);
 $("plate-plan-reset").addEventListener('click',()=>{['plate-plan-line','plate-plan-date','plate-plan-search'].forEach(id=>$(id).value='');renderPlatePlans();});
