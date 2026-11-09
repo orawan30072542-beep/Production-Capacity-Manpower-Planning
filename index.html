@@ -558,14 +558,15 @@ Line / Model ต่างกันจะแยกเป็นคนละรา�
 
   <section id="plate-plan-page" hidden>
     <div class="card">
-      <div class="section-header"><h2>แผนผลิต Bottom &amp; Back Plate</h2><p class="muted">เลือกผลิต / ไม่ผลิตแยกตาม Product ได้ที่หน้าแผนผลิต • 1 ชิ้นต่อ 1 Order • ไม่คูณจำนวนฝา</p></div>
+      <div class="section-header"><h2>แผนผลิต Bottom &amp; Back Plate</h2><p class="muted">เลือกผลิต / ไม่ผลิตแยกตาม Product ได้ที่หน้าแผนผลิต • อ่าน A Line / B Line จากคอลัมน์ Line ในไฟล์ • 1 ชิ้นต่อ 1 Order</p></div>
       <div class="controls" style="padding:16px">
-        <label>ไลน์ผลิต<select id="plate-plan-line"><option value="">ทุกไลน์</option><option>Door A</option><option>Door B</option><option>Door C</option><option value="unassigned">ยังไม่ระบุไลน์</option></select></label>
+        <label>ไลน์ผลิต<select id="plate-plan-line"><option value="">ทุกไลน์</option><option>A Line</option><option>B Line</option><option value="unassigned">ยังไม่ระบุไลน์</option></select></label>
         <label>วันที่<input id="plate-plan-date" type="date"></label>
         <label>Product<input id="plate-plan-search" type="search" placeholder="ค้นหา Product"></label>
         <button id="plate-plan-reset" type="button">ล้างตัวกรอง</button>
       </div>
       <p id="plate-plan-summary" class="notice" role="status"></p>
+      <div id="plate-plan-totals"></div>
       <div id="plate-plan-content"></div>
     </div>
   </section>
@@ -1728,6 +1729,10 @@ async function openWorkbook(buffer) {
    อ่านตาราง Product / Model / วันที่
    ===================================================== */
 
+function normalizePlateLine(value) {
+  const normalized=String(value??'').trim().toLowerCase().replace(/[\s_-]+/g,'');
+  return ['aline','linea'].includes(normalized)?'A Line':['bline','lineb'].includes(normalized)?'B Line':'';
+}
 function parseMatrix(rows,date1904) {
   const normalize = value =>
     String(value ?? "").trim().toLowerCase();
@@ -1761,10 +1766,13 @@ function parseMatrix(rows,date1904) {
 
   const productColumn = findColumn(["product","ผลิตภัณฑ์"]);
   const modelColumn = findColumn(["model","รุ่น"]);
+  const plateLineColumns=rows[header].map((cell,index)=>['line','ไลน์','ไลน์ผลิต','plate line','back&bottom line','bottom & back plate line'].includes(normalize(cell))?index:-1).filter(index=>index>=0);
+  if(plateLineColumns.length>1)throw Error('หัวคอลัมน์ Line ซ้ำ กรุณาใช้คอลัมน์เดียวสำหรับ A Line / B Line');
+  const plateLineColumn=plateLineColumns[0]??-1;
   const dateColumns = [];
 
   rows[header].forEach((cell,column) => {
-    if (column<=Math.max(productColumn,modelColumn)) return;
+    if (column<=Math.max(productColumn,modelColumn) || column===plateLineColumn) return;
 
     const text = String(cell ?? "").trim();
     if (!text) return;
@@ -1801,12 +1809,21 @@ function parseMatrix(rows,date1904) {
   ]);
 
   let currentProduct = "";
+  let currentPlateLine="";
 
   rows.slice(header+1).forEach((row,index) => {
     const sourceRow = header+index+2;
     const product = String(row[productColumn] ?? "").trim();
     const model = String(row[modelColumn] ?? "").trim();
 
+    const marker=normalizePlateLine(product)||normalizePlateLine(model);
+    if(marker && !dateColumns.some(({column})=>row[column]!==''&&row[column]!=null)) {
+      currentPlateLine=marker;currentProduct='';return;
+    }
+    const rawPlateLine=plateLineColumn>=0?String(row[plateLineColumn]??'').trim():'';
+    const parsedPlateLine=normalizePlateLine(rawPlateLine);
+    if(rawPlateLine && !parsedPlateLine)errors.push(`แถว ${sourceRow}: Line ต้องเป็น A Line หรือ B Line`);
+    if(parsedPlateLine)currentPlateLine=parsedPlateLine;
     if (totalLabels.has(normalize(product)) ||
         totalLabels.has(normalize(model))) {
       return;
@@ -1859,6 +1876,7 @@ function parseMatrix(rows,date1904) {
     result.push({
       sourceRow,
       product:currentProduct,
+      plateLine:currentPlateLine,
       model,
       values
     });
@@ -2717,13 +2735,14 @@ $("plan-body").addEventListener('change',event=>{
 function buildPlatePlan(source,filters) {
   const products=new Map();
   source.forEach(row=>{
-    const line=getProductSettings(row.product).line;
+    const line=normalizePlateLine(row.plateLine);
     if(filters.line && (filters.line==='unassigned'?!!line:line!==filters.line))return;
     if(filters.search && !row.product.toLowerCase().includes(filters.search.toLowerCase()))return;
     Object.entries(row.values).forEach(([date,qty])=>{
       if(filters.date && date!==filters.date)return;
-      if(!products.has(row.product))products.set(row.product,{product:row.product,line,orders:new Map()});
-      const item=products.get(row.product);item.orders.set(date,(item.orders.get(date)||0)+qty);
+      const key=JSON.stringify([row.product,line]);
+      if(!products.has(key))products.set(key,{product:row.product,line,orders:new Map()});
+      const item=products.get(key);item.orders.set(date,(item.orders.get(date)||0)+qty);
     });
   });
   const items=[...products.values()];
@@ -2732,13 +2751,19 @@ function buildPlatePlan(source,filters) {
 function renderPlatePlans() {
   const view=buildPlatePlan(plans,{line:$("plate-plan-line").value,date:$("plate-plan-date").value,search:$("plate-plan-search").value.trim()});
   const {items,dates}=view;
-  $("plate-plan-summary").textContent=`${fmt(items.length)} Product • ${fmt(dates.length)} วัน • รวมเฉพาะรายการที่เลือกผลิต`;
-  $("plate-plan-content").innerHTML=[['bottom','Bottom Plate'],['back','Back Plate']].map(([part,title])=>{
-    const included=items.filter(item=>plateSettings.get(item.product)?.[part]==='yes');
-    const unset=items.filter(item=>!plateSettings.get(item.product)?.[part]);
-    const excluded=items.length-included.length-unset.length;
+  $("plate-plan-summary").textContent=`${fmt(items.length)} Product • ${fmt(dates.length)} วัน • รวมเฉพาะรายการที่เลือกผลิต • ไลน์อ่านจาก A Line / B Line ในไฟล์แผนผลิต`;
+  const parts=[['bottom','Bottom Plate'],['back','Back Plate']];
+  const groups=parts.flatMap(([part,title])=>['A Line','B Line',''].map(line=>({part,title,line,items:items.filter(item=>item.line===line&&plateSettings.get(item.product)?.[part]==='yes')})));
+  const totalsFor=group=>dates.map(date=>group.items.reduce((sum,item)=>sum+(item.orders.get(date)||0),0));
+  $("plate-plan-totals").innerHTML=`<h2>ยอดรวมแผนผลิต Bottom &amp; Back Plate</h2><div class="scroll"><table style="min-width:100%;width:max-content"><thead><tr><th>ประเภท / ไลน์ผลิต</th>${dates.map(date=>`<th class="number">${displayDate(date)}</th>`).join('')}<th>รวม (ชิ้น)</th></tr></thead><tbody>${groups.filter(group=>group.line||items.some(item=>!item.line)).map(group=>{
+    const totals=totalsFor(group);return `<tr class="total-row"><td>${group.title} · ${esc(group.line||'ยังไม่ระบุไลน์')}</td>${totals.map(total=>`<td class="number">${fmt(total)}</td>`).join('')}<td class="number">${fmt(totals.reduce((a,b)=>a+b,0))}</td></tr>`;
+  }).join('')}</tbody></table></div>`;
+  $("plate-plan-content").innerHTML=groups.filter(group=>group.line||items.some(item=>!item.line)).map(({part,title,line,items:included})=>{
+    const scoped=items.filter(item=>item.line===line);
+    const unset=scoped.filter(item=>!plateSettings.get(item.product)?.[part]);
+    const excluded=scoped.length-included.length-unset.length;
     const totals=dates.map(date=>included.reduce((sum,item)=>sum+(item.orders.get(date)||0),0));
-    return `<section style="margin-top:24px"><h2>${title}</h2>
+    return `<section style="margin-top:24px"><h2>${title} · ${esc(line||"ยังไม่ระบุไลน์")}</h2>
       <p class="notice">ผลิต ${included.length} Product • ไม่ผลิต ${excluded} Product • ยังไม่ตั้งค่า ${unset.length} Product</p>
       ${unset.length?`<p class="notice red-text">ยังไม่รวมยอด: ${unset.map(item=>esc(item.product)).join(', ')} — เลือกสถานะที่หน้าแผนผลิต</p>`:''}
       <div class="scroll"><table style="min-width:100%;width:max-content"><thead><tr><th>Product</th><th>ไลน์ผลิต</th>${dates.map(date=>`<th class="number">${displayDate(date)}<div class="muted">แผนผลิต (ชิ้น)</div></th>`).join('')}</tr></thead><tbody>
