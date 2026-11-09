@@ -2773,9 +2773,11 @@ $("lob-upload-confirm").addEventListener('click',()=>{
   lines=result.lines;
   const saved=result.added||result.updated||replacement ? save(CAPACITY_KEY,lines) : true;
   selectedLOBGroup="all";
+  lobImportDraft.forEach(line=>lobModelSelections.set(lobModelKey(line),line.id));
+  const importedModels=[...new Set(lobImportDraft.flatMap(line=>line.models))];
   resetLOBPreview();$("capacity-filter").value='';$("capacity-search").value='';renderCapacity();
   $("capacity-content").scrollIntoView?.({behavior:"smooth",block:"start"});
-  lobImportMessage(`${replacement?'แทนที่รายการทั้งหมดแล้ว':'นำเข้าแล้ว'} • เพิ่ม ${result.added} รายการ • อัปเดตเป็นข้อมูลล่าสุด ${result.updated} รายการ`+(saved?'':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
+  lobImportMessage(`${replacement?'แทนที่รายการทั้งหมดแล้ว':'นำเข้าแล้ว'} • เพิ่ม ${result.added} รายการ • อัปเดตเป็นข้อมูลล่าสุด ${result.updated} รายการ • รุ่น: ${importedModels.join(', ')}`+(saved?'':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
 });
 $("lob-download-template").addEventListener('click',()=>{
   const csv='\uFEFF'+[
