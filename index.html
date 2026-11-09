@@ -323,6 +323,7 @@ footer{
     <a id="nav-capacity" href="#capacity">LINE OF BALANCE</a>
     <a id="nav-plan" href="#production-plan">แผนผลิต</a>
     <a id="nav-door-plan" href="#door-production-plan">แผนผลิต DOOR</a>
+    <a id="nav-plate-plan" href="#plate-production-plan">แผนผลิต Bottom &amp; Back Plate</a>
   </nav>
 
   <noscript>
@@ -493,7 +494,8 @@ Line / Model ต่างกันจะแยกเป็นคนละรา�
               <th>ไลน์ผลิต</th>
               <th>ประเภทฝา</th>
               <th>จำนวนฝา / รุ่น</th>
-              <th>จัดการ</th>
+              <th>Bottom Plate</th><th>Back Plate</th>
+      <th>จัดการ</th>
               <th class="number">DATE / Order</th>
             </tr>
           </thead>
@@ -554,6 +556,19 @@ Line / Model ต่างกันจะแยกเป็นคนละรา�
     </div>
   </section>
 
+  <section id="plate-plan-page" hidden>
+    <div class="card">
+      <div class="section-header"><h2>แผนผลิต Bottom &amp; Back Plate</h2><p class="muted">เลือกผลิต / ไม่ผลิตแยกตาม Product ได้ที่หน้าแผนผลิต • 1 ชิ้นต่อ 1 Order • ไม่คูณจำนวนฝา</p></div>
+      <div class="controls" style="padding:16px">
+        <label>ไลน์ผลิต<select id="plate-plan-line"><option value="">ทุกไลน์</option><option>Door A</option><option>Door B</option><option>Door C</option><option value="unassigned">ยังไม่ระบุไลน์</option></select></label>
+        <label>วันที่<input id="plate-plan-date" type="date"></label>
+        <label>Product<input id="plate-plan-search" type="search" placeholder="ค้นหา Product"></label>
+        <button id="plate-plan-reset" type="button">ล้างตัวกรอง</button>
+      </div>
+      <p id="plate-plan-summary" class="notice" role="status"></p>
+      <div id="plate-plan-content"></div>
+    </div>
+  </section>
   <footer>HAIER · DOOR LINE PRODUCTION</footer>
 </div>
 
@@ -829,16 +844,24 @@ let draftIsNew = false;
    ===================================================== */
 
 function showPage() {
+  const isPlatePlan=location.hash==="#plate-production-plan";
+  $("plate-plan-page").hidden=!isPlatePlan;
+  $("nav-plate-plan").setAttribute("aria-current",isPlatePlan ? "page" : "false");
   const isPlan=location.hash==="#production-plan";
   const isDoorPlan=location.hash==="#door-production-plan";
-  $("capacity-page").hidden=isPlan || isDoorPlan;
+  $("capacity-page").hidden=isPlan || isDoorPlan || isPlatePlan;
   $("plan-page").hidden=!isPlan;
   $("door-plan-page").hidden=!isDoorPlan;
-  $("nav-capacity").setAttribute("aria-current",!isPlan && !isDoorPlan ? "page" : "false");
+  $("nav-capacity").setAttribute("aria-current",!isPlan && !isDoorPlan && !isPlatePlan ? "page" : "false");
   $("nav-plan").setAttribute("aria-current",isPlan ? "page" : "false");
   $("nav-door-plan").setAttribute("aria-current",isDoorPlan ? "page" : "false");
   $("page-title").textContent=isDoorPlan ? "Door Line · Door Production Plan" : isPlan ? "Door Line · Production Plan" : "Door Line · LINE OF BALANCE";
   $("page-description").textContent=isDoorPlan ? "แผนผลิตฝา = Order × จำนวนฝาต่อรุ่น" : isPlan ? "รวมแผนผลิตแยกตาม Product และวันที่" : "วิเคราะห์เวลาสถานี คอขวด และประสิทธิภาพสมดุลไลน์";
+  if(isPlatePlan) {
+    $("page-title").textContent="Door Line · Bottom & Back Plate Production Plan";
+    $("page-description").textContent="แผนผลิต Bottom Plate และ Back Plate ตามสถานะผลิตของแต่ละ Product";
+    renderPlatePlans();
+  }
   document.title=$("page-title").textContent;
   if (isDoorPlan) renderDoorPlans();
 }
@@ -2038,6 +2061,7 @@ function displayDate(date) {
 
 function renderPlans() {
   renderDoorPlans();
+  renderPlatePlans();
   const selectedDate = $("plan-date").value;
   const selectedProduct = $("plan-product").value;
   const selectedLine = $("product-line-filter").value;
@@ -2062,6 +2086,7 @@ function renderPlans() {
       <th>ไลน์ผลิต</th>
       <th>ประเภทฝา</th>
       <th>จำนวนฝา / รุ่น</th>
+      <th>Bottom Plate</th><th>Back Plate</th>
       <th>จัดการ</th>
 
       ${dates.length ? dates.map(date => `
@@ -2076,7 +2101,7 @@ function renderPlans() {
   if (!filtered.length || !dates.length) {
     $("plan-body").innerHTML = `
       <tr>
-        <td colspan="6" class="empty">
+        <td colspan="${7+Math.max(1,dates.length)}" class="empty">
           ยังไม่มีข้อมูลที่ตรงกับตัวกรอง
           กรุณานำเข้าไฟล์แผนผลิต
         </td>
@@ -2127,6 +2152,8 @@ function renderPlans() {
           <td class="product-config-cell">${esc(getProductSettings(product).line || "ยังไม่ระบุ")}</td>
           <td class="product-config-cell">${getProductSettings(product).material === "metal" ? "ฝาเหล็ก" : getProductSettings(product).material === "glass" ? "กระจก" : "ยังไม่ระบุ"}</td>
           <td class="product-config-cell">${getProductSettings(product).doorCount ? getProductSettings(product).doorCount+" ฝา" : "ยังไม่ระบุ"}</td>
+          <td>${plateStatusSelect(product,"bottom")}</td>
+          <td>${plateStatusSelect(product,"back")}</td>
           <td><button type="button" data-edit-product="${esc(product)}" aria-label="แก้ไขข้อมูล ${esc(product)}">แก้ไข</button></td>
 
           ${dates.map(date => `
@@ -2144,7 +2171,7 @@ function renderPlans() {
   $("plan-body").innerHTML = body+`
     <tr class="total-row">
       <td class="product-cell">Total Order</td>
-      <td colspan="4"></td>
+      <td colspan="6"></td>
 
       ${dates.map(date => `
         <td class="number">${fmt(totals.get(date))}</td>
@@ -2671,6 +2698,58 @@ $("lob-download-template").addEventListener('click',()=>{
 /* =====================================================
    เริ่มแสดงผล
    ===================================================== */
+
+
+const PLATE_SETTINGS_KEY=MATRIX_PLAN_KEY+"-plate-settings-v1";
+const plateSettings=new Map(load(PLATE_SETTINGS_KEY,[]).filter(item=>Array.isArray(item)&&typeof item[0]==='string'&&item[1]&&['bottom','back'].every(key=>['yes','no',''].includes(item[1][key]??''))));
+function plateStatusSelect(product,part) {
+  const status=plateSettings.get(product)?.[part]||'';
+  return `<select data-plate-product="${esc(product)}" data-plate-part="${part}" aria-label="${part==='bottom'?'Bottom Plate':'Back Plate'} ${esc(product)}">${[['','ยังไม่ตั้งค่า'],['yes','ผลิต'],['no','ไม่ผลิต']].map(([value,label])=>`<option value="${value}" ${value===status?'selected':''}>${label}</option>`).join('')}</select>`;
+}
+$("plan-body").addEventListener('change',event=>{
+  const input=event.target,product=input.dataset.plateProduct,part=input.dataset.platePart;
+  if(product===undefined || !['bottom','back'].includes(part) || !['yes','no',''].includes(input.value))return;
+  plateSettings.set(product,{...plateSettings.get(product),[part]:input.value});
+  const saved=save(PLATE_SETTINGS_KEY,[...plateSettings]);
+  renderPlatePlans();
+  message(`${product} • ${part==='bottom'?'Bottom Plate':'Back Plate'} • ${input.value==='yes'?'ผลิต':input.value==='no'?'ไม่ผลิต':'ยังไม่ตั้งค่า'}${saved?' • บันทึกแล้ว':' • ใช้ได้เฉพาะรอบนี้'}`);
+});
+function buildPlatePlan(source,filters) {
+  const products=new Map();
+  source.forEach(row=>{
+    const line=getProductSettings(row.product).line;
+    if(filters.line && (filters.line==='unassigned'?!!line:line!==filters.line))return;
+    if(filters.search && !row.product.toLowerCase().includes(filters.search.toLowerCase()))return;
+    Object.entries(row.values).forEach(([date,qty])=>{
+      if(filters.date && date!==filters.date)return;
+      if(!products.has(row.product))products.set(row.product,{product:row.product,line,orders:new Map()});
+      const item=products.get(row.product);item.orders.set(date,(item.orders.get(date)||0)+qty);
+    });
+  });
+  const items=[...products.values()];
+  return {items,dates:[...new Set(items.flatMap(item=>[...item.orders.keys()]))].sort()};
+}
+function renderPlatePlans() {
+  const view=buildPlatePlan(plans,{line:$("plate-plan-line").value,date:$("plate-plan-date").value,search:$("plate-plan-search").value.trim()});
+  const {items,dates}=view;
+  $("plate-plan-summary").textContent=`${fmt(items.length)} Product • ${fmt(dates.length)} วัน • รวมเฉพาะรายการที่เลือกผลิต`;
+  $("plate-plan-content").innerHTML=[['bottom','Bottom Plate'],['back','Back Plate']].map(([part,title])=>{
+    const included=items.filter(item=>plateSettings.get(item.product)?.[part]==='yes');
+    const unset=items.filter(item=>!plateSettings.get(item.product)?.[part]);
+    const excluded=items.length-included.length-unset.length;
+    const totals=dates.map(date=>included.reduce((sum,item)=>sum+(item.orders.get(date)||0),0));
+    return `<section style="margin-top:24px"><h2>${title}</h2>
+      <p class="notice">ผลิต ${included.length} Product • ไม่ผลิต ${excluded} Product • ยังไม่ตั้งค่า ${unset.length} Product</p>
+      ${unset.length?`<p class="notice red-text">ยังไม่รวมยอด: ${unset.map(item=>esc(item.product)).join(', ')} — เลือกสถานะที่หน้าแผนผลิต</p>`:''}
+      <div class="scroll"><table style="min-width:100%;width:max-content"><thead><tr><th>Product</th><th>ไลน์ผลิต</th>${dates.map(date=>`<th class="number">${displayDate(date)}<div class="muted">แผนผลิต (ชิ้น)</div></th>`).join('')}</tr></thead><tbody>
+      ${included.map(item=>`<tr><td>${esc(item.product)}</td><td>${esc(item.line||'ยังไม่ระบุ')}</td>${dates.map(date=>`<td class="number">${item.orders.has(date)?fmt(item.orders.get(date)):'—'}</td>`).join('')}</tr>`).join('')||`<tr><td colspan="${dates.length+2}" class="empty">ยังไม่มีรายการที่เลือกผลิตตรงกับตัวกรอง</td></tr>`}
+      <tr class="total-row"><td colspan="2">รวม ${title}</td>${totals.map(total=>`<td class="number">${fmt(total)}</td>`).join('')}</tr>
+      </tbody></table></div></section>`;
+  }).join('');
+}
+['plate-plan-line','plate-plan-date'].forEach(id=>$(id).addEventListener('change',renderPlatePlans));
+$("plate-plan-search").addEventListener('input',renderPlatePlans);
+$("plate-plan-reset").addEventListener('click',()=>{['plate-plan-line','plate-plan-date','plate-plan-search'].forEach(id=>$(id).value='');renderPlatePlans();});
 
 refreshSavedPlanSources();
 showPage();
