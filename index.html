@@ -304,6 +304,12 @@ footer{
 .settings-radios input[type=radio]{min-height:0;width:16px;height:16px;margin:0;accent-color:var(--blue)}
 .settings-actions{display:flex;justify-content:flex-end;gap:10px}
 .product-config-cell{white-space:nowrap}
+
+.staff-workstation{position:relative;padding-top:112px!important;overflow:visible}
+.staff-belt{position:absolute;top:24px;left:-9px;right:-9px;height:58px;border-top:7px solid #64748b;border-bottom:7px solid #64748b;background:repeating-linear-gradient(90deg,#d5dee8 0 13px,#a7b5c6 13px 16px);box-shadow:0 4px 0 #334155;display:flex;align-items:center;justify-content:space-around;color:#334155;pointer-events:none}
+.staff-belt span{background:#f8fafc;border:2px solid #94a3b8;border-radius:4px;padding:2px 12px;font-size:11px;font-weight:700}
+.staff-worker{display:block;width:100px;height:130px;margin:12px auto 8px}
+.staff-layout-caption{text-align:center;font-weight:700;color:#334155;margin:10px}
 </style>
 </head>
 
@@ -570,6 +576,7 @@ footer{
       <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">เลือกไลน์และรุ่น • กรอกชื่อพนักงานแต่ละสถานี • ลากการ์ดเพื่อจัดตำแหน่ง</p></div>
       <div class="controls" style="padding:16px"><label>ไลน์ / รุ่น<select id="staff-layout-line"></select></label><label>จำนวนสถานีต่อแถว<select id="staff-layout-columns"><option>2</option><option selected>3</option><option>4</option><option>5</option></select></label></div>
       <p class="notice">สีเขียว: Cycle Time ≤ Takt 85% • สีเหลือง: มากกว่า 85% ถึง 100% • สีแดง: เกิน Takt 100% • สีเทา: ยังไม่มีค่า Takt</p>
+      <p class="staff-layout-caption">สายพานลำเลียง → สถานีงาน → พนักงานประจำจุด</p>
       <p id="staff-layout-summary" class="notice"></p><p id="staff-layout-status" class="notice" role="status"></p>
       <div id="staff-layout-grid" style="display:grid;gap:16px;padding:16px;overflow:auto"></div>
     </div>
@@ -2906,6 +2913,21 @@ const staffLayout=savedStaffLayout&&typeof savedStaffLayout==='object'&&!Array.i
 let draggedStaffStation=null;
 function staffLayoutKey(line) {return lobDataKey(line);}
 function stationStaffKey(station,index) {return JSON.stringify([station.station,index]);}
+function staffWorkerSVG(color) {
+  return `<svg class="staff-worker" viewBox="0 0 100 130" role="img" aria-label="พนักงานประจำสถานี">
+    <ellipse cx="50" cy="124" rx="29" ry="5" fill="#10243c18"/>
+    <path d="M35 85 L33 119 L44 119 L50 91 L56 119 L67 119 L65 85" fill="#334155"/>
+    <path d="M32 48 Q50 40 68 48 L74 82 Q50 96 26 82Z" fill="${color}" stroke="#ffffff" stroke-width="2"/>
+    <path d="M32 51 L20 76 L12 58 M68 51 L80 76 L88 58" fill="none" stroke="${color}" stroke-width="11" stroke-linecap="round"/>
+    <circle cx="12" cy="55" r="6" fill="#edc6a4"/><circle cx="88" cy="55" r="6" fill="#edc6a4"/>
+    <rect x="44" y="36" width="12" height="12" rx="4" fill="#edc6a4"/>
+    <circle cx="50" cy="26" r="17" fill="#edc6a4"/>
+    <path d="M31 24 Q31 3 50 3 Q69 3 69 24Z" fill="#f5c94c" stroke="#a66b00" stroke-width="2"/>
+    <path d="M29 24 H71" stroke="#a66b00" stroke-width="4" stroke-linecap="round"/>
+    <path d="M50 5 V19" stroke="#ffe898" stroke-width="5"/>
+    <rect x="40" y="60" width="20" height="14" rx="2" fill="white" opacity=".9"/><path d="M46 48 L50 60 L54 48" stroke="#e2e8f0" fill="none" stroke-width="2"/>
+  </svg>`;
+}
 function staffStationState(cycle,line) {
   if(line.taktPending||!(line.takt>0))return {color:'#718096',background:'#f3f5f8',label:'ยังไม่มีค่า Takt'};
   const target=taktTargets(line);
@@ -2937,7 +2959,9 @@ function renderStaffLayout() {
   $("staff-layout-summary").textContent=`${stations.length} สถานี • เกิน Takt ${red} สถานี • ${line.taktPending?'ยังไม่มีค่า Takt':`Takt 100% ${targets.hundred.toFixed(2)} s / 85% ${targets.eightyFive.toFixed(2)} s`}`;
   $("staff-layout-grid").innerHTML=stations.map(({station,index,key:stationKey},position)=>{
     const cycle=cycleTime(station),state=staffStationState(cycle,line);
-    return `<article draggable="true" data-staff-station="${esc(stationKey)}" style="border:2px solid ${state.color};border-radius:12px;background:${state.background};padding:16px;min-width:0">
+    return `<article class="staff-workstation" draggable="true" data-staff-station="${esc(stationKey)}" style="border:2px solid ${state.color};border-radius:12px;background:${state.background};padding:16px;min-width:0">
+      <div class="staff-belt" aria-label="สายพานลำเลียง"><b>→</b><span>${esc(station.station)}</span><b>→</b></div>
+      ${staffWorkerSVG(state.color)}
       <div class="muted">ตำแหน่ง ${position+1} · ลากเพื่อย้าย</div><h3>${esc(station.station)}</h3>
       <p style="color:${state.color};font-weight:700">${state.label}</p>
       <strong>Cycle Time ${cycle.toFixed(2)} s</strong>
