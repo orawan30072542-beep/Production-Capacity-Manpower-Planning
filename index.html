@@ -2737,17 +2737,33 @@ $("lob-loss-mode").addEventListener('change',()=>{
   try {showLOBImportPreview(lobImportRows);}catch(error){lobImportMessage(error.message);}
 });
 $("lob-upload-sheet").addEventListener('change',previewLOBSheet);
+function lobDataKey(line) {
+  const text=value=>String(value??'').trim().replace(/\s+/g,' ').toLowerCase();
+  const sort=values=>values.sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  return JSON.stringify({
+    title:text(line.title),type:text(line.partType),
+    models:sort(line.models.map(text)),
+    stations:sort(line.stations.map(station=>({station:text(station.station),loss:Number(station.loss),processes:sort(station.processes.map(process=>({name:text(process.name),wt:Number(process.wt)})))})))
+  });
+}
+function uniqueLOBImport(existing,incoming,replacement) {
+  const seen=new Set((replacement?[]:existing).map(lobDataKey)),added=[];
+  let skipped=0;
+  incoming.forEach(line=>{const key=lobDataKey(line);if(seen.has(key)){skipped++;return;}seen.add(key);added.push(line);});
+  return {lines:replacement?clone(added):[...existing,...clone(added)],added:added.length,skipped};
+}
 $("lob-upload-confirm").addEventListener('click',()=>{
   if(!lobImportDraft)return;
   if(draft){lobImportMessage('กรุณาบันทึกหรือยกเลิกรายการที่กำลังแก้ไขก่อนยืนยันนำเข้า');return;}
   lobImportDraft=lobImportDraft.map(prepareLOBLine);
   const replacement=$("lob-upload-mode").value==='replace';
-  lines=replacement?clone(lobImportDraft):[...lines,...clone(lobImportDraft)];
-  const saved=save(CAPACITY_KEY,lines);
+  const result=uniqueLOBImport(lines,lobImportDraft,replacement);
+  lines=result.lines;
+  const saved=result.added||replacement ? save(CAPACITY_KEY,lines) : true;
   selectedLOBGroup="all";
   resetLOBPreview();$("capacity-filter").value='';$("capacity-search").value='';renderCapacity();
   $("capacity-content").scrollIntoView?.({behavior:"smooth",block:"start"});
-  lobImportMessage((replacement?'แทนที่รายการทั้งหมดแล้ว':'เพิ่มรายการเรียบร้อยแล้ว')+(saved?' • บันทึกแล้ว':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
+  lobImportMessage(`${replacement?'แทนที่รายการทั้งหมดแล้ว':'นำเข้าแล้ว'} • เพิ่ม ${result.added} รายการ • ข้ามข้อมูลซ้ำ ${result.skipped} รายการ`+(saved?'':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
 });
 $("lob-download-template").addEventListener('click',()=>{
   const csv='\uFEFF'+[
