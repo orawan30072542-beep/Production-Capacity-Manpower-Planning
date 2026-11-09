@@ -405,10 +405,10 @@ Line / Model ต่างกันจะแยกเป็นคนละรา�
       <div class="controls" style="padding:16px">
         <label>แหล่ง UPH<select id="lob-uph-mode"><option value="foam">DOOR FOAM</option><option value="bend">DOOR BEND</option></select></label>
         <label>ไลน์ผลิต<select id="lob-uph-line"><option value="Door A">Door A</option><option value="Door B">Door B</option><option value="Door C">Door C</option></select></label>
-        <label>วันที่<input id="lob-uph-date" type="date"></label>
+        <input id="lob-uph-date" type="hidden" value="">
         <label>วัสดุสำหรับ DOOR BEND<select id="lob-uph-material"><option value="metal">ฝาเหล็ก</option><option value="glass">กระจก</option></select></label>
       </div>
-      <p class="notice">Takt Time = 3,600 ÷ UPH เป้าหมายจากแผนผลิต DOOR (รวม Efficiency แล้ว) • เลือกแหล่ง UPH ก่อนยืนยันนำเข้า • ค่านี้ใช้กับทุกรายการในไฟล์และบันทึกเป็นค่าขณะนำเข้า หากแผนเปลี่ยนให้นำเข้าใหม่</p>
+      <p class="notice">Takt Time = 3,600 ÷ UPH เป้าหมายจากแผนผลิต DOOR (รวม Efficiency แล้ว) • ใช้วันที่ล่าสุดที่มียอดผลิตของไลน์ที่เลือกอัตโนมัติ • เลือกแหล่ง UPH ก่อนยืนยันนำเข้า • ค่านี้ใช้กับทุกรายการในไฟล์และบันทึกเป็นค่าขณะนำเข้า หากแผนเปลี่ยนให้นำเข้าใหม่</p>
       <p id="lob-uph-result" class="notice" role="status"></p>
       <p id="lob-upload-message" class="notice" role="status" aria-live="polite"></p>
       <div id="lob-upload-preview"></div>
@@ -2550,13 +2550,15 @@ $("door-plan-reset").addEventListener("click",() => {
 
 /* LINE OF BALANCE file import: one source row per process. */
 function resolveLOBUPH() {
-  const date=$("lob-uph-date").value,line=$("lob-uph-line").value;
+  const line=$("lob-uph-line").value;
+  let date="";
   const mode=$("lob-uph-mode").value;
   const material=mode==='bend'?$("lob-uph-material").value:'';
-  if(!date || !PRODUCT_LINES.includes(line))throw Error('เลือกวันที่และไลน์ผลิตสำหรับ UPH');
+  if(!PRODUCT_LINES.includes(line))throw Error('เลือกไลน์ผลิตสำหรับคำนวณ Takt Time');
   const hours=getUPHHours(),efficiency=getUPHEfficiency();
   if(!hours || !efficiency)throw Error('กรอกชั่วโมงสุทธิและ Efficiency ให้ถูกต้องในหน้าแผนผลิต DOOR');
-  const view=buildDoorPlanView(plans,{date,line,material,product:''});
+  const view=buildDoorPlanView(plans,{date:'',line,material,product:''});
+  date=[...view.dates].reverse().find(day=>view.totals.get(day)?.quantity>0)||'';
   const total=view.totals.get(date);
   if(!total || !total.known)throw Error('ไม่พบแผนผลิต DOOR ของวันที่ / ไลน์ / วัสดุที่เลือก');
   if(total.unknown)throw Error('จำนวนฝา (Radio) ของ Product ยังไม่ครบ กรุณาตั้งค่าในแผนผลิตก่อน');
@@ -2575,7 +2577,7 @@ function refreshLOBUPH() {
     $("lob-uph-result").textContent=`${source.line} • ${displayDate(source.date)} • UPH ${fmt(source.uph)} • Takt Time ${source.takt.toFixed(2)} วินาที`;
     $("lob-upload-confirm").disabled=!lobImportDraft;
   } catch(error) {
-    $("lob-uph-result").textContent=error.message;
+    $("lob-uph-result").textContent=(lobImportDraft ? "ไฟล์ผ่านการตรวจสอบแล้ว แต่ยังไม่ได้นำเข้า: " : "")+error.message+(lobImportDraft ? " • เลือกแหล่งข้อมูลและไลน์ให้ครบ แล้วกดยืนยันนำเข้าข้อมูล" : "");
     $("lob-upload-confirm").disabled=true;
   }
   if(lobImportDraft)$("lob-upload-preview").querySelectorAll?.('tbody tr').forEach(row=>{row.lastElementChild.textContent=lobUPHPreviewText();});
@@ -2717,14 +2719,16 @@ $("lob-upload-confirm").addEventListener('click',()=>{
   if(draft){lobImportMessage('กรุณาบันทึกหรือยกเลิกรายการที่กำลังแก้ไขก่อนยืนยันนำเข้า');return;}
   let source;
   try { source=resolveLOBUPH(); } catch(error) {lobImportMessage(error.message);return;}
-  if(lobImportDraft.some(line=>line.lineTag && line.lineTag!==source.line)) {
+  if(lobImportDraft.some(line=>line.lineTag && line.lineTag.trim().toLowerCase().replace(/[\s_-]+/g,'')!==source.line.toLowerCase().replace(/[\s_-]+/g,''))) {
     lobImportMessage('Line Tag ในไฟล์ต้องตรงกับไลน์ของ UPH ที่เลือก กรุณาแยกไฟล์ตามไลน์ผลิต');return;
   }
   lobImportDraft=lobImportDraft.map(line=>({...line,lineTag:source.line,takt:source.takt,uph:source.uph,uphSource:source}));
   const replacement=$("lob-upload-mode").value==='replace';
   lines=replacement?clone(lobImportDraft):[...lines,...clone(lobImportDraft)];
   const saved=save(CAPACITY_KEY,lines);
+  selectedLOBGroup="all";
   resetLOBPreview();$("capacity-filter").value='';$("capacity-search").value='';renderCapacity();
+  $("capacity-content").scrollIntoView?.({behavior:"smooth",block:"start"});
   lobImportMessage((replacement?'แทนที่รายการทั้งหมดแล้ว':'เพิ่มรายการเรียบร้อยแล้ว')+(saved?' • บันทึกแล้ว':' • ใช้ได้เฉพาะรอบนี้ เบราว์เซอร์ไม่อนุญาตให้บันทึก'));
 });
 $("lob-download-template").addEventListener('click',()=>{
