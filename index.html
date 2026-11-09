@@ -1059,7 +1059,7 @@ function chartHtml(line) {
    ตารางกำลังการผลิต
    ===================================================== */
 
-function lineHtml(line) {
+function lineHtml(line,choices=[line]) {
   const result = metrics(line);
 
   const rows = line.stations.map(station => {
@@ -1124,9 +1124,11 @@ function lineHtml(line) {
         Balance ${result.balance.toFixed(1)}%
 
         <div>
-          ${line.models.map(model =>
-            `<span class="badge">${esc(model)}</span>`
-          ).join("")}
+          <label style="display:inline-flex;flex-direction:column;gap:6px;margin-top:12px">เลือกรุ่น / Model
+            <select data-lob-model-group="${esc(lobModelKey(line))}" aria-label="เลือกรุ่น ${esc(line.title)}">
+              ${choices.map(item=>`<option value="${esc(item.id)}" ${item.id===line.id?'selected':''}>${esc(item.models.join(', ')||'ยังไม่ระบุรุ่น')}</option>`).join('')}
+            </select>
+          </label>
         </div>
       </div>
 
@@ -1257,6 +1259,13 @@ function editorHtml() {
   `;
 }
 
+const lobModelSelections=new Map();
+function lobModelKey(line) {return JSON.stringify([line.title.trim().toLowerCase(),line.partType.trim().toLowerCase(),line.lineTag.trim().toLowerCase()]);}
+$("capacity-content").addEventListener('change',event=>{
+  const input=event.target,key=input.dataset.lobModelGroup;
+  if(key===undefined || !lines.some(line=>lobModelKey(line)===key&&line.id===input.value))return;
+  lobModelSelections.set(key,input.value);renderCapacity();
+});
 let selectedLOBGroup='all';
 const LOB_GROUPS=[['all','ทั้งหมด'],['door-a','DOOR A'],['door-b','DOOR B'],['door-c','DOOR C'],['back','BACK PLATE'],['bottom','BOTTOM PLATE']];
 function lobGroup(line) {
@@ -1307,8 +1316,10 @@ function renderCapacity() {
       (!query || text.includes(query));
   });
 
+  const modelGroups=new Map();
+  filtered.forEach(line=>{const key=lobModelKey(line);if(!modelGroups.has(key))modelGroups.set(key,[]);modelGroups.get(key).push(line);});
   $("capacity-content").innerHTML = filtered.length
-    ? filtered.map(lineHtml).join("")
+    ? [...modelGroups].map(([key,choices])=>lineHtml(choices.find(line=>line.id===lobModelSelections.get(key))||choices[0],choices)).join("")
     : '<div class="card empty">ไม่พบข้อมูล</div>';
 }
 
