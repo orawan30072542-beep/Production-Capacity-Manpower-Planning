@@ -382,6 +382,8 @@ footer{
       </button>
     </div>
 
+    <div id="lob-group-buttons" class="controls" role="group" aria-label="เลือกไลน์ LINE OF BALANCE" style="margin:16px 0;flex-wrap:wrap"></div>
+
     <p class="notice">ภาพรวมด้านบนอ้างอิงไลน์แรก • Cycle Time = เวลางานรวม + Loss</p>
 
 
@@ -1266,7 +1268,28 @@ function editorHtml() {
   `;
 }
 
+let selectedLOBGroup='all';
+const LOB_GROUPS=[['all','ทั้งหมด'],['door-a','DOOR A'],['door-b','DOOR B'],['door-c','DOOR C'],['back','BACK PLATE'],['bottom','BOTTOM PLATE']];
+function lobGroup(line) {
+  const compact=value=>String(value??'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  const type=compact(line.partType),title=compact(line.title);
+  if(type.includes('backplate')||title.includes('backplate'))return 'back';
+  if(type.includes('bottomplate')||title.includes('bottomplate'))return 'bottom';
+  const tag=compact(line.lineTag);
+  for(const letter of ['a','b','c']) {
+    if(tag==='door'+letter || new RegExp('door[\\s_-]*'+letter+'(?:$|[^a-z])','i').test(line.title))return 'door-'+letter;
+  }
+  return '';
+}
+$("lob-group-buttons").addEventListener('click',event=>{
+  const button=event.target.closest?.('button[data-lob-group]');
+  if(!button || !LOB_GROUPS.some(([key])=>key===button.dataset.lobGroup))return;
+  selectedLOBGroup=button.dataset.lobGroup;
+  $("capacity-filter").value='';$("capacity-search").value='';
+  renderCapacity();
+});
 function renderCapacity() {
+  $("lob-group-buttons").innerHTML=LOB_GROUPS.map(([key,label])=>`<button type="button" data-lob-group="${key}" class="${selectedLOBGroup===key?'primary':''}" aria-pressed="${selectedLOBGroup===key}">${label}</button>`).join('');
   const selectedType=$("capacity-filter").value;
   const types=[...new Set(lines.map(line=>line.partType))];
   $("capacity-filter").innerHTML='<option value="">ทั้งหมด</option>'+types.map(type=>`<option value="${esc(type)}">${esc(type)}</option>`).join("");
@@ -1290,7 +1313,8 @@ function renderCapacity() {
       ])
     ].join(" ").toLowerCase();
 
-    return (!type || line.partType===type) &&
+    return (selectedLOBGroup==='all' || lobGroup(line)===selectedLOBGroup) &&
+      (!type || line.partType===type) &&
       (!query || text.includes(query));
   });
 
