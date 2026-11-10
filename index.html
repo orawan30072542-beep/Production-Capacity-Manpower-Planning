@@ -333,6 +333,12 @@ footer{
 #capacity-content svg{min-width:0!important}
 #staff-layout-line{max-width:100%}
 @media(max-width:1000px){#lob-comparison{grid-template-columns:minmax(0,1fr)}#staff-layout-page{grid-column:1;grid-row:1}#capacity-content{grid-column:1;grid-row:2}}
+.lob-summary-header{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(4,minmax(125px,1fr)) auto;gap:20px;align-items:center;padding:24px}
+.lob-summary-stat{border-left:1px solid #dbe7f3;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:#123454}
+.lob-summary-stat>span{font-size:13px;font-weight:600}.lob-summary-stat strong{font-size:27px;line-height:1.2}.lob-summary-stat small{font-size:11px;color:#64748b}
+.lob-layout-lock{background:#eff6ff;color:#345575;padding:12px 24px;margin-bottom:16px;font-size:12px}
+@media(max-width:1250px){.lob-summary-header{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:650px){.lob-summary-header{grid-template-columns:repeat(2,minmax(0,1fr));padding:16px;gap:16px}.lob-summary-stat strong{font-size:22px}}
 </style>
 </head>
 
@@ -440,8 +446,8 @@ footer{
     <div id="capacity-content"></div>
   <section id="staff-layout-page">
     <div class="card">
-      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">ลากพนักงานเพื่อจัดตำแหน่ง • กรอกชื่อใต้ตัวพนักงาน</p></div>
-      <div class="controls" style="padding:16px"><button id="staff-layout-reset" type="button">จัดตำแหน่งเริ่มต้น</button></div>
+      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">ตำแหน่งคงที่ร่วมกันทุกรุ่นในไลน์เดียวกัน • กรอกชื่อใต้ตัวพนักงาน</p></div>
+      <div class="controls" style="padding:16px"><button id="staff-layout-edit" type="button">จัดตำแหน่งพนักงาน</button><button id="staff-layout-reset" type="button">จัดตำแหน่งเริ่มต้น</button></div>
       <p class="notice">สีเขียว: Cycle Time ≤ Takt 85% • สีเหลือง: มากกว่า 85% ถึง 100% • สีแดง: เกิน Takt 100% • สีเทา: ยังไม่มีค่า Takt</p>
 
       <p id="staff-layout-summary" class="notice"></p><p id="staff-layout-status" class="notice" role="status"></p>
@@ -1108,30 +1114,15 @@ function chartHtml(line) {
    ===================================================== */
 
 function lobSharedHeaderHtml(line) {
-  const result=metrics(line);
-  return `      <div class="toolbar">
-        <div>
-          <h2>${esc(line.title)}</h2>
-          <span class="badge">${esc(line.partType)}</span>
-          <span class="badge">${esc(line.lineTag)}</span>
-        </div>
-
-        <div class="controls">
-          <button data-action="edit"
-            data-id="${esc(line.id)}">แก้ไข</button>
-
-          <button class="danger" data-action="delete"
-            data-id="${esc(line.id)}">ลบ</button>
-        </div>
-      </div>
-
-      <div class="notice">
-        Takt ${line.taktPending ? "ยังไม่มีค่า" : line.takt.toFixed(2)+" s"} ${line.uphSource ? `จาก UPH สูงสุด ${fmt(line.uph)} (${displayDate(line.uphSource.date)} / ${esc(line.uphSource.line)})` : ""} ·
-        Bottleneck ${result.maximum.toFixed(2)} s ·
-        Balance ${result.balance.toFixed(1)}%
-
-      </div>
-`;
+  const result=metrics(line),targets=taktTargets(line);
+  return `<div class="lob-summary-header">
+    <div><h2>${esc(line.title)}</h2><span class="badge">${esc(line.partType)}</span> <span class="badge">${esc(line.lineTag)}</span></div>
+    <div class="lob-summary-stat"><span>Takt Time 100%</span><strong>${line.taktPending?'—':targets.hundred.toFixed(2)+' s'}</strong><small>85%: ${line.taktPending?'—':targets.eightyFive.toFixed(2)+' s'}</small></div>
+    <div class="lob-summary-stat"><span>UPH สูงสุด</span><strong>${line.uphSource?fmt(line.uph):'—'}</strong><small>${line.uphSource?displayDate(line.uphSource.date)+' · '+esc(line.uphSource.line):'ยังไม่มีข้อมูลแผนผลิต'}</small></div>
+    <div class="lob-summary-stat"><span>Bottleneck</span><strong>${result.maximum.toFixed(2)} s</strong></div>
+    <div class="lob-summary-stat"><span>Balance</span><strong>${result.balance.toFixed(1)}%</strong></div>
+    <div class="controls"><button data-action="edit" data-id="${esc(line.id)}">แก้ไข</button><button class="danger" data-action="delete" data-id="${esc(line.id)}">ลบ</button></div>
+  </div><div class="lob-layout-lock">ตำแหน่งพนักงานใช้ร่วมกันทุกรุ่นใน Layout และไลน์เดียวกัน • ล็อกตำแหน่งไว้จนกว่าจะกดจัดตำแหน่งพนักงาน</div>`;
 }
 
 function lineHtml(line,choices=[line]) {
@@ -2956,8 +2947,13 @@ const STAFF_LAYOUT_KEY=MATRIX_PLAN_KEY+'-staff-layout-v1';
 const savedStaffLayout=load(STAFF_LAYOUT_KEY,{});
 const staffLayout=savedStaffLayout&&typeof savedStaffLayout==='object'&&!Array.isArray(savedStaffLayout)?savedStaffLayout:{};
 let staffDrag=null;
-function staffLayoutKey(line) {return lobDataKey(line);}
-function stationStaffKey(station,index) {return JSON.stringify([station.station,index]);}
+let staffLayoutEditing=false;
+function staffLayoutKey(line) {return 'shared-layout-v2:'+lobModelKey(line);}
+function stationStaffKey(station,index,line) {
+  const name=String(station.station).trim().toLowerCase();
+  const occurrence=line.stations.slice(0,index).filter(item=>String(item.station).trim().toLowerCase()===name).length;
+  return JSON.stringify([name,occurrence]);
+}
 function staffWorkerSVG(color) {
   return `<svg style="display:block;width:92px;height:70px;margin:auto;filter:drop-shadow(0 3px 4px #20344c20)" viewBox="0 0 110 80" role="img" aria-label="พนักงานมุมมองด้านบน"><ellipse cx="55" cy="42" rx="40" ry="24" fill="${color}" stroke="#f8fafc" stroke-width="2"/><ellipse cx="55" cy="42" rx="40" ry="24" fill="#000000" opacity=".22"/><circle cx="55" cy="42" r="18" fill="${color}" stroke="#ffffff" stroke-width="2"/></svg>`;
 }
@@ -2980,24 +2976,27 @@ function renderStaffLayout() {
   const line=currentStaffLine();
   if(!line){$("staff-layout-grid").innerHTML='<p class="empty">เพิ่มข้อมูลสถานีที่หน้า LINE OF BALANCE ก่อน</p>';$("staff-layout-summary").textContent='';return;}
   const key=staffLayoutKey(line);
-  const config=staffLayout[key]||{employees:{},order:[],columns:3};
+  const config=staffConfig(line);
+  $("staff-layout-edit").textContent=staffLayoutEditing?"เสร็จสิ้น / ล็อกตำแหน่ง":"จัดตำแหน่งพนักงาน";
+  $("staff-layout-reset").hidden=!staffLayoutEditing;
   const employees=config.employees&&typeof config.employees==='object'?config.employees:{};
   const order=Array.isArray(config.order)?config.order:[];
-  const stations=line.stations.map((station,index)=>({station,index,key:stationStaffKey(station,index)}));
+  const stations=line.stations.map((station,index)=>({station,index,key:stationStaffKey(station,index,line)}));
   stations.sort((a,b)=>{const rank=item=>order.includes(item.key)?order.indexOf(item.key):order.length+item.index;return rank(a)-rank(b);});
   const targets=taktTargets(line),red=line.stations.filter(station=>staffStationState(cycleTime(station),line).color==='#c03945').length;
   $("staff-layout-summary").textContent=`${stations.length} สถานี • เกิน Takt ${red} สถานี`;
-  const boardWidth=Math.max(1000,Math.ceil(stations.length/2)*180+80),boardHeight=560;
+  const boardWidth=Math.max(1000,Math.ceil(config.order.length/2)*180+80),boardHeight=560;
   const board=$("staff-layout-grid");
   board.style.cssText=`position:relative;width:${boardWidth}px;height:${boardHeight}px;background-color:#f8fafc;background-image:radial-gradient(#cad5e2 .8px,transparent .8px);background-size:20px 20px;border:1px solid #e2e8f0;border-radius:20px;color:#20344c;overflow:hidden;`;
   board.innerHTML=`<div style="position:absolute;left:28px;top:18px;font-size:11px;letter-spacing:2px;color:#94a3b8;font-weight:700">PRODUCTION FLOOR · ${esc(line.lineTag||line.title)}</div><div style="position:absolute;left:35px;right:35px;top:235px;height:80px;border:6px solid #94a3b8;border-radius:40px;background:repeating-linear-gradient(90deg,#e2e8f0 0 17px,#c5d0dd 17px 20px);box-shadow:0 8px 0 #64748b,0 14px 20px #33415518;display:flex;align-items:center;justify-content:space-around;color:#475569;font-weight:700" aria-label="สายพานลำเลียง"><span style="background:#f8fafce8;border-radius:8px;padding:9px 20px;font-size:11px;letter-spacing:2px">IN →</span><span style="background:#f8fafcf2;border:1px solid #cbd5e1;border-radius:20px;padding:8px 28px;letter-spacing:3px;font-size:12px">CONVEYOR</span><span style="background:#f8fafce8;border-radius:8px;padding:9px 20px;font-size:11px;letter-spacing:2px">→ OUT</span></div>`+stations.map(({station,index,key:stationKey},position)=>{
     const cycle=cycleTime(station),state=staffStationState(cycle,line);
-    const saved=config.positions?.[stationKey],defaultX=45+Math.floor(position/2)*180;
+    const slot=config.order.indexOf(stationKey);
+    const saved=config.positions?.[stationKey],defaultX=45+Math.floor(slot/2)*180;
     const x=saved&&Number.isFinite(saved.x)?Math.max(0,Math.min(boardWidth-120,saved.x)):defaultX;
-    const y=saved&&Number.isFinite(saved.y)?Math.max(0,Math.min(boardHeight-160,saved.y)):(position%2?345:110);
+    const y=saved&&Number.isFinite(saved.y)?Math.max(0,Math.min(boardHeight-160,saved.y)):(slot%2?345:110);
     const upper=position%2===0,benchY=upper?70:500;
     return `    <div data-staff-station="${esc(stationKey)}" style="position:absolute;left:${x}px;top:${y}px;width:120px;text-align:center;z-index:1">
-      <button type="button" class="staff-worker-grip" aria-label="ลากพนักงาน ${esc(station.station)}" style="touch-action:none;cursor:grab;border:0;background:transparent;padding:0;box-shadow:none" title="ลากเพื่อย้ายตำแหน่ง • ใช้ปุ่มลูกศรเพื่อขยับ">${staffWorkerSVG(state.color)}</button>
+      <button type="button" class="staff-worker-grip" aria-label="ลากพนักงาน ${esc(station.station)}" style="touch-action:none;cursor:${staffLayoutEditing?'grab':'default'};border:0;background:transparent;padding:0;box-shadow:none" title="${staffLayoutEditing?'ลากเพื่อย้ายตำแหน่ง • ใช้ปุ่มลูกศรเพื่อขยับ':'ล็อกตำแหน่งพนักงานแล้ว'}">${staffWorkerSVG(state.color)}</button>
       <div style="border:1px solid ${state.color}33;border-radius:10px;background:${state.background};color:${state.color};padding:6px 5px;font-size:11px;font-weight:700" title="${esc(state.label)}">${esc(station.station)} · ${cycle.toFixed(2)} s</div>
       <input data-staff-employee="${esc(stationKey)}" aria-label="พนักงานประจำสถานี ${esc(station.station)}" placeholder="ชื่อ / รหัสพนักงาน" value="${esc(employees[stationKey]||'')}" style="width:120px;margin-top:4px;text-align:center;box-sizing:border-box;background:#ffffffcc;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:6px;font-size:11px" title="${esc(station.processes.map(process=>process.name).join(' · '))}">
     </div>`;
@@ -3008,10 +3007,30 @@ function renderStaffLayout() {
 }
 function staffConfig(line) {
   const key=staffLayoutKey(line);
-  if(!staffLayout[key])staffLayout[key]={employees:{},order:[],columns:3};
-  return staffLayout[key];
+  if(!staffLayout[key]) {
+    const legacyLine=[line,...lines.filter(item=>lobModelKey(item)===lobModelKey(line)&&item.id!==line.id)].find(item=>staffLayout[lobDataKey(item)]);
+    const legacy=legacyLine?staffLayout[lobDataKey(legacyLine)]:null;
+    const config={employees:{},positions:{},order:[],columns:3};
+    if(legacy) {
+      const stations=legacyLine.stations.map((station,index)=>({station,index,oldKey:JSON.stringify([station.station,index])}));
+      stations.sort((a,b)=>{const rank=item=>legacy.order?.includes(item.oldKey)?legacy.order.indexOf(item.oldKey):stations.length+item.index;return rank(a)-rank(b);});
+      stations.forEach(({station,index,oldKey})=>{
+        const stationKey=stationStaffKey(station,index,legacyLine);config.order.push(stationKey);
+        if(legacy.employees?.[oldKey])config.employees[stationKey]=legacy.employees[oldKey];
+        if(legacy.positions?.[oldKey])config.positions[stationKey]={...legacy.positions[oldKey]};
+      });
+    }
+    staffLayout[key]=config;
+  }
+  const config=staffLayout[key];config.order??=[];config.employees??={};config.positions??={};
+  let changed=false;
+  line.stations.forEach((station,index)=>{const stationKey=stationStaffKey(station,index,line);if(!config.order.includes(stationKey)){config.order.push(stationKey);changed=true;}});
+  // Persist stable station slots so model changes and reloads cannot rearrange staff.
+  if(changed||!config.sharedSaved){config.sharedSaved=true;save(STAFF_LAYOUT_KEY,staffLayout);}
+  return config;
 }
-$("staff-layout-line").addEventListener('change',()=>{activeCapacityId=$("staff-layout-line").value;const line=currentStaffLine();if(line)lobModelSelections.set(lobModelKey(line),line.id);renderCapacity();});
+$("staff-layout-edit").addEventListener('click',()=>{staffLayoutEditing=!staffLayoutEditing;renderStaffLayout();});
+$("staff-layout-line").addEventListener('change',()=>{staffLayoutEditing=false;activeCapacityId=$("staff-layout-line").value;const line=currentStaffLine();if(line)lobModelSelections.set(lobModelKey(line),line.id);renderCapacity();});
 $("staff-layout-reset").addEventListener('click',()=>{const line=currentStaffLine();if(!line)return;staffConfig(line).positions={};saveStaffLayout();renderStaffLayout();});
 $("staff-layout-grid").addEventListener('input',event=>{const key=event.target.dataset.staffEmployee,line=currentStaffLine();if(key===undefined||!line)return;const config=staffConfig(line);config.employees??={};config.employees[key]=event.target.value;saveStaffLayout();});
 function moveStaffWorker(node,x,y) {
@@ -3021,7 +3040,7 @@ function moveStaffWorker(node,x,y) {
 }
 $("staff-layout-grid").addEventListener('pointerdown',event=>{
   const grip=event.target.closest?.('.staff-worker-grip'),node=grip?.closest('[data-staff-station]');
-  if(!node||!currentStaffLine()||(event.button!==undefined&&event.button!==0))return;
+  if(!staffLayoutEditing||!node||!currentStaffLine()||(event.button!==undefined&&event.button!==0))return;
   event.preventDefault();grip.setPointerCapture(event.pointerId);
   staffDrag={node,grip,pointerId:event.pointerId,startX:event.clientX,startY:event.clientY,x:parseFloat(node.style.left),y:parseFloat(node.style.top)};
   grip.style.cursor='grabbing';node.style.zIndex=5;
@@ -3040,7 +3059,7 @@ function finishStaffDrag(event) {
 $("staff-layout-grid").addEventListener('keydown',event=>{
   const grip=event.target.closest?.('.staff-worker-grip'),node=grip?.closest('[data-staff-station]'),line=currentStaffLine();
   const delta={ArrowLeft:[-10,0],ArrowRight:[10,0],ArrowUp:[0,-10],ArrowDown:[0,10]}[event.key];
-  if(!node||!line||!delta)return;event.preventDefault();const next=moveStaffWorker(node,parseFloat(node.style.left)+delta[0],parseFloat(node.style.top)+delta[1]);const config=staffConfig(line);config.positions??={};config.positions[node.dataset.staffStation]=next;saveStaffLayout();
+  if(!staffLayoutEditing||!node||!line||!delta)return;event.preventDefault();const next=moveStaffWorker(node,parseFloat(node.style.left)+delta[0],parseFloat(node.style.top)+delta[1]);const config=staffConfig(line);config.positions??={};config.positions[node.dataset.staffStation]=next;saveStaffLayout();
 });
 
 refreshSavedPlanSources();
