@@ -424,7 +424,7 @@ footer{
 
 
     <section class="card" aria-labelledby="lob-upload-title">
-      <div class="section-header"><h2 id="lob-upload-title">อัปโหลดข้อมูล LINE OF BALANCE</h2><p class="muted">นำเข้า Excel หรือ CSV • 1 แถวต่อ 1 กระบวนการ</p></div>
+      <div class="section-header"><h2 id="lob-upload-title">อัปโหลดข้อมูล LINE OF BALANCE</h2><p class="muted">นำเข้า Excel หรือ CSV • 1 สถานีเตรียมได้ 3 แถวงาน • งานที่ไม่มีให้เว้น Process, Work Time และ Loss ว่าง</p></div>
       <div class="toolbar">
         <div class="controls">
           <button id="lob-download-template" type="button">↓ ดาวน์โหลดไฟล์ตัวอย่าง CSV</button>
@@ -446,7 +446,7 @@ footer{
     <div id="capacity-content"></div>
   <section id="staff-layout-page">
     <div class="card">
-      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">ตำแหน่งคงที่ร่วมกันทุกรุ่นในไลน์เดียวกัน • กรอกชื่อใต้ตัวพนักงาน</p></div>
+      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">ตำแหน่งคงที่ร่วมกันทุกรุ่นในไลน์เดียวกัน • แสดงเวลาเฉพาะสถานีที่เกิน Takt 100%</p></div>
       <div class="controls" style="padding:16px"><button id="staff-layout-edit" type="button">จัดตำแหน่งพนักงาน</button><button id="staff-layout-reset" type="button">จัดตำแหน่งเริ่มต้น</button></div>
       <p class="notice">สีเขียว: Cycle Time ≤ Takt 85% • สีเหลือง: มากกว่า 85% ถึง 100% • สีแดง: เกิน Takt 100% • สีเทา: ยังไม่มีค่า Takt</p>
 
@@ -2739,7 +2739,10 @@ function parseLOBImportRows(rows) {
     try {
       const title=String(get('title')??"").trim(),model=String(get('model')??"").trim();
       const station=String(get('station')??"").trim(),process=String(get('process')??"").trim();
-      if(!title||!model||!station||!process)throw Error(`แถว ${n}: กรอก Line, Model, Station และ Process ให้ครบ`);
+      // Reserved task slots may retain Line/Model/Station while task cells are empty.
+      const blank=value=>value==null||String(value).trim()==='';
+      if(!process&&blank(get('wt'))&&blank(get('loss')))return;
+      if(!title||!model||!station||!process)throw Error(`แถว ${n}: กรอก Line, Model, Station และ Process ให้ครบ (งานที่ไม่มีให้เว้น Process, Work Time และ Loss ว่างทั้งหมด)`);
       const wt=numericInput(get('wt'),'Work Time',n);
       const loss=numericInput(get('loss'),'Loss',n,true);
       const type=String(get('type')??"").trim()||'ทั่วไป';
@@ -2848,7 +2851,10 @@ $("lob-download-template").addEventListener('click',()=>{
     'Line,Model,Station,Process,Work Time,Loss,Type',
     'Door Foam A,MODEL-EXAMPLE,ST01,Assembly,12.5,1,Door Foam',
     'Door Foam A,MODEL-EXAMPLE,ST01,Inspection,3,,Door Foam',
-    'Door Foam A,MODEL-EXAMPLE,ST02,Packing,18,0,Door Foam'
+    'Door Foam A,MODEL-EXAMPLE,ST01,,,,Door Foam',
+    'Door Foam A,MODEL-EXAMPLE,ST02,Packing,18,0,Door Foam',
+    'Door Foam A,MODEL-EXAMPLE,ST02,,,,Door Foam',
+    'Door Foam A,MODEL-EXAMPLE,ST02,,,,Door Foam'
   ].join('\r\n');
   const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;link.download='line_of_balance_template.csv';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -2998,8 +3004,7 @@ function renderStaffLayout() {
     const upper=position%2===0,benchY=upper?70:500;
     return `    <div data-staff-station="${esc(stationKey)}" style="position:absolute;left:${x}px;top:${y}px;width:120px;text-align:center;z-index:1">
       <button type="button" class="staff-worker-grip" aria-label="ลากพนักงาน ${esc(station.station)}" style="touch-action:none;cursor:${staffLayoutEditing?'grab':'default'};border:0;background:transparent;padding:0;box-shadow:none" title="${staffLayoutEditing?'ลากเพื่อย้ายตำแหน่ง • ใช้ปุ่มลูกศรเพื่อขยับ':'ล็อกตำแหน่งพนักงานแล้ว'}">${staffWorkerSVG(state.color)}</button>
-      <div style="border:1px solid ${state.color}33;border-radius:10px;background:${state.background};color:${state.color};padding:6px 5px;font-size:11px;font-weight:700" title="${esc(state.label)}">${esc(station.station)} · ${cycle.toFixed(2)} s</div>
-      <input data-staff-employee="${esc(stationKey)}" aria-label="พนักงานประจำสถานี ${esc(station.station)}" placeholder="ชื่อ / รหัสพนักงาน" value="${esc(employees[stationKey]||'')}" style="width:120px;margin-top:4px;text-align:center;box-sizing:border-box;background:#ffffffcc;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:6px;font-size:11px" title="${esc(station.processes.map(process=>process.name).join(' · '))}">
+      <div style="border:1px solid ${state.color}33;border-radius:10px;background:${state.background};color:${state.color};padding:6px 5px;font-size:11px;font-weight:700" title="${esc(state.label)}">${esc(station.station)}${!line.taktPending && line.takt>0 && cycle>targets.hundred ? ` · ${cycle.toFixed(2)} s` : ''}</div>
     </div>`;
   }).join('');
   const fitWidth=$("staff-layout-page").clientWidth;
