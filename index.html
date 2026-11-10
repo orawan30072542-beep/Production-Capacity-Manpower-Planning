@@ -2914,19 +2914,7 @@ let staffDrag=null;
 function staffLayoutKey(line) {return lobDataKey(line);}
 function stationStaffKey(station,index) {return JSON.stringify([station.station,index]);}
 function staffWorkerSVG(color) {
-  return `<svg class="staff-worker" viewBox="0 0 100 130" role="img" aria-label="พนักงานประจำสถานี">
-    <ellipse cx="50" cy="124" rx="29" ry="5" fill="#10243c18"/>
-    <path d="M35 85 L33 119 L44 119 L50 91 L56 119 L67 119 L65 85" fill="#334155"/>
-    <path d="M32 48 Q50 40 68 48 L74 82 Q50 96 26 82Z" fill="${color}" stroke="#ffffff" stroke-width="2"/>
-    <path d="M32 51 L20 76 L12 58 M68 51 L80 76 L88 58" fill="none" stroke="${color}" stroke-width="11" stroke-linecap="round"/>
-    <circle cx="12" cy="55" r="6" fill="#edc6a4"/><circle cx="88" cy="55" r="6" fill="#edc6a4"/>
-    <rect x="44" y="36" width="12" height="12" rx="4" fill="#edc6a4"/>
-    <circle cx="50" cy="26" r="17" fill="#edc6a4"/>
-    <path d="M31 24 Q31 3 50 3 Q69 3 69 24Z" fill="#f5c94c" stroke="#a66b00" stroke-width="2"/>
-    <path d="M29 24 H71" stroke="#a66b00" stroke-width="4" stroke-linecap="round"/>
-    <path d="M50 5 V19" stroke="#ffe898" stroke-width="5"/>
-    <rect x="40" y="60" width="20" height="14" rx="2" fill="white" opacity=".9"/><path d="M46 48 L50 60 L54 48" stroke="#e2e8f0" fill="none" stroke-width="2"/>
-  </svg>`;
+  return `<svg style="display:block;width:52px;height:65px;margin:auto" viewBox="0 0 64 80" role="img" aria-label="พนักงานประจำสถานี"><circle cx="32" cy="17" r="10" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/><path d="M10 57 C10 29 54 29 54 57 Q54 64 47 64 H17 Q10 64 10 57Z" fill="${color}" stroke="#93c5fd" stroke-width="2"/></svg>`;
 }
 function staffStationState(cycle,line) {
   if(line.taktPending||!(line.takt>0))return {color:'#718096',background:'#f3f5f8',label:'ยังไม่มีค่า Takt'};
@@ -2954,19 +2942,21 @@ function renderStaffLayout() {
   stations.sort((a,b)=>{const rank=item=>order.includes(item.key)?order.indexOf(item.key):order.length+item.index;return rank(a)-rank(b);});
   const targets=taktTargets(line),red=line.stations.filter(station=>staffStationState(cycleTime(station),line).color==='#c03945').length;
   $("staff-layout-summary").textContent=`${stations.length} สถานี • เกิน Takt ${red} สถานี • ${line.taktPending?'ยังไม่มีค่า Takt':`Takt 100% ${targets.hundred.toFixed(2)} s / 85% ${targets.eightyFive.toFixed(2)} s`}`;
-  const boardWidth=Math.max(1000,Math.ceil(stations.length/2)*180+80),boardHeight=740;
+  const boardWidth=Math.max(1000,Math.ceil(stations.length/2)*180+80),boardHeight=560;
   const board=$("staff-layout-grid");
-  board.style.cssText=`position:relative;width:${boardWidth}px;height:${boardHeight}px;background:radial-gradient(#ccd6e3 1px,transparent 1px);background-size:20px 20px;border-radius:12px;`;
-  board.innerHTML=`<div style="position:absolute;left:35px;right:35px;top:305px;height:90px;border:8px solid #64748b;border-radius:30px;background:repeating-linear-gradient(90deg,#d5dee8 0 20px,#a7b5c6 20px 24px);box-shadow:0 7px 0 #334155;display:flex;align-items:center;justify-content:space-around;color:#334155;font-weight:700" aria-label="สายพานลำเลียง"><span>→</span><span>สายพานลำเลียง →</span><span>→</span></div>`+stations.map(({station,index,key:stationKey},position)=>{
+  board.style.cssText=`position:relative;width:${boardWidth}px;height:${boardHeight}px;background-color:#071322;background-image:linear-gradient(#163452 1px,transparent 1px),linear-gradient(90deg,#163452 1px,transparent 1px),linear-gradient(#10243b 1px,transparent 1px),linear-gradient(90deg,#10243b 1px,transparent 1px);background-size:50px 50px,50px 50px,12.5px 12.5px,12.5px 12.5px;border-radius:12px;color:#dbeafe;`;
+  board.innerHTML=`<div style="position:absolute;left:35px;right:35px;top:235px;height:80px;border:1px solid #3b82f6;border-radius:6px;background:#203e63;display:flex;align-items:center;justify-content:center;color:#dbeafe;font-weight:700" aria-label="สายพานลำเลียง">Conveyor →</div>`+stations.map(({station,index,key:stationKey},position)=>{
     const cycle=cycleTime(station),state=staffStationState(cycle,line);
-    const saved=config.positions?.[stationKey];
-    const x=saved&&Number.isFinite(saved.x)?Math.max(0,Math.min(boardWidth-160,saved.x)):45+Math.floor(position/2)*180;
-    const y=saved&&Number.isFinite(saved.y)?Math.max(0,Math.min(boardHeight-235,saved.y)):(position%2?435:45);
-    return `<div data-staff-station="${esc(stationKey)}" style="position:absolute;left:${x}px;top:${y}px;width:160px;text-align:center">
+    const saved=config.positions?.[stationKey],defaultX=45+Math.floor(position/2)*180;
+    const x=saved&&Number.isFinite(saved.x)?Math.max(0,Math.min(boardWidth-120,saved.x)):defaultX;
+    const y=saved&&Number.isFinite(saved.y)?Math.max(0,Math.min(boardHeight-160,saved.y)):(position%2?345:110);
+    const upper=position%2===0,benchY=upper?30:480;
+    return `<div aria-label="พื้นที่งาน ${esc(station.station)}" style="position:absolute;left:${defaultX}px;top:${benchY}px;width:120px;height:42px;border:1px solid #3b82f6;border-radius:5px;background:#102b48;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${esc(station.station)}</div>
+    <div style="position:absolute;left:${defaultX+60}px;top:${upper?73:316}px;width:1px;height:${upper?162:164}px;background:#365a82;pointer-events:none"></div>
+    <div data-staff-station="${esc(stationKey)}" style="position:absolute;left:${x}px;top:${y}px;width:120px;text-align:center;z-index:1">
       <button type="button" class="staff-worker-grip" aria-label="ลากพนักงาน ${esc(station.station)}" style="touch-action:none;cursor:grab;border:0;background:transparent;padding:0;box-shadow:none" title="ลากเพื่อย้ายตำแหน่ง • ใช้ปุ่มลูกศรเพื่อขยับ">${staffWorkerSVG(state.color)}</button>
-      <div style="font-weight:700;color:${state.color}">${esc(station.station)} · ${cycle.toFixed(2)} s</div>
-      <div style="font-size:11px;color:${state.color}" title="${esc(state.label)}">${state.label}</div>
-      <input data-staff-employee="${esc(stationKey)}" aria-label="พนักงานประจำสถานี ${esc(station.station)}" placeholder="ชื่อ / รหัสพนักงาน" value="${esc(employees[stationKey]||'')}" style="width:155px;margin-top:5px;text-align:center;box-sizing:border-box" title="${esc(station.processes.map(process=>process.name).join(' · '))}">
+      <div style="border:1px solid ${state.color};border-radius:4px;background:#0c1c30;padding:3px 5px;font-size:12px;font-weight:700" title="${esc(state.label)}">${esc(station.station)} · ${cycle.toFixed(2)} s</div>
+      <input data-staff-employee="${esc(stationKey)}" aria-label="พนักงานประจำสถานี ${esc(station.station)}" placeholder="ชื่อ / รหัสพนักงาน" value="${esc(employees[stationKey]||'')}" style="width:120px;margin-top:4px;text-align:center;box-sizing:border-box;background:#102b48;color:#dbeafe;border:1px solid #365a82;padding:4px;font-size:11px" title="${esc(station.processes.map(process=>process.name).join(' · '))}">
     </div>`;
   }).join('');
 }
@@ -2980,7 +2970,7 @@ $("staff-layout-reset").addEventListener('click',()=>{const line=currentStaffLin
 $("staff-layout-grid").addEventListener('input',event=>{const key=event.target.dataset.staffEmployee,line=currentStaffLine();if(key===undefined||!line)return;const config=staffConfig(line);config.employees??={};config.employees[key]=event.target.value;saveStaffLayout();});
 function moveStaffWorker(node,x,y) {
   const board=$("staff-layout-grid");
-  const next={x:Math.max(0,Math.min(board.clientWidth-160,x)),y:Math.max(0,Math.min(board.clientHeight-235,y))};
+  const next={x:Math.max(0,Math.min(board.clientWidth-120,x)),y:Math.max(0,Math.min(board.clientHeight-160,y))};
   node.style.left=next.x+'px';node.style.top=next.y+'px';return next;
 }
 $("staff-layout-grid").addEventListener('pointerdown',event=>{
