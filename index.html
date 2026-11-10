@@ -310,6 +310,17 @@ footer{
 .staff-belt span{background:#f8fafc;border:2px solid #94a3b8;border-radius:4px;padding:2px 12px;font-size:11px;font-weight:700}
 .staff-worker{display:block;width:100px;height:130px;margin:12px auto 8px}
 .staff-layout-caption{text-align:center;font-weight:700;color:#334155;margin:10px}
+
+@media screen and (min-width:901px){
+  .container{max-width:1600px;margin-left:222px;margin-right:auto;padding:24px;width:calc(100% - 222px);box-sizing:border-box}
+  .navigation{position:fixed;left:0;top:0;bottom:0;width:222px;box-sizing:border-box;padding:96px 14px 24px;background:#ffffff;border-right:1px solid #dfe8f1;display:flex;flex-direction:column;flex-wrap:nowrap;gap:10px;margin:0;z-index:20;overflow:auto}
+  .navigation::before{content:'Haier · DOOR LINE';position:absolute;top:30px;left:22px;color:#0066b3;font-size:16px;font-weight:800;letter-spacing:.3px}
+  .navigation a{padding:14px 16px;line-height:1.6;font-size:12px;white-space:normal;border:1px solid transparent}
+  .navigation a:hover{background:#eef6fc;color:#0066b3}
+  .navigation a[aria-current=page]{background:#0066b3;color:white;box-shadow:0 4px 12px #0066b326}
+}
+#lob-group-buttons{background:#fff;border:1px solid #dfe8f1;border-radius:12px;padding:12px;gap:8px;margin:0 0 20px!important;box-shadow:0 3px 12px #20344c05}
+@media screen and (max-width:900px){.navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.navigation a{padding:10px 12px;font-size:12px;background:white;border:1px solid #dfe8f1}.container{padding:14px}}
 </style>
 </head>
 
@@ -340,6 +351,7 @@ footer{
 
   <!-- หน้ากำลังการผลิต -->
   <section id="capacity-page">
+    <div id="lob-group-buttons" class="controls" role="group" aria-label="เลือกไลน์ LINE OF BALANCE" style="margin:16px 0;flex-wrap:wrap"></div>
 
     <div class="metrics">
       <div class="card metric">
@@ -389,7 +401,6 @@ footer{
     </div>
 
     <div id="lob-bottom-buttons" class="controls" role="group" aria-label="เลือก Bottom Plate A หรือ B" style="margin:12px 0" hidden></div>
-    <div id="lob-group-buttons" class="controls" role="group" aria-label="เลือกไลน์ LINE OF BALANCE" style="margin:16px 0;flex-wrap:wrap"></div>
 
     <p class="notice">ภาพรวมด้านบนอ้างอิงไลน์แรก • Cycle Time = เวลางานรวม + Loss</p>
 
