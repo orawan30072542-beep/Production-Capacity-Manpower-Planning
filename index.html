@@ -441,7 +441,7 @@ footer{
 
     <div id="lob-workspace" class="card">
     <div id="lob-shared-header"></div>
-    <div id="lob-shared-selection" class="controls" style="padding:0 20px 18px"><label>เลือกไลน์ / รุ่น<select id="staff-layout-line"></select></label></div>
+    <div id="lob-shared-selection" class="controls" style="padding:0 20px 18px"><div style="width:100%;font-weight:600">เลือกรุ่น / Model</div><div id="lob-model-buttons" class="controls" role="group" aria-label="เลือกรุ่น" style="flex-wrap:wrap"></div><select id="staff-layout-line" hidden aria-hidden="true" tabindex="-1" style="display:none"></select></div>
     <div id="lob-comparison">
     <div id="capacity-content"></div>
   <section id="staff-layout-page">
@@ -1299,12 +1299,12 @@ let staffVisibleLines=[];
 let activeCapacityId="";
 const lobModelSelections=new Map();
 function lobModelKey(line) {return JSON.stringify([line.title.trim().toLowerCase(),line.partType.trim().toLowerCase(),line.lineTag.trim().toLowerCase()]);}
-$("capacity-content").addEventListener('click',event=>{
+$("lob-model-buttons").addEventListener('click',event=>{
   const button=event.target.closest?.('button[data-lob-model-id]');
   if(!button)return;
   const key=button.dataset.lobModelGroup,id=button.dataset.lobModelId;
   if(!lines.some(line=>lobModelKey(line)===key&&line.id===id))return;
-  activeCapacityId=id;lobModelSelections.set(key,id);$("staff-layout-line").value=id;renderCapacity();
+  staffLayoutEditing=false;activeCapacityId=id;lobModelSelections.set(key,id);$("staff-layout-line").value=id;renderCapacity();
 });
 let selectedLOBGroup='all';
 let selectedBottomLine='A Line';
@@ -2973,6 +2973,7 @@ function renderStaffLayout() {
   const options=staffVisibleLines;
   $("staff-layout-line").innerHTML=options.map(line=>`<option value="${esc(line.id)}">${esc(line.title)} · ${esc(line.lineTag||'ยังไม่ระบุไลน์')} · ${esc(line.models.join(', '))}</option>`).join('');
   $("staff-layout-line").value=options.some(line=>line.id===previous)?previous:(options[0]?.id||'');
+  $("lob-model-buttons").innerHTML=options.map(item=>`<button type="button" data-lob-model-group="${esc(lobModelKey(item))}" data-lob-model-id="${esc(item.id)}" class="${item.id===$("staff-layout-line").value?'primary':''}" aria-pressed="${item.id===$("staff-layout-line").value}" title="${esc(item.title)} · ${esc(item.lineTag)}">${esc(item.models.join(', ')||'ยังไม่ระบุรุ่น')}${new Set(options.map(option=>lobModelKey(option))).size>1?` <span style="font-size:11px;opacity:.75">· ${esc(item.title)} ${esc(item.lineTag)}</span>`:''}</button>`).join('');
   const line=currentStaffLine();
   if(!line){$("staff-layout-grid").innerHTML='<p class="empty">เพิ่มข้อมูลสถานีที่หน้า LINE OF BALANCE ก่อน</p>';$("staff-layout-summary").textContent='';return;}
   const key=staffLayoutKey(line);
