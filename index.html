@@ -576,7 +576,7 @@ footer{
       <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">เลือกไลน์และรุ่น • ลากตัวพนักงานไปวางรอบสายพาน • กรอกชื่อใต้ตัวพนักงาน</p></div>
       <div class="controls" style="padding:16px"><label>ไลน์ / รุ่น<select id="staff-layout-line"></select></label><button id="staff-layout-reset" type="button">จัดตำแหน่งเริ่มต้น</button></div>
       <p class="notice">สีเขียว: Cycle Time ≤ Takt 85% • สีเหลือง: มากกว่า 85% ถึง 100% • สีแดง: เกิน Takt 100% • สีเทา: ยังไม่มีค่า Takt</p>
-      <p class="staff-layout-caption">สายพานลำเลียง → สถานีงาน → พนักงานประจำจุด</p>
+      <p class="staff-layout-caption">PRODUCTION LAYOUT · ผังจัดพนักงานประจำสถานี</p>
       <p id="staff-layout-summary" class="notice"></p><p id="staff-layout-status" class="notice" role="status"></p>
       <div style="overflow:auto;padding:16px"><div id="staff-layout-grid"></div></div>
     </div>
@@ -2914,7 +2914,7 @@ let staffDrag=null;
 function staffLayoutKey(line) {return lobDataKey(line);}
 function stationStaffKey(station,index) {return JSON.stringify([station.station,index]);}
 function staffWorkerSVG(color) {
-  return `<svg style="display:block;width:52px;height:65px;margin:auto" viewBox="0 0 64 80" role="img" aria-label="พนักงานประจำสถานี"><circle cx="32" cy="17" r="10" fill="#cbd5e1" stroke="#94a3b8" stroke-width="2"/><path d="M10 57 C10 29 54 29 54 57 Q54 64 47 64 H17 Q10 64 10 57Z" fill="${color}" stroke="#93c5fd" stroke-width="2"/></svg>`;
+  return `<svg style="display:block;width:66px;height:78px;margin:auto;filter:drop-shadow(0 5px 5px #20344c22)" viewBox="0 0 80 94" role="img" aria-label="พนักงานประจำสถานี"><ellipse cx="40" cy="86" rx="25" ry="5" fill="#20344c15"/><path d="M25 65 L24 83 H34 L40 66 L46 83 H56 L55 65" fill="#334155"/><path d="M21 42 Q40 31 59 42 L63 68 Q40 76 17 68Z" fill="${color}"/><path d="M23 44 L12 60 M57 44 L68 60" stroke="${color}" stroke-width="12" stroke-linecap="round"/><circle cx="12" cy="62" r="5" fill="#efc7a9"/><circle cx="68" cy="62" r="5" fill="#efc7a9"/><rect x="34" y="28" width="12" height="13" rx="5" fill="#e7b996"/><circle cx="40" cy="22" r="14" fill="#f2cfb4"/><path d="M26 19 Q27 4 40 5 Q54 5 54 20 L49 15 Q36 20 30 14Z" fill="#334155"/><path d="M33 40 L40 48 L47 40" fill="none" stroke="#ffffffaa" stroke-width="2"/><rect x="43" y="51" width="9" height="10" rx="2" fill="#ffffffdd"/></svg>`;
 }
 function staffStationState(cycle,line) {
   if(line.taktPending||!(line.takt>0))return {color:'#718096',background:'#f3f5f8',label:'ยังไม่มีค่า Takt'};
@@ -2944,19 +2944,19 @@ function renderStaffLayout() {
   $("staff-layout-summary").textContent=`${stations.length} สถานี • เกิน Takt ${red} สถานี • ${line.taktPending?'ยังไม่มีค่า Takt':`Takt 100% ${targets.hundred.toFixed(2)} s / 85% ${targets.eightyFive.toFixed(2)} s`}`;
   const boardWidth=Math.max(1000,Math.ceil(stations.length/2)*180+80),boardHeight=560;
   const board=$("staff-layout-grid");
-  board.style.cssText=`position:relative;width:${boardWidth}px;height:${boardHeight}px;background-color:#071322;background-image:linear-gradient(#163452 1px,transparent 1px),linear-gradient(90deg,#163452 1px,transparent 1px),linear-gradient(#10243b 1px,transparent 1px),linear-gradient(90deg,#10243b 1px,transparent 1px);background-size:50px 50px,50px 50px,12.5px 12.5px,12.5px 12.5px;border-radius:12px;color:#dbeafe;`;
-  board.innerHTML=`<div style="position:absolute;left:35px;right:35px;top:235px;height:80px;border:1px solid #3b82f6;border-radius:6px;background:#203e63;display:flex;align-items:center;justify-content:center;color:#dbeafe;font-weight:700" aria-label="สายพานลำเลียง">Conveyor →</div>`+stations.map(({station,index,key:stationKey},position)=>{
+  board.style.cssText=`position:relative;width:${boardWidth}px;height:${boardHeight}px;background-color:#f8fafc;background-image:radial-gradient(#cad5e2 .8px,transparent .8px);background-size:20px 20px;border:1px solid #e2e8f0;border-radius:20px;color:#20344c;overflow:hidden;`;
+  board.innerHTML=`<div style="position:absolute;left:28px;top:18px;font-size:11px;letter-spacing:2px;color:#94a3b8;font-weight:700">PRODUCTION FLOOR · ${esc(line.lineTag||line.title)}</div><div style="position:absolute;left:35px;right:35px;top:235px;height:80px;border:6px solid #94a3b8;border-radius:40px;background:repeating-linear-gradient(90deg,#e2e8f0 0 17px,#c5d0dd 17px 20px);box-shadow:0 8px 0 #64748b,0 14px 20px #33415518;display:flex;align-items:center;justify-content:space-around;color:#475569;font-weight:700" aria-label="สายพานลำเลียง"><span style="background:#f8fafce8;border-radius:8px;padding:9px 20px;font-size:11px;letter-spacing:2px">IN →</span><span style="background:#f8fafcf2;border:1px solid #cbd5e1;border-radius:20px;padding:8px 28px;letter-spacing:3px;font-size:12px">CONVEYOR</span><span style="background:#f8fafce8;border-radius:8px;padding:9px 20px;font-size:11px;letter-spacing:2px">→ OUT</span></div>`+stations.map(({station,index,key:stationKey},position)=>{
     const cycle=cycleTime(station),state=staffStationState(cycle,line);
     const saved=config.positions?.[stationKey],defaultX=45+Math.floor(position/2)*180;
     const x=saved&&Number.isFinite(saved.x)?Math.max(0,Math.min(boardWidth-120,saved.x)):defaultX;
     const y=saved&&Number.isFinite(saved.y)?Math.max(0,Math.min(boardHeight-160,saved.y)):(position%2?345:110);
-    const upper=position%2===0,benchY=upper?30:480;
-    return `<div aria-label="พื้นที่งาน ${esc(station.station)}" style="position:absolute;left:${defaultX}px;top:${benchY}px;width:120px;height:42px;border:1px solid #3b82f6;border-radius:5px;background:#102b48;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px">${esc(station.station)}</div>
-    <div style="position:absolute;left:${defaultX+60}px;top:${upper?73:316}px;width:1px;height:${upper?162:164}px;background:#365a82;pointer-events:none"></div>
+    const upper=position%2===0,benchY=upper?70:500;
+    return `<div aria-label="พื้นที่งาน ${esc(station.station)}" style="position:absolute;left:${defaultX}px;top:${benchY}px;width:120px;height:28px;border:1px solid #dbe4ef;border-radius:14px;background:#ffffff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;letter-spacing:1px;color:#64748b">${esc(station.station)}</div>
+    <div style="position:absolute;left:${defaultX+60}px;top:${upper?99:330}px;width:1px;height:${upper?136:170}px;background:#d5dfeb;pointer-events:none"></div>
     <div data-staff-station="${esc(stationKey)}" style="position:absolute;left:${x}px;top:${y}px;width:120px;text-align:center;z-index:1">
       <button type="button" class="staff-worker-grip" aria-label="ลากพนักงาน ${esc(station.station)}" style="touch-action:none;cursor:grab;border:0;background:transparent;padding:0;box-shadow:none" title="ลากเพื่อย้ายตำแหน่ง • ใช้ปุ่มลูกศรเพื่อขยับ">${staffWorkerSVG(state.color)}</button>
-      <div style="border:1px solid ${state.color};border-radius:4px;background:#0c1c30;padding:3px 5px;font-size:12px;font-weight:700" title="${esc(state.label)}">${esc(station.station)} · ${cycle.toFixed(2)} s</div>
-      <input data-staff-employee="${esc(stationKey)}" aria-label="พนักงานประจำสถานี ${esc(station.station)}" placeholder="ชื่อ / รหัสพนักงาน" value="${esc(employees[stationKey]||'')}" style="width:120px;margin-top:4px;text-align:center;box-sizing:border-box;background:#102b48;color:#dbeafe;border:1px solid #365a82;padding:4px;font-size:11px" title="${esc(station.processes.map(process=>process.name).join(' · '))}">
+      <div style="border:1px solid ${state.color}33;border-radius:10px;background:${state.background};color:${state.color};padding:6px 5px;font-size:11px;font-weight:700" title="${esc(state.label)}">${esc(station.station)} · ${cycle.toFixed(2)} s</div>
+      <input data-staff-employee="${esc(stationKey)}" aria-label="พนักงานประจำสถานี ${esc(station.station)}" placeholder="ชื่อ / รหัสพนักงาน" value="${esc(employees[stationKey]||'')}" style="width:120px;margin-top:4px;text-align:center;box-sizing:border-box;background:#ffffffcc;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:6px;font-size:11px" title="${esc(station.processes.map(process=>process.name).join(' · '))}">
     </div>`;
   }).join('');
 }
