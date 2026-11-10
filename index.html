@@ -321,6 +321,14 @@ footer{
 }
 #lob-group-buttons{background:#fff;border:1px solid #dfe8f1;border-radius:12px;padding:12px;gap:8px;margin:0 0 20px!important;box-shadow:0 3px 12px #20344c05}
 @media screen and (max-width:900px){.navigation{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.navigation a{padding:10px 12px;font-size:12px;background:white;border:1px solid #dfe8f1}.container{padding:14px}}
+
+#lob-comparison{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:start}
+#staff-layout-page{grid-column:1;grid-row:1;min-width:0}
+#capacity-content{grid-column:2;grid-row:1;min-width:0}
+#lob-comparison .card{min-width:0}
+#capacity-content svg{min-width:0!important}
+#staff-layout-line{max-width:100%}
+@media(max-width:1000px){#lob-comparison{grid-template-columns:minmax(0,1fr)}#staff-layout-page{grid-column:1;grid-row:1}#capacity-content{grid-column:1;grid-row:2}}
 </style>
 </head>
 
@@ -421,6 +429,7 @@ footer{
       <div id="lob-upload-preview"></div>
     </section>
 
+    <div id="lob-comparison">
     <div id="capacity-content"></div>
   <section id="staff-layout-page">
     <div class="card">
@@ -433,6 +442,7 @@ footer{
     </div>
   </section>
 
+    </div>
     <p id="capacity-message" class="notice" role="status"></p>
   </section>
 
@@ -1289,6 +1299,7 @@ function editorHtml() {
 }
 
 let staffVisibleLines=[];
+let activeCapacityId="";
 const lobModelSelections=new Map();
 function lobModelKey(line) {return JSON.stringify([line.title.trim().toLowerCase(),line.partType.trim().toLowerCase(),line.lineTag.trim().toLowerCase()]);}
 $("capacity-content").addEventListener('click',event=>{
@@ -1296,7 +1307,7 @@ $("capacity-content").addEventListener('click',event=>{
   if(!button)return;
   const key=button.dataset.lobModelGroup,id=button.dataset.lobModelId;
   if(!lines.some(line=>lobModelKey(line)===key&&line.id===id))return;
-  lobModelSelections.set(key,id);$("staff-layout-line").value=id;renderCapacity();
+  activeCapacityId=id;lobModelSelections.set(key,id);$("staff-layout-line").value=id;renderCapacity();
 });
 let selectedLOBGroup='all';
 let selectedBottomLine='A Line';
@@ -1333,11 +1344,6 @@ function renderCapacity() {
   const bottomView=selectedLOBGroup==='bottom';
   $("lob-bottom-buttons").hidden=!bottomView;
   $("lob-bottom-buttons").innerHTML=['A Line','B Line'].map(line=>`<button type="button" data-bottom-line="${line}" class="${selectedBottomLine===line?'primary':''}" aria-pressed="${selectedBottomLine===line}">Bottom Plate ${line[0]}</button>`).join('');
-  const layoutSection=$("staff-layout-page"),graphSection=$("capacity-content");
-  if(graphSection.parentNode) {
-    if(bottomView)graphSection.parentNode.insertBefore(layoutSection,graphSection);
-    else graphSection.after(layoutSection);
-  }
   lines=lines.flatMap(expandLOBPlanLines).map(line=>({...prepareLOBLine(line),lineTag:line.lineTag}));
   $("lob-group-buttons").innerHTML=LOB_GROUPS.map(([key,label])=>`<button type="button" data-lob-group="${key}" class="${selectedLOBGroup===key?'primary':''}" aria-pressed="${selectedLOBGroup===key}">${label}</button>`).join('');
   const selectedType=$("capacity-filter").value;
@@ -1372,11 +1378,13 @@ function renderCapacity() {
 
   const modelGroups=new Map();
   filtered.forEach(line=>{const key=lobModelKey(line);if(!modelGroups.has(key))modelGroups.set(key,[]);modelGroups.get(key).push(line);});
-  const displayed=[];
-  $("capacity-content").innerHTML = filtered.length
-    ? [...modelGroups].map(([key,records])=>{const choices=uniqueLOBModels(records);const selected=choices.find(line=>line.id===lobModelSelections.get(key))||choices[0];displayed.push(selected);return lineHtml(selected,choices);}).join("")
-    : '<div class="card empty">ไม่พบข้อมูล</div>';
-  staffVisibleLines=displayed;
+  const available=uniqueLOBModels(filtered);
+  const selected=available.find(line=>line.id===activeCapacityId)||available.find(line=>line.id===lobModelSelections.get(lobModelKey(line)))||available[0];
+  activeCapacityId=selected?.id||'';
+  const choices=selected?available.filter(line=>lobModelKey(line)===lobModelKey(selected)):[];
+  $("capacity-content").innerHTML=selected?lineHtml(selected,choices):'<div class="card empty">ไม่พบข้อมูล</div>';
+  staffVisibleLines=available;
+  $("staff-layout-line").value=activeCapacityId;
   renderStaffLayout();
 }
 
@@ -2829,6 +2837,7 @@ $("lob-upload-confirm").addEventListener('click',()=>{
   const saved=result.added||result.updated||replacement ? save(CAPACITY_KEY,lines) : true;
   selectedLOBGroup="all";
   lobImportDraft.forEach(line=>lobModelSelections.set(lobModelKey(line),line.id));
+  activeCapacityId=lobImportDraft.at(-1)?.id||activeCapacityId;
   const importedModels=[...new Set(lobImportDraft.flatMap(line=>line.models))];
   resetLOBPreview();$("capacity-filter").value='';$("capacity-search").value='';renderCapacity();
   $("capacity-content").scrollIntoView?.({behavior:"smooth",block:"start"});
@@ -2984,13 +2993,16 @@ function renderStaffLayout() {
       <input data-staff-employee="${esc(stationKey)}" aria-label="พนักงานประจำสถานี ${esc(station.station)}" placeholder="ชื่อ / รหัสพนักงาน" value="${esc(employees[stationKey]||'')}" style="width:120px;margin-top:4px;text-align:center;box-sizing:border-box;background:#ffffffcc;color:#475569;border:1px solid #e2e8f0;border-radius:8px;padding:6px;font-size:11px" title="${esc(station.processes.map(process=>process.name).join(' · '))}">
     </div>`;
   }).join('');
+  const fitWidth=$("staff-layout-page").clientWidth;
+  const scale=fitWidth>0?Math.min(1,Math.max(.25,(fitWidth-36)/boardWidth)):1;
+  board.style.zoom=scale;board.dataset.scale=scale;
 }
 function staffConfig(line) {
   const key=staffLayoutKey(line);
   if(!staffLayout[key])staffLayout[key]={employees:{},order:[],columns:3};
   return staffLayout[key];
 }
-$("staff-layout-line").addEventListener('change',()=>{renderStaffLayout();});
+$("staff-layout-line").addEventListener('change',()=>{activeCapacityId=$("staff-layout-line").value;const line=currentStaffLine();if(line)lobModelSelections.set(lobModelKey(line),line.id);renderCapacity();});
 $("staff-layout-reset").addEventListener('click',()=>{const line=currentStaffLine();if(!line)return;staffConfig(line).positions={};saveStaffLayout();renderStaffLayout();});
 $("staff-layout-grid").addEventListener('input',event=>{const key=event.target.dataset.staffEmployee,line=currentStaffLine();if(key===undefined||!line)return;const config=staffConfig(line);config.employees??={};config.employees[key]=event.target.value;saveStaffLayout();});
 function moveStaffWorker(node,x,y) {
@@ -3007,7 +3019,7 @@ $("staff-layout-grid").addEventListener('pointerdown',event=>{
 });
 $("staff-layout-grid").addEventListener('pointermove',event=>{
   if(!staffDrag||staffDrag.pointerId!==event.pointerId)return;
-  moveStaffWorker(staffDrag.node,staffDrag.x+event.clientX-staffDrag.startX,staffDrag.y+event.clientY-staffDrag.startY);
+  moveStaffWorker(staffDrag.node,staffDrag.x+(event.clientX-staffDrag.startX)/(Number($("staff-layout-grid").dataset.scale)||1),staffDrag.y+(event.clientY-staffDrag.startY)/(Number($("staff-layout-grid").dataset.scale)||1));
 });
 function finishStaffDrag(event) {
   if(!staffDrag||staffDrag.pointerId!==event.pointerId)return;
