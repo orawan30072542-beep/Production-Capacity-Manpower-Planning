@@ -333,7 +333,7 @@ footer{
 #capacity-content svg{min-width:0!important}
 #staff-layout-line{max-width:100%}
 @media(max-width:1000px){#lob-comparison{grid-template-columns:minmax(0,1fr)}#staff-layout-page{grid-column:1;grid-row:1}#capacity-content{grid-column:1;grid-row:2}}
-.lob-summary-header{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(5,minmax(110px,1fr)) auto;gap:20px;align-items:center;padding:24px}
+.lob-summary-header{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(6,minmax(100px,1fr)) auto;gap:20px;align-items:center;padding:24px}
 .lob-summary-stat{border-left:1px solid #dbe7f3;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:#123454}
 .lob-summary-stat>span{font-size:13px;font-weight:600}.lob-summary-stat strong{font-size:27px;line-height:1.2}.lob-summary-stat small{font-size:11px;color:#64748b}
 .lob-layout-lock{background:#eff6ff;color:#345575;padding:12px 24px;margin-bottom:16px;font-size:12px}
@@ -1115,11 +1115,14 @@ function chartHtml(line) {
 
 function lobSharedHeaderHtml(line) {
   const result=metrics(line),targets=taktTargets(line);
+  const leadTime=line.stations.reduce((sum,station)=>sum+cycleTime(station),0);
+  const uphA=leadTime>0?3600/leadTime*line.stations.length:null;
   return `<div class="lob-summary-header">
     <div><h2>${esc(line.title)}</h2><span class="badge">${esc(line.partType)}</span> <span class="badge">${esc(line.lineTag)}</span></div>
     <div class="lob-summary-stat"><span>Takt Time 100%</span><strong>${line.taktPending?'—':targets.hundred.toFixed(2)+' s'}</strong><small>85%: ${line.taktPending?'—':targets.eightyFive.toFixed(2)+' s'}</small></div>
     <div class="lob-summary-stat"><span>UPH สูงสุด</span><strong>${line.uphSource?fmt(line.uph):'—'}</strong><small>${line.uphSource?displayDate(line.uphSource.date)+' · '+esc(line.uphSource.line):'ยังไม่มีข้อมูลแผนผลิต'}</small></div>
-    <div class="lob-summary-stat"><span>Lead Time</span><strong>${line.stations.reduce((sum,station)=>sum+cycleTime(station),0).toFixed(2)} s</strong><small>รวม Work Time + Loss ทุก Station</small></div>
+    <div class="lob-summary-stat"><span>Lead Time</span><strong>${leadTime.toFixed(2)} s</strong><small>รวม Work Time + Loss ทุก Station</small></div>
+    <div class="lob-summary-stat"><span>UPH A</span><strong>${uphA===null?'—':Math.round(uphA).toLocaleString('en-US')}</strong><small>3,600 ÷ Lead Time × ${line.stations.length} สถานี</small></div>
     <div class="lob-summary-stat"><span>Bottleneck</span><strong>${result.maximum.toFixed(2)} s</strong></div>
     <div class="lob-summary-stat"><span>Balance</span><strong>${result.balance.toFixed(1)}%</strong></div>
     ${line.isAverage?'<span class="badge">เวลาเฉลี่ยทุกรุ่นที่มีแผนผลิต</span>':`<div class="controls"><button data-action="edit" data-id="${esc(line.id)}">แก้ไข</button><button class="danger" data-action="delete" data-id="${esc(line.id)}">ลบ</button></div>`}
