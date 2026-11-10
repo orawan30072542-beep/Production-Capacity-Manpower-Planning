@@ -388,6 +388,7 @@ footer{
       </button>
     </div>
 
+    <div id="lob-bottom-buttons" class="controls" role="group" aria-label="เลือก Bottom Plate A หรือ B" style="margin:12px 0" hidden></div>
     <div id="lob-group-buttons" class="controls" role="group" aria-label="เลือกไลน์ LINE OF BALANCE" style="margin:16px 0;flex-wrap:wrap"></div>
 
     <p class="notice">ภาพรวมด้านบนอ้างอิงไลน์แรก • Cycle Time = เวลางานรวม + Loss</p>
@@ -412,7 +413,7 @@ footer{
     <div id="capacity-content"></div>
   <section id="staff-layout-page">
     <div class="card">
-      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">แสดงไลน์และรุ่นเดียวกับกราฟด้านบน • ลากตัวพนักงานไปวางรอบสายพาน • กรอกชื่อใต้ตัวพนักงาน</p></div>
+      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">แสดงไลน์และรุ่นเดียวกับกราฟ • ลากตัวพนักงานไปวางรอบสายพาน • กรอกชื่อใต้ตัวพนักงาน</p></div>
       <div class="controls" style="padding:16px"><label>ไลน์ / รุ่น<select id="staff-layout-line"></select></label><button id="staff-layout-reset" type="button">จัดตำแหน่งเริ่มต้น</button></div>
       <p class="notice">สีเขียว: Cycle Time ≤ Takt 85% • สีเหลือง: มากกว่า 85% ถึง 100% • สีแดง: เกิน Takt 100% • สีเทา: ยังไม่มีค่า Takt</p>
       <p class="staff-layout-caption">PRODUCTION LAYOUT · ผังจัดพนักงานประจำสถานี</p>
@@ -1287,6 +1288,17 @@ $("capacity-content").addEventListener('click',event=>{
   lobModelSelections.set(key,id);$("staff-layout-line").value=id;renderCapacity();
 });
 let selectedLOBGroup='all';
+let selectedBottomLine='A Line';
+function bottomProductionLine(line) {
+  const tag=normalizePlateLine(line.lineTag);if(tag)return tag;
+  const match=String(line.title).match(/plate[\s_-]*([ab])(?:[\s_-]*line)?$/i);
+  return match?match[1].toUpperCase()+' Line':'';
+}
+$("lob-bottom-buttons").addEventListener('click',event=>{
+  const button=event.target.closest?.('button[data-bottom-line]');
+  if(!button||!['A Line','B Line'].includes(button.dataset.bottomLine))return;
+  selectedBottomLine=button.dataset.bottomLine;$("capacity-filter").value='';$("capacity-search").value='';renderCapacity();
+});
 const LOB_GROUPS=[['all','ทั้งหมด'],['door-a','DOOR A'],['door-b','DOOR B'],['door-c','DOOR C'],['back','BACK PLATE'],['bottom','BOTTOM PLATE']];
 function lobGroup(line) {
   const compact=value=>String(value??'').toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -1307,6 +1319,14 @@ $("lob-group-buttons").addEventListener('click',event=>{
   renderCapacity();
 });
 function renderCapacity() {
+  const bottomView=selectedLOBGroup==='bottom';
+  $("lob-bottom-buttons").hidden=!bottomView;
+  $("lob-bottom-buttons").innerHTML=['A Line','B Line'].map(line=>`<button type="button" data-bottom-line="${line}" class="${selectedBottomLine===line?'primary':''}" aria-pressed="${selectedBottomLine===line}">Bottom Plate ${line[0]}</button>`).join('');
+  const layoutSection=$("staff-layout-page"),graphSection=$("capacity-content");
+  if(graphSection.parentNode) {
+    if(bottomView)graphSection.parentNode.insertBefore(layoutSection,graphSection);
+    else graphSection.after(layoutSection);
+  }
   lines=lines.flatMap(expandLOBPlanLines).map(line=>({...prepareLOBLine(line),lineTag:line.lineTag}));
   $("lob-group-buttons").innerHTML=LOB_GROUPS.map(([key,label])=>`<button type="button" data-lob-group="${key}" class="${selectedLOBGroup===key?'primary':''}" aria-pressed="${selectedLOBGroup===key}">${label}</button>`).join('');
   const selectedType=$("capacity-filter").value;
@@ -1334,6 +1354,7 @@ function renderCapacity() {
     ].join(" ").toLowerCase();
 
     return (selectedLOBGroup==='all' || lobGroup(line)===selectedLOBGroup) &&
+      (!bottomView || bottomProductionLine(line)===selectedBottomLine) &&
       (!type || line.partType===type) &&
       (!query || text.includes(query));
   });
