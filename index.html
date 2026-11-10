@@ -1122,7 +1122,7 @@ function lobSharedHeaderHtml(line) {
     <div class="lob-summary-stat"><span>Lead Time</span><strong>${line.stations.reduce((sum,station)=>sum+cycleTime(station),0).toFixed(2)} s</strong><small>รวม Work Time + Loss ทุก Station</small></div>
     <div class="lob-summary-stat"><span>Bottleneck</span><strong>${result.maximum.toFixed(2)} s</strong></div>
     <div class="lob-summary-stat"><span>Balance</span><strong>${result.balance.toFixed(1)}%</strong></div>
-    <div class="controls"><button data-action="edit" data-id="${esc(line.id)}">แก้ไข</button><button class="danger" data-action="delete" data-id="${esc(line.id)}">ลบ</button></div>
+    ${line.isAverage?'<span class="badge">เวลาเฉลี่ยทุกรุ่นที่มีแผนผลิต</span>':`<div class="controls"><button data-action="edit" data-id="${esc(line.id)}">แก้ไข</button><button class="danger" data-action="delete" data-id="${esc(line.id)}">ลบ</button></div>`}
   </div><div class="lob-layout-lock">ตำแหน่งพนักงานใช้ร่วมกันทุกรุ่นใน Layout และไลน์เดียวกัน • ล็อกตำแหน่งไว้จนกว่าจะกดจัดตำแหน่งพนักงาน</div>`;
 }
 
@@ -1304,7 +1304,7 @@ $("lob-model-buttons").addEventListener('click',event=>{
   const button=event.target.closest?.('button[data-lob-model-id]');
   if(!button)return;
   const key=button.dataset.lobModelGroup,id=button.dataset.lobModelId;
-  if(!lines.some(line=>lobModelKey(line)===key&&line.id===id))return;
+  if(!staffVisibleLines.some(line=>lobModelKey(line)===key&&line.id===id))return;
   staffLayoutEditing=false;activeCapacityId=id;lobModelSelections.set(key,id);$("staff-layout-line").value=id;renderCapacity();
 });
 let selectedLOBGroup='all';
@@ -1338,6 +1338,22 @@ $("lob-group-buttons").addEventListener('click',event=>{
   $("capacity-filter").value='';$("capacity-search").value='';
   renderCapacity();
 });
+function withLOBAverages(items) {
+  const groups=new Map();
+  items.forEach(line=>{const key=lobModelKey(line);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(line);});
+  return [...groups.entries()].flatMap(([key,members])=>{
+    if(!members.length)return [];
+    const stations=new Map();
+    members.forEach(line=>line.stations.forEach(station=>{
+      const name=station.station.trim().toLowerCase();
+      if(!stations.has(name))stations.set(name,{station:station.station,work:0,loss:0,count:0});
+      const total=stations.get(name);total.work+=workTime(station);total.loss+=station.loss;total.count++;
+    }));
+    const combined={...members[0],id:'lob-average:'+key,models:['รวม'],isAverage:true,
+      stations:[...stations.values()].map(item=>({station:item.station,loss:item.loss/item.count,processes:[{name:'เวลางานเฉลี่ย',wt:item.work/item.count}]}))};
+    return [combined,...members];
+  });
+}
 function renderCapacity() {
   const bottomView=selectedLOBGroup==='bottom';
   $("lob-bottom-buttons").hidden=!bottomView;
@@ -1379,7 +1395,7 @@ function renderCapacity() {
 
   const modelGroups=new Map();
   filtered.forEach(line=>{const key=lobModelKey(line);if(!modelGroups.has(key))modelGroups.set(key,[]);modelGroups.get(key).push(line);});
-  const available=uniqueLOBModels(filtered);
+  const available=withLOBAverages(uniqueLOBModels(filtered));
   const selected=available.find(line=>line.id===activeCapacityId)||available.find(line=>line.id===lobModelSelections.get(lobModelKey(line)))||available[0];
   activeCapacityId=selected?.id||'';
   const choices=selected?available.filter(line=>lobModelKey(line)===lobModelKey(selected)):[];
@@ -2994,7 +3010,7 @@ function saveStaffLayout() {
   const saved=save(STAFF_LAYOUT_KEY,staffLayout);
   $("staff-layout-status").textContent=saved?'บันทึกการจัดพนักงานแล้ว':'บันทึกไม่ได้ เบราว์เซอร์ไม่อนุญาตให้เก็บข้อมูล';
 }
-function currentStaffLine() {return lines.find(line=>line.id===$("staff-layout-line").value);}
+function currentStaffLine() {return staffVisibleLines.find(line=>line.id===$("staff-layout-line").value)||lines.find(line=>line.id===$("staff-layout-line").value);}
 function renderStaffLayout() {
   lines=lines.flatMap(expandLOBPlanLines).map(line=>({...prepareLOBLine(line),lineTag:line.lineTag}));
   const previous=$("staff-layout-line").value;
