@@ -328,7 +328,6 @@ footer{
   <nav class="navigation" aria-label="เมนูหลัก">
     <a id="nav-capacity" href="#capacity">LINE OF BALANCE</a>
     <a id="nav-plan" href="#production-plan">แผนผลิต</a>
-    <a id="nav-layout" href="#staff-layout">Layout จัดพนักงาน</a>
     <a id="nav-door-plan" href="#door-production-plan">แผนผลิต DOOR</a>
     <a id="nav-plate-plan" href="#plate-production-plan">แผนผลิต Bottom &amp; Back Plate</a>
   </nav>
@@ -411,6 +410,17 @@ footer{
     </section>
 
     <div id="capacity-content"></div>
+  <section id="staff-layout-page">
+    <div class="card">
+      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">แสดงไลน์และรุ่นเดียวกับกราฟด้านบน • ลากตัวพนักงานไปวางรอบสายพาน • กรอกชื่อใต้ตัวพนักงาน</p></div>
+      <div class="controls" style="padding:16px"><label>ไลน์ / รุ่น<select id="staff-layout-line"></select></label><button id="staff-layout-reset" type="button">จัดตำแหน่งเริ่มต้น</button></div>
+      <p class="notice">สีเขียว: Cycle Time ≤ Takt 85% • สีเหลือง: มากกว่า 85% ถึง 100% • สีแดง: เกิน Takt 100% • สีเทา: ยังไม่มีค่า Takt</p>
+      <p class="staff-layout-caption">PRODUCTION LAYOUT · ผังจัดพนักงานประจำสถานี</p>
+      <p id="staff-layout-summary" class="notice"></p><p id="staff-layout-status" class="notice" role="status"></p>
+      <div style="overflow:auto;padding:16px"><div id="staff-layout-grid"></div></div>
+    </div>
+  </section>
+
     <p id="capacity-message" class="notice" role="status"></p>
   </section>
 
@@ -569,16 +579,6 @@ footer{
       <p id="plate-plan-uph-note" class="notice" role="status"></p>
       <div id="plate-plan-totals"></div>
       <div id="plate-plan-content"></div>
-    </div>
-  </section>
-  <section id="staff-layout-page" hidden>
-    <div class="card">
-      <div class="section-header"><h2>Layout จัดพนักงาน</h2><p class="muted">เลือกไลน์และรุ่น • ลากตัวพนักงานไปวางรอบสายพาน • กรอกชื่อใต้ตัวพนักงาน</p></div>
-      <div class="controls" style="padding:16px"><label>ไลน์ / รุ่น<select id="staff-layout-line"></select></label><button id="staff-layout-reset" type="button">จัดตำแหน่งเริ่มต้น</button></div>
-      <p class="notice">สีเขียว: Cycle Time ≤ Takt 85% • สีเหลือง: มากกว่า 85% ถึง 100% • สีแดง: เกิน Takt 100% • สีเทา: ยังไม่มีค่า Takt</p>
-      <p class="staff-layout-caption">PRODUCTION LAYOUT · ผังจัดพนักงานประจำสถานี</p>
-      <p id="staff-layout-summary" class="notice"></p><p id="staff-layout-status" class="notice" role="status"></p>
-      <div style="overflow:auto;padding:16px"><div id="staff-layout-grid"></div></div>
     </div>
   </section>
   <footer>HAIER · DOOR LINE PRODUCTION</footer>
@@ -856,16 +856,6 @@ let draftIsNew = false;
    ===================================================== */
 
 function showPage() {
-  const staffPage=location.hash==='#staff-layout';
-  $("staff-layout-page").hidden=!staffPage;
-  $("nav-layout").setAttribute('aria-current',staffPage?'page':'false');
-  if(staffPage) {
-    ['capacity-page','plan-page','door-plan-page','plate-plan-page'].forEach(id=>$(id).hidden=true);
-    ['nav-capacity','nav-plan','nav-door-plan','nav-plate-plan'].forEach(id=>$(id).setAttribute('aria-current','false'));
-    $("page-title").textContent='Door Line · Layout จัดพนักงาน';
-    $("page-description").textContent='พนักงานประจำสถานีและสถานะเวลางานเทียบ Takt';
-    document.title=$("page-title").textContent;renderStaffLayout();return;
-  }
   const isPlatePlan=location.hash==="#plate-production-plan";
   $("plate-plan-page").hidden=!isPlatePlan;
   $("nav-plate-plan").setAttribute("aria-current",isPlatePlan ? "page" : "false");
@@ -1286,6 +1276,7 @@ function editorHtml() {
   `;
 }
 
+let staffVisibleLines=[];
 const lobModelSelections=new Map();
 function lobModelKey(line) {return JSON.stringify([line.title.trim().toLowerCase(),line.partType.trim().toLowerCase(),line.lineTag.trim().toLowerCase()]);}
 $("capacity-content").addEventListener('click',event=>{
@@ -1293,7 +1284,7 @@ $("capacity-content").addEventListener('click',event=>{
   if(!button)return;
   const key=button.dataset.lobModelGroup,id=button.dataset.lobModelId;
   if(!lines.some(line=>lobModelKey(line)===key&&line.id===id))return;
-  lobModelSelections.set(key,id);renderCapacity();
+  lobModelSelections.set(key,id);$("staff-layout-line").value=id;renderCapacity();
 });
 let selectedLOBGroup='all';
 const LOB_GROUPS=[['all','ทั้งหมด'],['door-a','DOOR A'],['door-b','DOOR B'],['door-c','DOOR C'],['back','BACK PLATE'],['bottom','BOTTOM PLATE']];
@@ -1324,6 +1315,7 @@ function renderCapacity() {
   $("capacity-filter").value=types.includes(selectedType) ? selectedType : "";
   renderMetrics();
 
+  $("staff-layout-page").hidden=!!draft;
   if (draft) {
     $("capacity-content").innerHTML = editorHtml();
     return;
@@ -1348,9 +1340,12 @@ function renderCapacity() {
 
   const modelGroups=new Map();
   filtered.forEach(line=>{const key=lobModelKey(line);if(!modelGroups.has(key))modelGroups.set(key,[]);modelGroups.get(key).push(line);});
+  const displayed=[];
   $("capacity-content").innerHTML = filtered.length
-    ? [...modelGroups].map(([key,records])=>{const choices=uniqueLOBModels(records);return lineHtml(choices.find(line=>line.id===lobModelSelections.get(key))||choices[0],choices);}).join("")
+    ? [...modelGroups].map(([key,records])=>{const choices=uniqueLOBModels(records);const selected=choices.find(line=>line.id===lobModelSelections.get(key))||choices[0];displayed.push(selected);return lineHtml(selected,choices);}).join("")
     : '<div class="card empty">ไม่พบข้อมูล</div>';
+  staffVisibleLines=displayed;
+  renderStaffLayout();
 }
 
 $("capacity-filter").addEventListener("change",renderCapacity);
@@ -2929,7 +2924,7 @@ function currentStaffLine() {return lines.find(line=>line.id===$("staff-layout-l
 function renderStaffLayout() {
   lines=lines.flatMap(expandLOBPlanLines).map(line=>({...prepareLOBLine(line),lineTag:line.lineTag}));
   const previous=$("staff-layout-line").value;
-  const options=uniqueLOBModels(lines);
+  const options=staffVisibleLines;
   $("staff-layout-line").innerHTML=options.map(line=>`<option value="${esc(line.id)}">${esc(line.title)} · ${esc(line.lineTag||'ยังไม่ระบุไลน์')} · ${esc(line.models.join(', '))}</option>`).join('');
   $("staff-layout-line").value=options.some(line=>line.id===previous)?previous:(options[0]?.id||'');
   const line=currentStaffLine();
@@ -2963,7 +2958,7 @@ function staffConfig(line) {
   if(!staffLayout[key])staffLayout[key]={employees:{},order:[],columns:3};
   return staffLayout[key];
 }
-$("staff-layout-line").addEventListener('change',renderStaffLayout);
+$("staff-layout-line").addEventListener('change',()=>{renderStaffLayout();});
 $("staff-layout-reset").addEventListener('click',()=>{const line=currentStaffLine();if(!line)return;staffConfig(line).positions={};saveStaffLayout();renderStaffLayout();});
 $("staff-layout-grid").addEventListener('input',event=>{const key=event.target.dataset.staffEmployee,line=currentStaffLine();if(key===undefined||!line)return;const config=staffConfig(line);config.employees??={};config.employees[key]=event.target.value;saveStaffLayout();});
 function moveStaffWorker(node,x,y) {
