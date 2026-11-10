@@ -1341,9 +1341,9 @@ $("lob-group-buttons").addEventListener('click',event=>{
 function renderCapacity() {
   const bottomView=selectedLOBGroup==='bottom';
   $("lob-bottom-buttons").hidden=!bottomView;
-  $("lob-bottom-buttons").innerHTML=['A Line','B Line'].map(line=>`<button type="button" data-bottom-line="${line}" class="${selectedBottomLine===line?'primary':''}" aria-pressed="${selectedBottomLine===line}">Bottom Plate ${line[0]}</button>`).join('');
+  $("lob-bottom-buttons").innerHTML=['A Line','B Line'].filter(tag=>lines.some(item=>lobGroup(item)==='bottom'&&bottomProductionLine(item)===tag&&hasLOBProductionPlan(item))).map(line=>`<button type="button" data-bottom-line="${line}" class="${selectedBottomLine===line?'primary':''}" aria-pressed="${selectedBottomLine===line}">Bottom Plate ${line[0]}</button>`).join('');
   lines=lines.flatMap(expandLOBPlanLines).map(line=>({...prepareLOBLine(line),lineTag:line.lineTag}));
-  $("lob-group-buttons").innerHTML=LOB_GROUPS.map(([key,label])=>`<button type="button" data-lob-group="${key}" class="${selectedLOBGroup===key?'primary':''}" aria-pressed="${selectedLOBGroup===key}">${label}</button>`).join('');
+  $("lob-group-buttons").innerHTML=LOB_GROUPS.filter(([key])=>key==='all'||lines.some(line=>lobGroup(line)===key&&hasLOBProductionPlan(line))).map(([key,label])=>`<button type="button" data-lob-group="${key}" class="${selectedLOBGroup===key?'primary':''}" aria-pressed="${selectedLOBGroup===key}">${label}</button>`).join('');
   const selectedType=$("capacity-filter").value;
   const types=[...new Set(lines.map(line=>line.partType))];
   $("capacity-filter").innerHTML='<option value="">ทั้งหมด</option>'+types.map(type=>`<option value="${esc(type)}">${esc(type)}</option>`).join("");
@@ -1362,6 +1362,7 @@ function renderCapacity() {
   const query = $("capacity-search").value.trim().toLowerCase();
 
   const filtered = lines.filter(line => {
+    if(!hasLOBProductionPlan(line))return false;
     const text = [
       line.title,line.lineTag,...line.models,
       ...line.stations.flatMap(station => [
@@ -1383,7 +1384,7 @@ function renderCapacity() {
   activeCapacityId=selected?.id||'';
   const choices=selected?available.filter(line=>lobModelKey(line)===lobModelKey(selected)):[];
   $("lob-shared-header").innerHTML=selected?lobSharedHeaderHtml(selected):"";
-  $("capacity-content").innerHTML=selected?lineHtml(selected,choices):'<div class="card empty">ไม่พบข้อมูล</div>';
+  $("capacity-content").innerHTML=selected?lineHtml(selected,choices):'<div class="card empty">ไม่มีรุ่นที่มีแผนผลิตในไลน์นี้</div>';
   staffVisibleLines=available;
   $("staff-layout-line").value=activeCapacityId;
   renderStaffLayout();
@@ -2652,6 +2653,26 @@ function resolveLOBUPH(line) {
   const uph=Math.ceil(rate-Number.EPSILON*Math.max(1,Math.abs(rate))*4);
   if(!Number.isFinite(uph)||uph<=0)throw Error('ยังไม่มีค่า Takt');
   return {date,line:productionLine,mode,material,hours,efficiency,uph,takt:3600/uph,basis:"maximum-uph"};
+}
+function hasLOBProductionPlan(line) {
+  const normalize=value=>String(value??'').trim().toLowerCase().replace(/\s+/g,'');
+  const models=new Set(line.models.map(normalize).filter(Boolean));
+  const group=lobGroup(line),text=[line.title,line.partType].join(' ').toLowerCase();
+  return plans.some(row=>{
+    if(!models.has(normalize(row.product))&&!models.has(normalize(row.model)))return false;
+    if(!Object.values(row.values||{}).some(quantity=>Number(quantity)>0))return false;
+    if(group==='bottom'||group==='back') {
+      return normalizePlateLine(row.plateLine)===bottomProductionLine(line)&&plateSettings.get(row.product)?.[group]==='yes';
+    }
+    if(!group.startsWith('door-'))return false;
+    const settings=getProductSettings(row.product);
+    if(settings.line!=='Door '+group.slice(-1).toUpperCase())return false;
+    if(text.includes('bend')) {
+      const material=/glass|กระจก/.test(text)?'glass':/metal|steel|เหล็ก/.test(text)?'metal':'';
+      if(material&&settings.material!==material)return false;
+    }
+    return true;
+  });
 }
 function expandLOBPlanLines(line) {
   const group=lobGroup(line);
