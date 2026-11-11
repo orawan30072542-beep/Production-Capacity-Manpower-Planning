@@ -644,6 +644,7 @@ footer{
 <section id="work-process-page" hidden>
 <div class="card"><div class="section-header"><h2>Work Process · ลำดับกระบวนการ</h2><p class="muted">แยกงานฝั่งซ้ายและฝั่งขวา • ยังไม่แบ่ง Station หรือจัดพนักงาน</p></div>
 <div class="toolbar"><label>ไลน์ / รุ่น<select id="wp-line"></select></label><div class="controls"><button id="wp-collapse-all" type="button">ย่อทั้งหมด ↑</button><button id="wp-expand-all" type="button">ขยายทั้งหมด ↓</button><button id="wp-save" class="primary">บันทึก Work Process</button></div></div>
+<div class="toolbar"><label>คัดลอกจากรุ่น<select id="wp-copy-source"></select></label><div class="controls"><button id="wp-copy-model" type="button">คัดลอกทั้งรุ่น</button><button id="wp-copy-lr" type="button">ซ้าย → ขวา</button><button id="wp-copy-rl" type="button">ขวา → ซ้าย</button></div></div>
 <p id="wp-message" class="notice" role="status"></p><div id="wp-content"></div>
 <p class="notice">ไล่ลำดับงานแต่ละฝั่งได้อย่างอิสระ • เวลารวม = Work Time + Loss • เลือกงานที่ต้องทำก่อนเพื่อกำหนดเงื่อนไข Balance ในอนาคต • ข้อมูลนี้แยกจาก Station ใน LINE OF BALANCE เพื่อใช้จัด Balance ในภายหลัง</p></div></section>
   <footer>HAIER · DOOR LINE PRODUCTION</footer>
@@ -3156,15 +3157,41 @@ function renderWorkProcess(){
   wpSelected=lines.some(line=>line.id===previous)?previous:(lines[0]?.id||'');$("wp-line").value=wpSelected;
   const line=lines.find(item=>item.id===wpSelected),key=line?wpRecordKey(line):'';
   if(!wpDraft||wpDraft.key!==key){const saved=wpRecords[key];wpDraft=key?{key,schemaVersion:saved?.schemaVersion,left:clone(saved?.left||[]),right:clone(saved?.right||[])}:null;wpDirty=false;}
+  $("wp-copy-source").innerHTML='<option value="">เลือกรุ่นต้นทาง</option>'+lines.filter(line=>line.id!==wpSelected&&wpRecords[wpRecordKey(line)]).map(line=>`<option value="${esc(line.id)}">${esc(line.title)} · ${esc(line.lineTag)} · ${esc(line.models.join(', '))}</option>`).join('');
   renderWPSides();
 }
+function wpCopyTasks(source,targetSide=null){
+ const record=clone(source),ids=new Map();
+ for(const {item} of wpAllTasks(record))ids.set(item.id,wpId());
+ for(const {item} of wpAllTasks(record)){item.id=ids.get(item.id);item.predecessorIds=(item.predecessorIds||[]).map(id=>ids.get(id)||id);delete item.predecessorText;if(targetSide)item.side=targetSide;}
+ return record;
+}
+$("wp-copy-model").addEventListener('click',()=>{
+ if(!wpDraft)return;const source=lines.find(line=>line.id===$("wp-copy-source").value),saved=source&&wpRecords[wpRecordKey(source)];
+ if(!saved){$("wp-message").textContent='เลือกรุ่นต้นทางที่มีข้อมูลบันทึกไว้ก่อน';return;}
+ if(!confirm('แทนที่กระบวนการทั้งซ้ายและขวาด้วยข้อมูลรุ่นต้นทาง?'))return;
+ const copied=wpCopyTasks(saved);wpDraft={...copied,key:wpDraft.key,schemaVersion:2};wpDirty=true;renderWPSides();$("wp-message").textContent='คัดลอกแล้ว กรุณาตรวจสอบและกดบันทึก';
+});
+for(const [button,from,to] of [['wp-copy-lr','left','right'],['wp-copy-rl','right','left']])$(button).addEventListener('click',()=>{
+ if(!wpDraft||!confirm('แทนที่งานฝั่งปลายทางด้วยงานฝั่งต้นทาง?'))return;
+ try{const current=wpResolveTypedDependencies(clone(wpDraft)),source={left:from==='left'?current.left:[],right:from==='right'?current.right:[]},copied=wpCopyTasks(source,to);wpDraft[to]=copied[from];wpDraft.schemaVersion=2;wpDirty=true;renderWPSides();$("wp-message").textContent='คัดลอกฝั่งแล้ว กรุณาตรวจสอบงานก่อนหน้าและกดบันทึก';}catch(error){$("wp-message").textContent=error.message;}
+});
 function wpTaskTime(task,field){return task.children?.length?task.children.reduce((sum,item)=>sum+(Number(item[field])||0),0):(Number(task[field])||0);}
 function wpAllTasks(record=wpDraft){
  const list=[];for(const side of ['left','right'])(record?.[side]||[]).forEach((item,index)=>{list.push({item,label:(side==='left'?'L':'R')+(index+1),parent:null});(item.children||[]).forEach((child,ci)=>list.push({item:child,label:(side==='left'?'L':'R')+(index+1)+'.'+(ci+1),parent:item.id}));});return list;
 }
 function wpDependencyLabel(item){const all=wpAllTasks();return (item.predecessorIds||[]).map(id=>all.find(entry=>entry.item.id===id)?.label||'งานที่ถูกลบ').join(', ')||'ไม่มีงานก่อนหน้า';}
 function wpDependencyFields(item,attrs){
- return `<fieldset class="wp-dependencies"><legend>งานที่ต้องทำก่อน (เลือกได้หลายงาน)</legend>${wpAllTasks().filter(entry=>entry.item.id!==item.id&&entry.parent!==item.id&&entry.item.id!==wpAllTasks().find(e=>e.item.id===item.id)?.parent).map(entry=>`<label><input type="checkbox" ${attrs} data-wp-field="dependency" value="${esc(entry.item.id)}" ${(item.predecessorIds||[]).includes(entry.item.id)?'checked':''}> ${esc(entry.label)} · ${esc(entry.item.name||'ยังไม่ระบุชื่อ')}</label>`).join('')||'<span>เพิ่มงานอื่นก่อนเพื่อเลือกเงื่อนไข</span>'}<small>ไม่เลือก = เริ่มได้โดยไม่มีเงื่อนไข • งานย่อยครบจึงถือว่ากระบวนการหลักเสร็จ</small></fieldset>`;
+ const value=item.predecessorText??(item.predecessorIds||[]).map(id=>wpAllTasks().find(entry=>entry.item.id===id)?.label||'?').join(', ');
+ return `<label>งานที่ต้องทำก่อน (กรอกรหัส)<input ${attrs} data-wp-field="dependency-text" value="${esc(value)}" placeholder="เช่น 1.1, 1.2 หรือ R2.1"><small>เว้นว่าง = เริ่มได้เลย • ไม่ใส่ L/R หมายถึงฝั่งเดียวกัน</small></label>`;
+}
+function wpResolveTypedDependencies(record){
+ const all=wpAllTasks(record),labels=new Map(all.map(entry=>[entry.label.toUpperCase(),entry.item.id]));
+ all.forEach(({item,label})=>{
+  if(item.predecessorText===undefined)return;
+  const tokens=item.predecessorText.trim().split(/[,;\s]+/).filter(Boolean);
+  item.predecessorIds=[...new Set(tokens.map(token=>{const code=/^[LR]/i.test(token)?token.toUpperCase():label[0]+token;const id=labels.get(code);if(!id)throw Error(`${label}: ไม่พบรหัสงาน ${token}`);return id;}))];
+ });return record;
 }
 function wpCheckDependencies(record){
  const all=wpAllTasks(record),map=new Map(all.map(entry=>[entry.item.id,entry])),edges=new Map(all.map(entry=>[entry.item.id,new Set(entry.item.predecessorIds||[])]));
@@ -3205,8 +3232,8 @@ function wpSideTotal(tasks){return tasks.reduce((sum,item)=>sum+wpTaskTime(item,
 $("wp-line").addEventListener('change',()=>{if(wpDirty&&!confirm('เปลี่ยนรุ่นและทิ้งการแก้ไขที่ยังไม่บันทึก?')){$("wp-line").value=wpSelected;return;}wpSelected=$("wp-line").value;wpDraft=null;$("wp-message").textContent='';renderWorkProcess();});
 $("wp-content").addEventListener('input',event=>{
  const input=event.target,side=input.dataset.wpSide,index=Number(input.dataset.wpIndex),field=input.dataset.wpField;
- if(!wpDraft||!['left','right'].includes(side)||!['name','wt','loss','dependency'].includes(field))return;
- const parent=wpDraft[side][index],task=input.dataset.wpChild===undefined?parent:parent.children[Number(input.dataset.wpChild)];if(field==='dependency'){const selected=new Set(task.predecessorIds||[]);input.checked?selected.add(input.value):selected.delete(input.value);task.predecessorIds=[...selected];}else task[field]=input.value;
+ if(!wpDraft||!['left','right'].includes(side)||!['name','wt','loss','dependency-text'].includes(field))return;
+ const parent=wpDraft[side][index],task=input.dataset.wpChild===undefined?parent:parent.children[Number(input.dataset.wpChild)];if(field==='dependency-text'){task.predecessorText=input.value;try{wpResolveTypedDependencies(wpDraft);}catch(error){$("wp-message").textContent=error.message;}}else task[field]=input.value;
  const card=input.closest('.wp-flow-task');card.querySelector('[data-wp-title]').textContent=parent.name||'กระบวนการหลัก';card.querySelector('[data-wp-cycle]').textContent=(wpTaskTime(parent,'wt')+wpTaskTime(parent,'loss')).toFixed(2);card.querySelector('[data-wp-work]').textContent=wpTaskTime(parent,'wt').toFixed(2);card.querySelector('[data-wp-loss]').textContent=wpTaskTime(parent,'loss').toFixed(2);card.classList.toggle('movable',parent.movable===true);card.querySelector('[data-wp-badge]').textContent='ก่อนหน้า: '+wpDependencyLabel(parent)+' · '+(parent.children?.length||0)+' งานย่อย';
  const childCard=input.closest('.wp-subtask');if(childCard){childCard.querySelector('[data-child-title]').textContent=task.name||'งานย่อยใหม่';childCard.querySelector('[data-child-cycle]').textContent=(wpTaskTime(task,'wt')+wpTaskTime(task,'loss')).toFixed(2)+' s';}
  wpDirty=true;$("wp-message").textContent='มีข้อมูลที่ยังไม่บันทึก';document.querySelector(`[data-wp-total="${side}"]`).textContent=wpSideTotal(wpDraft[side]).toFixed(2);renderWPDependencyFlow();
@@ -3229,6 +3256,7 @@ $("wp-content").addEventListener('click',event=>{
  const editors=document.querySelectorAll('#wp-content .wp-task-editor');if(action==='add-child'||action.startsWith('child-')){const sideIndex=side==='left'?0:1;const panels=document.querySelectorAll('.wp-side');const editor=panels[sideIndex]?.querySelectorAll('.wp-task-editor')[index];if(editor)editor.open=true;}
 });
 function validatedWorkProcess(draft){
+ draft=wpResolveTypedDependencies(clone(draft));
  const result={key:draft.key,left:[],right:[],updatedAt:new Date().toISOString(),schemaVersion:2};
  function validate(item,side,sequence,parentId,previous,label){
   const name=String(item.name??'').trim(),raw=String(item.wt??'').trim(),lossRaw=String(item.loss??'').trim();
