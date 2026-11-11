@@ -340,6 +340,11 @@ footer{
 @media(max-width:1250px){.lob-summary-header{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:650px){.lob-summary-header{grid-template-columns:repeat(2,minmax(0,1fr));padding:16px;gap:16px}.lob-summary-stat strong{font-size:22px}}
 .wp-sides{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:16px}.wp-side{padding:18px;border:1px solid #dce7f2;border-radius:14px}.wp-side input{box-sizing:border-box;width:100%;min-width:70px}.wp-side input[data-wp-field="name"]{min-width:170px}@media(max-width:900px){.wp-sides{grid-template-columns:1fr}}
+.container:has(#work-process-page:not([hidden])){max-width:none}
+#work-process-page{width:100%;min-width:0;box-sizing:border-box}
+#work-process-page>.card,#wp-content,.wp-side{min-width:0;box-sizing:border-box}
+#work-process-page .toolbar{flex-wrap:wrap;gap:14px}
+#wp-line{max-width:100%;width:min(580px,100%)}
 </style>
 </head>
 
@@ -619,6 +624,11 @@ footer{
       <div id="plate-plan-content"></div>
     </div>
   </section>
+<section id="work-process-page" hidden>
+<div class="card"><div class="section-header"><h2>Work Process · ลำดับกระบวนการ</h2><p class="muted">แยกงานฝั่งซ้ายและฝั่งขวา • ยังไม่แบ่ง Station หรือจัดพนักงาน</p></div>
+<div class="toolbar"><label>ไลน์ / รุ่น<select id="wp-line"></select></label><button id="wp-save" class="primary">บันทึก Work Process</button></div>
+<p id="wp-message" class="notice" role="status"></p><div id="wp-content"></div>
+<p class="notice">ไล่ลำดับงานแต่ละฝั่งได้อย่างอิสระ • เวลาเป็นวินาที • งานที่ไม่มีเว้นว่างได้ • ข้อมูลนี้แยกจาก Station ใน LINE OF BALANCE เพื่อใช้จัด Balance ในภายหลัง</p></div></section>
   <footer>HAIER · DOOR LINE PRODUCTION</footer>
 </div>
 
@@ -660,11 +670,6 @@ footer{
   </form>
 </dialog>
 
-<section id="work-process-page" hidden>
-<div class="card"><div class="section-header"><h2>Work Process · ลำดับกระบวนการ</h2><p class="muted">แยกงานฝั่งซ้ายและฝั่งขวา • ยังไม่แบ่ง Station หรือจัดพนักงาน</p></div>
-<div class="toolbar"><label>ไลน์ / รุ่น<select id="wp-line"></select></label><button id="wp-save" class="primary">บันทึก Work Process</button></div>
-<p id="wp-message" class="notice" role="status"></p><div id="wp-content"></div>
-<p class="notice">ไล่ลำดับงานแต่ละฝั่งได้อย่างอิสระ • เวลาเป็นวินาที • งานที่ไม่มีเว้นว่างได้ • ข้อมูลนี้แยกจาก Station ใน LINE OF BALANCE เพื่อใช้จัด Balance ในภายหลัง</p></div></section>
 <script>
 "use strict";
 
