@@ -356,6 +356,7 @@ footer{
 
   <nav class="navigation" aria-label="เมนูหลัก">
     <a id="nav-capacity" href="#capacity">LINE OF BALANCE</a>
+    <a id="nav-work-process" href="#work-process">Work Process</a>
     <a id="nav-plan" href="#production-plan">แผนผลิต</a>
     <a id="nav-door-plan" href="#door-production-plan">แผนผลิต DOOR</a>
     <a id="nav-plate-plan" href="#plate-production-plan">แผนผลิต Bottom &amp; Back Plate</a>
@@ -658,6 +659,12 @@ footer{
   </form>
 </dialog>
 
+<section id="work-process-page" hidden>
+  <div class="card"><div class="section-header"><h2>Work Process · กระบวนการทำงาน</h2><p class="muted">จัดลำดับงานในแต่ละ Station • เวลาเป็นวินาที • ข้อมูลร่วมกับ LINE OF BALANCE</p></div>
+  <div class="toolbar"><label>ไลน์ / รุ่น<select id="wp-line"></select></label><div class="controls"><button id="wp-add-station">＋ เพิ่ม Station</button><button id="wp-save" class="primary">บันทึก Work Process</button></div></div>
+  <p id="wp-message" class="notice" role="status"></p><div id="wp-content"></div>
+  <p class="notice">เพิ่มงานได้ตามลำดับ 1, 2, 3… ใช้ลูกศรเพื่อจัดลำดับ • ลำดับงานและรหัสงานจะเก็บไว้รองรับ Balance Process อัตโนมัติในอนาคต</p></div>
+</section>
 <script>
 "use strict";
 
@@ -892,15 +899,18 @@ let draftIsNew = false;
    ===================================================== */
 
 function showPage() {
+  const isWork=location.hash==="#work-process";
+  $("work-process-page").hidden=!isWork;
+  $("nav-work-process").setAttribute("aria-current",isWork?"page":"false");
   const isPlatePlan=location.hash==="#plate-production-plan";
   $("plate-plan-page").hidden=!isPlatePlan;
   $("nav-plate-plan").setAttribute("aria-current",isPlatePlan ? "page" : "false");
   const isPlan=location.hash==="#production-plan";
   const isDoorPlan=location.hash==="#door-production-plan";
-  $("capacity-page").hidden=isPlan || isDoorPlan || isPlatePlan;
+  $("capacity-page").hidden=isPlan || isDoorPlan || isPlatePlan || isWork;
   $("plan-page").hidden=!isPlan;
   $("door-plan-page").hidden=!isDoorPlan;
-  $("nav-capacity").setAttribute("aria-current",!isPlan && !isDoorPlan && !isPlatePlan ? "page" : "false");
+  $("nav-capacity").setAttribute("aria-current",!isPlan && !isDoorPlan && !isPlatePlan && !isWork ? "page" : "false");
   $("nav-plan").setAttribute("aria-current",isPlan ? "page" : "false");
   $("nav-door-plan").setAttribute("aria-current",isDoorPlan ? "page" : "false");
   $("page-title").textContent=isDoorPlan ? "Door Line · Door Production Plan" : isPlan ? "Door Line · Production Plan" : "Door Line · LINE OF BALANCE";
@@ -910,9 +920,10 @@ function showPage() {
     $("page-description").textContent="แผนผลิต Bottom Plate และ Back Plate ตามสถานะผลิตของแต่ละ Product";
     renderPlatePlans();
   }
+  if(isWork){$("page-title").textContent="Door Line · Work Process";$("page-description").textContent="บันทึกงานและเวลาตามลำดับในแต่ละสถานี";renderWorkProcess();}
   document.title=$("page-title").textContent;
   if (isDoorPlan) renderDoorPlans();
-  if (!isPlan && !isDoorPlan && !isPlatePlan) renderCapacity();
+  if (!isPlan && !isDoorPlan && !isPlatePlan && !isWork) renderCapacity();
 }
 
 window.addEventListener("hashchange",showPage);
@@ -3108,6 +3119,73 @@ $("staff-layout-grid").addEventListener('keydown',event=>{
   const delta={ArrowLeft:[-10,0],ArrowRight:[10,0],ArrowUp:[0,-10],ArrowDown:[0,10]}[event.key];
   if(!staffLayoutEditing||!node||!line||!delta)return;event.preventDefault();const next=moveStaffWorker(node,parseFloat(node.style.left)+delta[0],parseFloat(node.style.top)+delta[1]);const config=staffConfig(line);config.positions??={};config.positions[node.dataset.staffStation]=next;saveStaffLayout();
 });
+
+// Work Process uses the same station/process records as LINE OF BALANCE.
+let wpDraft=null,wpDirty=false;
+function wpId(){return 'work-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);}
+function renderWorkProcess(){
+  const previous=$("wp-line").value;
+  $("wp-line").innerHTML=lines.map(line=>`<option value="${esc(line.id)}">${esc(line.title)} · ${esc(line.lineTag)} · ${esc(line.models.join(', '))}</option>`).join('');
+  $("wp-line").value=lines.some(line=>line.id===previous)?previous:(lines[0]?.id||'');
+  if(!wpDraft||wpDraft.id!==$("wp-line").value){wpDraft=clone(lines.find(line=>line.id===$("wp-line").value)||null);wpDirty=false;}
+  renderWPStations();
+}
+function renderWPStations(){
+  $("wp-save").disabled=!wpDraft;$("wp-add-station").disabled=!wpDraft;
+  if(!wpDraft){$("wp-content").innerHTML='<p class="empty">นำเข้าข้อมูลไลน์ / รุ่นใน LINE OF BALANCE ก่อน</p>';return;}
+  $("wp-content").innerHTML=wpDraft.stations.map((station,si)=>`<article class="card" style="margin:16px;padding:18px">
+    <div class="toolbar"><label>Station<input data-wp-field="station" data-si="${si}" value="${esc(station.station)}"></label><strong>รวม <span data-wp-total="${si}">${station.processes.reduce((sum,item)=>sum+(Number(item.wt)||0),0).toFixed(2)}</span> s</strong><label>Loss (s)<input type="number" min="0" step="0.01" data-wp-field="loss" data-si="${si}" value="${station.loss}"></label><button data-wp-action="remove-station" data-si="${si}" class="danger">ลบ Station</button></div>
+    <div class="scroll"><table><thead><tr><th>ลำดับ</th><th>กระบวนการทำงาน</th><th>เวลาทำงาน (s)</th><th>จัดลำดับ</th></tr></thead><tbody>${station.processes.map((process,pi)=>`<tr><td>${pi+1}</td><td><input style="width:100%;min-width:200px" data-wp-field="name" data-si="${si}" data-pi="${pi}" value="${esc(process.name)}" placeholder="ชื่องาน"></td><td><input type="number" min="0" step="0.01" data-wp-field="wt" data-si="${si}" data-pi="${pi}" value="${process.wt}"></td><td><button data-wp-action="up" data-si="${si}" data-pi="${pi}" ${pi===0?'disabled':''} aria-label="เลื่อนงานขึ้น">↑</button> <button data-wp-action="down" data-si="${si}" data-pi="${pi}" ${pi===station.processes.length-1?'disabled':''} aria-label="เลื่อนงานลง">↓</button> <button data-wp-action="remove" data-si="${si}" data-pi="${pi}" class="danger">ลบ</button></td></tr>`).join('')}</tbody></table></div>
+    <button data-wp-action="add" data-si="${si}" style="margin-top:12px">＋ เพิ่มงานลำดับที่ ${station.processes.length+1}</button></article>`).join('');
+}
+$("wp-line").addEventListener('change',()=>{
+  if(wpDirty&&!confirm('มีข้อมูลที่ยังไม่บันทึก ต้องการเปลี่ยนรุ่นและทิ้งการแก้ไขหรือไม่?')){$("wp-line").value=wpDraft.id;return;}
+  wpDraft=null;$("wp-message").textContent='';renderWorkProcess();
+});
+$("wp-add-station").addEventListener('click',()=>{if(!wpDraft)return;wpDraft.stations.push({station:'',loss:0,processes:[]});wpDirty=true;renderWPStations();});
+$("wp-content").addEventListener('input',event=>{
+  const input=event.target,field=input.dataset.wpField;if(!field||!wpDraft)return;
+  const station=wpDraft.stations[Number(input.dataset.si)],process=station.processes[Number(input.dataset.pi)];
+  if(field==='station')station.station=input.value;
+  else if(field==='loss')station.loss=input.value;
+  else if(field==='name')process.name=input.value;
+  else if(field==='wt')process.wt=input.value;
+  wpDirty=true;$("wp-message").textContent='มีการแก้ไขที่ยังไม่บันทึก';
+  const total=document.querySelector(`[data-wp-total="${input.dataset.si}"]`);if(total)total.textContent=station.processes.reduce((sum,item)=>sum+(Number(item.wt)||0),0).toFixed(2);
+});
+$("wp-content").addEventListener('click',event=>{
+  const button=event.target.closest('button[data-wp-action]');if(!button||!wpDraft)return;
+  const si=Number(button.dataset.si),pi=Number(button.dataset.pi),station=wpDraft.stations[si],action=button.dataset.wpAction;
+  if(action==='add')station.processes.push({id:wpId(),name:'',wt:0});
+  if(action==='remove')station.processes.splice(pi,1);
+  if(action==='remove-station'){if(!confirm('ลบ Station และงานทั้งหมดในสถานีนี้?'))return;wpDraft.stations.splice(si,1);}
+  if(action==='up'&&pi>0)[station.processes[pi-1],station.processes[pi]]=[station.processes[pi],station.processes[pi-1]];
+  if(action==='down'&&pi<station.processes.length-1)[station.processes[pi+1],station.processes[pi]]=[station.processes[pi],station.processes[pi+1]];
+  wpDirty=true;renderWPStations();
+});
+function validatedWorkProcess(draft){
+  const result=clone(draft),names=new Set();
+  if(!result.stations.length)throw Error('เพิ่ม Station อย่างน้อย 1 สถานี');
+  result.stations.forEach((station,si)=>{
+    station.station=station.station.trim();const key=station.station.toLowerCase();
+    if(!key||names.has(key))throw Error(`Station ${si+1}: กรอกชื่อสถานีที่ไม่ซ้ำ`);names.add(key);
+    if(String(station.loss).trim()===''||!Number.isFinite(Number(station.loss))||Number(station.loss)<0)throw Error(`Station ${station.station}: Loss ต้องเป็นตัวเลขตั้งแต่ 0`);
+    station.loss=Number(station.loss);
+    station.processes=station.processes.filter(item=>item.name.trim()!==''||Number(item.wt)!==0);
+    station.processes.forEach((item,pi)=>{
+      if(!item.name.trim()||String(item.wt).trim()===''||!Number.isFinite(Number(item.wt))||Number(item.wt)<0)throw Error(`Station ${station.station} งาน ${pi+1}: กรอกชื่องานและเวลาตั้งแต่ 0`);
+      item.name=item.name.trim();item.wt=Number(item.wt);item.id??=wpId();item.sequence=pi+1;item.predecessorIds=pi?[station.processes[pi-1].id]:[];
+    });
+  });return result;
+}
+$("wp-save").addEventListener('click',()=>{
+  if(!wpDraft)return;
+  try{const updated=validatedWorkProcess(wpDraft),next=lines.map(line=>line.id===updated.id?updated:line);
+    if(!save(CAPACITY_KEY,next))throw Error('บันทึกไม่ได้ กรุณาตรวจสอบพื้นที่จัดเก็บของเบราว์เซอร์');
+    lines=next;wpDraft=clone(updated);wpDirty=false;$("wp-message").textContent='บันทึกแล้ว • LINE OF BALANCE และ Layout ใช้ข้อมูลล่าสุดร่วมกัน';renderWPStations();renderCapacity();
+  }catch(error){$("wp-message").textContent=error.message;}
+});
+window.addEventListener('beforeunload',event=>{if(wpDirty){event.preventDefault();event.returnValue='';}});
 
 refreshSavedPlanSources();
 showPage();
