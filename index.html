@@ -360,6 +360,7 @@ footer{
 .wp-flow-task:not(:has(.wp-task-editor[open])){padding:14px 18px;margin:25px 0;box-shadow:0 2px 8px #183b5b05}
 .wp-flow-task:not(:has(.wp-task-editor[open])) .wp-task-breakdown{display:none}
 .wp-flow-task:not(:has(.wp-task-editor[open])) .wp-task-editor{margin-top:7px;padding-top:6px;border:0}
+.wp-subtasks{margin:18px 0 18px 10px;border-left:2px solid #dbe7f3;padding-left:16px}.wp-subtask{border:1px solid #e1eaf3;border-radius:10px;padding:12px;margin:10px 0;background:#f8fbff}.wp-subtask>summary{cursor:pointer;font-size:12px;color:#345675;display:flex;gap:10px;align-items:center}.wp-subtask>summary b{color:#2471b2}.wp-subtask>summary [data-child-cycle]{margin-left:auto;white-space:nowrap}.wp-subtask[open]>summary{margin-bottom:14px}
 </style>
 </head>
 
@@ -3156,13 +3157,18 @@ function renderWorkProcess(){
   if(!wpDraft||wpDraft.key!==key){const saved=wpRecords[key];wpDraft=key?{key,left:clone(saved?.left||[]),right:clone(saved?.right||[])}:null;wpDirty=false;}
   renderWPSides();
 }
+function wpTaskTime(task,field){return task.children?.length?task.children.reduce((sum,item)=>sum+(Number(item[field])||0),0):(Number(task[field])||0);}
+function wpTaskFields(item,side,index,childIndex=null){
+ const attrs=`data-wp-side="${side}" data-wp-index="${index}" ${childIndex===null?'':`data-wp-child="${childIndex}"`}`;
+ return `<label>${childIndex===null?'ชื่อกระบวนการหลัก':'ชื่องานย่อย'}<input ${attrs} data-wp-field="name" value="${esc(item.name)}" placeholder="ระบุชื่องาน"></label>${!item.children?.length?`<div class="wp-flow-times"><label>Work Time (s)<input ${attrs} data-wp-field="wt" type="number" min="0" step="0.01" value="${esc(item.wt??'')}"></label><label>Loss (s)<input ${attrs} data-wp-field="loss" type="number" min="0" step="0.01" value="${esc(item.loss??'')}"></label></div>`:'<p class="notice">เวลาและ Loss รวมจากงานย่อย</p>'}<label>เงื่อนไขการโยกงาน<select ${attrs} data-wp-field="movable"><option value="false" ${item.movable!==true?'selected':''}>โยกงานไม่ได้</option><option value="true" ${item.movable===true?'selected':''}>โยกงานได้</option></select></label>`;
+}
 function renderWPSides(){
-  $("wp-save").disabled=!wpDraft;
-  if(!wpDraft){$("wp-content").innerHTML='<p class="empty">นำเข้าไลน์ / รุ่นก่อนเพื่อเริ่มบันทึกกระบวนการ</p>';return;}
-  $("wp-content").innerHTML='<div class="wp-sides">'+[['left','ฝั่งซ้าย / LEFT'],['right','ฝั่งขวา / RIGHT']].map(([side,title])=>`<section class="wp-side"><h2>${title}</h2><p class="notice">รวม Work Time + Loss <strong data-wp-total="${side}">${wpSideTotal(wpDraft[side]).toFixed(2)}</strong> s</p><div class="wp-flow-cap">เริ่มต้น</div><div class="wp-flow-list">${wpDraft[side].map((item,index)=>`<article class="wp-flow-task ${item.movable===true?'movable':'fixed'}"><div class="wp-task-overview" role="button" tabindex="0" title="กดเพื่อย่อหรือขยายรายละเอียด"><span class="wp-step-number">${String(index+1).padStart(2,'0')}</span><div class="wp-task-copy"><strong data-wp-title>${esc(item.name||'เพิ่มชื่อกระบวนการ')}</strong><span data-wp-badge="${side}-${index}">${item.movable===true?'↔ โยกงานได้':'● โยกงานไม่ได้'}</span></div><div class="wp-task-duration"><strong data-wp-cycle>${((Number(item.wt)||0)+(Number(item.loss)||0)).toFixed(2)}</strong><small>วินาที</small></div></div><div class="wp-task-breakdown"><span>Work <b data-wp-work>${Number(item.wt||0).toFixed(2)}</b> s</span><span>Loss <b data-wp-loss>${Number(item.loss||0).toFixed(2)}</b> s</span></div><details class="wp-task-editor" ${!item.name?'open':''}><summary>แสดง / ซ่อนรายละเอียด</summary><label>กระบวนการทำงาน<input data-wp-side="${side}" data-wp-index="${index}" data-wp-field="name" value="${esc(item.name)}" placeholder="ชื่อกระบวนการ"></label><div class="wp-flow-times"><label>Work Time (s)<input type="number" min="0" step="0.01" data-wp-side="${side}" data-wp-index="${index}" data-wp-field="wt" value="${esc(item.wt)}" placeholder="วินาที"></label><label>Loss (s)<input type="number" min="0" step="0.01" data-wp-side="${side}" data-wp-index="${index}" data-wp-field="loss" value="${esc(item.loss??'')}" placeholder="0"></label></div><label>เงื่อนไขการโยกงาน<select data-wp-side="${side}" data-wp-index="${index}" data-wp-field="movable"><option value="false" ${item.movable!==true?'selected':''}>โยกงานไม่ได้</option><option value="true" ${item.movable===true?'selected':''}>โยกงานได้</option></select></label><div class="controls" style="margin-top:12px"><button data-wp-action="up" data-wp-side="${side}" data-wp-index="${index}" ${index===0?'disabled':''}>↑ เลื่อนขึ้น</button><button data-wp-action="down" data-wp-side="${side}" data-wp-index="${index}" ${index===wpDraft[side].length-1?'disabled':''}>↓ เลื่อนลง</button><button class="danger" data-wp-action="remove" data-wp-side="${side}" data-wp-index="${index}">ลบงาน</button></div></details></article>`).join('')}</div><div class="wp-flow-cap">สิ้นสุด</div><button data-wp-action="add" data-wp-side="${side}" style="margin-top:14px">＋ เพิ่มงานลำดับที่ ${wpDraft[side].length+1}</button></section>`).join('')+'</div>';
+ $("wp-save").disabled=!wpDraft;
+ if(!wpDraft){$("wp-content").innerHTML='<p class="empty">นำเข้าไลน์ / รุ่นก่อนเพื่อเริ่มบันทึกกระบวนการ</p>';return;}
+ $("wp-content").innerHTML='<div class="wp-sides">'+[['left','ฝั่งซ้าย / LEFT'],['right','ฝั่งขวา / RIGHT']].map(([side,title])=>`<section class="wp-side"><h2>${title}</h2><p class="notice">รวม Work Time + Loss <strong data-wp-total="${side}">${wpSideTotal(wpDraft[side]).toFixed(2)}</strong> s</p><div class="wp-flow-cap">เริ่มต้น</div><div class="wp-flow-list">${wpDraft[side].map((item,index)=>`<article class="wp-flow-task ${item.movable===true?'movable':'fixed'}"><div class="wp-task-overview" role="button" tabindex="0" title="กดเพื่อย่อหรือขยาย"><span class="wp-step-number">${index+1}</span><div class="wp-task-copy"><strong data-wp-title>${esc(item.name||'กระบวนการหลัก')}</strong><span data-wp-badge>${item.movable===true?'↔ โยกงานได้':'● โยกงานไม่ได้'} · ${item.children?.length||0} งานย่อย</span></div><div class="wp-task-duration"><strong data-wp-cycle>${(wpTaskTime(item,'wt')+wpTaskTime(item,'loss')).toFixed(2)}</strong><small>วินาที</small></div></div><div class="wp-task-breakdown">Work <b data-wp-work>${wpTaskTime(item,'wt').toFixed(2)}</b> s · Loss <b data-wp-loss>${wpTaskTime(item,'loss').toFixed(2)}</b> s</div><details class="wp-task-editor" ${!item.name?'open':''}><summary>แสดง / ซ่อนงานย่อยและรายละเอียด</summary>${wpTaskFields(item,side,index)}<div class="wp-subtasks">${(item.children||[]).map((child,ci)=>`<details class="wp-subtask" ${!child.name?'open':''}><summary><b>${index+1}.${ci+1}</b> <span data-child-title>${esc(child.name||'งานย่อยใหม่')}</span> <span data-child-cycle>${(wpTaskTime(child,'wt')+wpTaskTime(child,'loss')).toFixed(2)} s</span></summary>${wpTaskFields(child,side,index,ci)}<div class="controls" style="margin-top:10px">${['up','down','remove'].map(action=>`<button data-wp-action="child-${action}" data-wp-side="${side}" data-wp-index="${index}" data-wp-child="${ci}">${action==='up'?'↑':action==='down'?'↓':'ลบงานย่อย'}</button>`).join('')}</div></details>`).join('')}</div><button data-wp-action="add-child" data-wp-side="${side}" data-wp-index="${index}">＋ เพิ่มงานย่อย ${index+1}.${(item.children?.length||0)+1}</button><div class="controls" style="margin-top:12px">${['up','down','remove'].map(action=>`<button data-wp-action="${action}" data-wp-side="${side}" data-wp-index="${index}">${action==='up'?'↑ เลื่อนขึ้น':action==='down'?'↓ เลื่อนลง':'ลบกระบวนการหลัก'}</button>`).join('')}</div></details></article>`).join('')}</div><div class="wp-flow-cap">สิ้นสุด</div><button data-wp-action="add" data-wp-side="${side}" style="margin-top:14px">＋ เพิ่มกระบวนการหลัก</button></section>`).join('')+'</div>';
 }
 function setWPExpanded(expanded){
-  document.querySelectorAll('#wp-content .wp-task-editor').forEach(editor=>editor.open=expanded);
+  document.querySelectorAll('#wp-content .wp-task-editor, #wp-content .wp-subtask').forEach(editor=>editor.open=expanded);
 }
 $("wp-collapse-all").addEventListener('click',()=>setWPExpanded(false));
 $("wp-expand-all").addEventListener('click',()=>setWPExpanded(true));
@@ -3174,23 +3180,47 @@ $("wp-content").addEventListener('keydown',event=>{
   if(!event.target.matches('.wp-task-overview')||!['Enter',' '].includes(event.key))return;
   event.preventDefault();event.target.click();
 });
-function wpSideTotal(tasks){return tasks.reduce((sum,item)=>sum+(Number(item.wt)||0)+(Number(item.loss)||0),0);}
+function wpSideTotal(tasks){return tasks.reduce((sum,item)=>sum+wpTaskTime(item,'wt')+wpTaskTime(item,'loss'),0);}
 $("wp-line").addEventListener('change',()=>{if(wpDirty&&!confirm('เปลี่ยนรุ่นและทิ้งการแก้ไขที่ยังไม่บันทึก?')){$("wp-line").value=wpSelected;return;}wpSelected=$("wp-line").value;wpDraft=null;$("wp-message").textContent='';renderWorkProcess();});
-$("wp-content").addEventListener('input',event=>{const input=event.target,side=input.dataset.wpSide,index=Number(input.dataset.wpIndex),field=input.dataset.wpField;if(!wpDraft||!['left','right'].includes(side)||!['name','wt','loss','movable'].includes(field))return;wpDraft[side][index][field]=field==='movable'?input.value==='true':input.value;const taskCard=input.closest('.wp-flow-task'),task=wpDraft[side][index];if(taskCard){taskCard.querySelector('[data-wp-title]').textContent=task.name||'เพิ่มชื่อกระบวนการ';taskCard.querySelector('[data-wp-cycle]').textContent=((Number(task.wt)||0)+(Number(task.loss)||0)).toFixed(2);taskCard.querySelector('[data-wp-work]').textContent=(Number(task.wt)||0).toFixed(2);taskCard.querySelector('[data-wp-loss]').textContent=(Number(task.loss)||0).toFixed(2);}wpDirty=true;$("wp-message").textContent='มีข้อมูลที่ยังไม่บันทึก';const total=document.querySelector(`[data-wp-total="${side}"]`);if(total)total.textContent=wpSideTotal(wpDraft[side]).toFixed(2);if(field==='movable'){const card=input.closest('.wp-flow-task');card.classList.toggle('movable',input.value==='true');card.classList.toggle('fixed',input.value!=='true');card.querySelector('[data-wp-badge]').textContent=input.value==='true'?'↔ โยกงานได้':'● โยกงานไม่ได้';}});
-$("wp-content").addEventListener('click',event=>{const button=event.target.closest('button[data-wp-action]');if(!button||!wpDraft)return;const side=button.dataset.wpSide;if(!['left','right'].includes(side))return;const tasks=wpDraft[side],index=Number(button.dataset.wpIndex),action=button.dataset.wpAction;if(action==='add')tasks.push(wpBlankTask());if(action==='remove')tasks.splice(index,1);if(action==='up'&&index>0)[tasks[index-1],tasks[index]]=[tasks[index],tasks[index-1]];if(action==='down'&&index<tasks.length-1)[tasks[index+1],tasks[index]]=[tasks[index],tasks[index+1]];wpDirty=true;$("wp-message").textContent='มีข้อมูลที่ยังไม่บันทึก';renderWPSides();});
+$("wp-content").addEventListener('input',event=>{
+ const input=event.target,side=input.dataset.wpSide,index=Number(input.dataset.wpIndex),field=input.dataset.wpField;
+ if(!wpDraft||!['left','right'].includes(side)||!['name','wt','loss','movable'].includes(field))return;
+ const parent=wpDraft[side][index],task=input.dataset.wpChild===undefined?parent:parent.children[Number(input.dataset.wpChild)];task[field]=field==='movable'?input.value==='true':input.value;
+ const card=input.closest('.wp-flow-task');card.querySelector('[data-wp-title]').textContent=parent.name||'กระบวนการหลัก';card.querySelector('[data-wp-cycle]').textContent=(wpTaskTime(parent,'wt')+wpTaskTime(parent,'loss')).toFixed(2);card.querySelector('[data-wp-work]').textContent=wpTaskTime(parent,'wt').toFixed(2);card.querySelector('[data-wp-loss]').textContent=wpTaskTime(parent,'loss').toFixed(2);card.classList.toggle('movable',parent.movable===true);card.querySelector('[data-wp-badge]').textContent=(parent.movable===true?'↔ โยกงานได้':'● โยกงานไม่ได้')+' · '+(parent.children?.length||0)+' งานย่อย';
+ const childCard=input.closest('.wp-subtask');if(childCard){childCard.querySelector('[data-child-title]').textContent=task.name||'งานย่อยใหม่';childCard.querySelector('[data-child-cycle]').textContent=(wpTaskTime(task,'wt')+wpTaskTime(task,'loss')).toFixed(2)+' s';}
+ wpDirty=true;$("wp-message").textContent='มีข้อมูลที่ยังไม่บันทึก';document.querySelector(`[data-wp-total="${side}"]`).textContent=wpSideTotal(wpDraft[side]).toFixed(2);
+});
+$("wp-content").addEventListener('click',event=>{
+ const button=event.target.closest('button[data-wp-action]');if(!button||!wpDraft)return;const side=button.dataset.wpSide;if(!['left','right'].includes(side))return;
+ const tasks=wpDraft[side],index=Number(button.dataset.wpIndex),action=button.dataset.wpAction,parent=tasks[index];
+ if(action==='add')tasks.push({...wpBlankTask(),children:[]});
+ if(action==='add-child'){
+   parent.children??=[];
+   // Preserve existing direct work when converting an older process into a group.
+   if(!parent.children.length&&(Number(parent.wt)>0||Number(parent.loss)>0)){parent.children.push({...wpBlankTask(),name:parent.name,wt:parent.wt,loss:parent.loss,movable:parent.movable});parent.wt=0;parent.loss=0;}
+   parent.children.push(wpBlankTask());
+ }
+ const list=action.startsWith('child-')?parent.children:tasks,i=action.startsWith('child-')?Number(button.dataset.wpChild):index,op=action.replace('child-','');
+ if(op==='remove'){if(list===tasks&&parent.children?.length&&!confirm('ลบกระบวนการหลักพร้อมงานย่อยทั้งหมด?'))return;list.splice(i,1);if(action==='child-remove'&&!list.length){parent.wt=0;parent.loss=0;}}
+ if(op==='up'&&i>0)[list[i-1],list[i]]=[list[i],list[i-1]];
+ if(op==='down'&&i<list.length-1)[list[i+1],list[i]]=[list[i],list[i+1]];
+ wpDirty=true;renderWPSides();
+ const editors=document.querySelectorAll('#wp-content .wp-task-editor');if(action==='add-child'||action.startsWith('child-')){const sideIndex=side==='left'?0:1;const panels=document.querySelectorAll('.wp-side');const editor=panels[sideIndex]?.querySelectorAll('.wp-task-editor')[index];if(editor)editor.open=true;}
+});
 function validatedWorkProcess(draft){
-  const result={key:draft.key,left:[],right:[],updatedAt:new Date().toISOString()};
-  for(const side of ['left','right']){
-    draft[side].forEach((item,index)=>{
-      const name=String(item.name??'').trim(),raw=String(item.wt??'').trim();
-      const lossRaw=String(item.loss??'').trim(),loss=lossRaw===''?0:Number(lossRaw);
-      if(!name&&!raw&&!lossRaw)return;
-      if(!Number.isFinite(loss)||loss<0)throw Error(`งาน ${index+1}: Loss ต้องเป็นตัวเลขตั้งแต่ 0`);
-      if(!name||!raw||!Number.isFinite(Number(raw))||Number(raw)<0)throw Error(`${side==='left'?'ฝั่งซ้าย':'ฝั่งขวา'} งาน ${index+1}: กรอกชื่องานและเวลาตั้งแต่ 0`);
-      const previous=result[side].at(-1);result[side].push({id:item.id||wpId(),name,wt:Number(raw),loss,movable:item.movable===true,side,sequence:result[side].length+1,predecessorIds:previous?[previous.id]:[]});
-    });
-  }
-  return result;
+ const result={key:draft.key,left:[],right:[],updatedAt:new Date().toISOString()};
+ function validate(item,side,sequence,parentId,previous,label){
+  const name=String(item.name??'').trim(),raw=String(item.wt??'').trim(),lossRaw=String(item.loss??'').trim();
+  if(!name&&!raw&&!lossRaw&&!item.children?.length)return null;
+  if(!name)throw Error(label+': กรุณากรอกชื่องาน');
+  const id=item.id||wpId(),children=[];
+  (item.children||[]).forEach((child,ci)=>{const valid=validate(child,side,children.length+1,id,children.at(-1),label+'.'+(ci+1));if(valid)children.push(valid);});
+  if(!children.length&&(!raw||!Number.isFinite(Number(raw))||Number(raw)<0))throw Error(label+': กรอก Work Time ตั้งแต่ 0');
+  const loss=lossRaw===''?0:Number(lossRaw);if(!Number.isFinite(loss)||loss<0)throw Error(label+': Loss ต้องตั้งแต่ 0');
+  return {id,name,wt:children.length?children.reduce((n,c)=>n+c.wt,0):Number(raw),loss:children.length?children.reduce((n,c)=>n+c.loss,0):loss,movable:item.movable===true,side,sequence,parentId,predecessorIds:previous?[previous.id]:[],children};
+ }
+ for(const side of ['left','right'])draft[side].forEach((item,index)=>{const valid=validate(item,side,result[side].length+1,null,result[side].at(-1),`${side==='left'?'ซ้าย':'ขวา'} ${index+1}`);if(valid)result[side].push(valid);});
+ return result;
 }
 $("wp-save").addEventListener('click',()=>{if(!wpDraft)return;try{const record=validatedWorkProcess(wpDraft),next={...wpRecords,[record.key]:record};if(!save(WP_STORAGE_KEY,next))throw Error('บันทึกไม่ได้ กรุณาตรวจสอบพื้นที่จัดเก็บเบราว์เซอร์');wpRecords=next;wpDraft=clone(record);wpDirty=false;$("wp-message").textContent='บันทึกลำดับงานซ้าย / ขวาแล้ว';renderWPSides();}catch(error){$("wp-message").textContent=error.message;}});
 window.addEventListener('beforeunload',event=>{if(wpDirty){event.preventDefault();event.returnValue='';}});
