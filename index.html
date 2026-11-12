@@ -648,6 +648,13 @@ footer{
   </section>
 <section id="work-process-page" hidden>
 <div class="card"><div class="section-header"><h2>Work Process · ลำดับกระบวนการ</h2><p class="muted">แยกงานฝั่งซ้ายและฝั่งขวา • ยังไม่แบ่ง Station หรือจัดพนักงาน</p></div>
+<form id="wp-add-form" class="toolbar" style="flex-wrap:wrap;align-items:end;background:#f4f8fd;border-radius:12px;margin:16px;padding:16px">
+<label>ประเภทงาน<select id="wp-add-type"><option>DOOR</option><option>BOTTOM PLATE</option><option>BACK PLATE</option></select></label>
+<label>ไลน์ผลิต<input id="wp-add-line" list="wp-line-suggestions" placeholder="เช่น Door A หรือ A Line" maxlength="80" required><datalist id="wp-line-suggestions"><option value="Door A"><option value="Door B"><option value="Door C"><option value="A Line"><option value="B Line"></datalist></label>
+<label>รุ่น / Model<input id="wp-add-model" placeholder="เช่น FUF14" maxlength="120" required></label>
+<button type="submit" class="primary">+ เพิ่มไลน์ / รุ่น</button>
+<small style="flex-basis:100%">เพิ่มสำหรับจัดทำ Work Process ได้ทันที แม้ยังไม่มีแผนผลิต • รุ่นเดียวกันเพิ่มได้หลายไลน์</small>
+</form>
 <div class="toolbar"><label>ไลน์ / รุ่น<select id="wp-line"></select></label><div class="controls"><button id="wp-collapse-all" type="button">ย่อทั้งหมด ↑</button><button id="wp-expand-all" type="button">ขยายทั้งหมด ↓</button><button id="wp-save" class="primary">บันทึก Work Process</button></div></div>
 <div class="toolbar"><label>คัดลอกจากรุ่น<select id="wp-copy-source"></select></label><div class="controls"><button id="wp-copy-model" type="button">คัดลอกทั้งรุ่น</button><button id="wp-copy-lr" type="button">ซ้าย → ขวา</button><button id="wp-copy-rl" type="button">ขวา → ซ้าย</button></div></div>
 <p id="wp-message" class="notice" role="status"></p><div id="wp-content"></div>
@@ -3152,17 +3159,34 @@ $("staff-layout-grid").addEventListener('keydown',event=>{
 const WP_STORAGE_KEY='haier-work-process-sides-v1';
 const wpStored=load(WP_STORAGE_KEY,{});
 let wpRecords=wpStored&&typeof wpStored==='object'&&!Array.isArray(wpStored)?wpStored:{};
-let wpDraft=null,wpDirty=false,wpSelected='';
+const WP_CATALOG_KEY='haier-work-process-catalog-v1';
+const wpCatalogStored=load(WP_CATALOG_KEY,[]);
+let wpCatalog=Array.isArray(wpCatalogStored)?wpCatalogStored:[];
+let wpDraft=null,wpDirty=false,wpSelected=load('haier-work-process-choice-selection','');
+function wpAvailableLines(){const result=[],seen=new Set();for(const line of [...lines,...wpCatalog]){if(!line||!Array.isArray(line.models))continue;const key=wpRecordKey(line);if(seen.has(key))continue;seen.add(key);result.push(line);}return result;}
+$('wp-add-form').addEventListener('submit',event=>{
+ event.preventDefault();
+ const title=$('wp-add-type').value,lineTag=$('wp-add-line').value.trim().replace(/\s+/g,' '),model=$('wp-add-model').value.trim().replace(/\s+/g,' ');
+ if(!lineTag||!model){$('wp-message').textContent='กรุณากรอกไลน์ผลิตและรุ่น';return;}
+ if(wpDirty&&!confirm('มีงานที่ยังไม่บันทึก ต้องการเปลี่ยนไลน์ / รุ่นและทิ้งการแก้ไขหรือไม่?'))return;
+ const entry={id:wpId(),title,partType:title==='DOOR'?'door':title==='BOTTOM PLATE'?'bottom':'back',lineTag,models:[model],stations:[]};
+ const existing=wpAvailableLines().find(line=>wpRecordKey(line)===wpRecordKey(entry));
+ if(existing){wpSelected=existing.id;wpDraft=null;renderWorkProcess();$('wp-message').textContent='มีไลน์และรุ่นนี้แล้ว เปิดรายการเดิมให้แล้ว';return;}
+ const next=[...wpCatalog,entry];if(!save(WP_CATALOG_KEY,next)){$('wp-message').textContent='เพิ่มไม่สำเร็จ กรุณาตรวจสอบพื้นที่จัดเก็บ';return;}
+ wpCatalog=next;wpSelected=entry.id;wpDraft=null;renderWorkProcess();$('wp-add-model').value='';$('wp-message').textContent='เพิ่มไลน์ / รุ่นแล้ว เริ่มเพิ่มกระบวนการซ้ายและขวาได้เลย';
+});
 function wpId(){return 'work-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);}
 function wpRecordKey(line){return JSON.stringify([lobModelKey(line),[...line.models].map(item=>item.trim().toLowerCase()).sort()]);}
 function wpBlankTask(){return {id:wpId(),name:'',wt:'',loss:'',predecessorIds:[],side:'',sequence:0};}
 function renderWorkProcess(){
+  const lines=wpAvailableLines();
   const previous=wpSelected||$("wp-line").value;
   $("wp-line").innerHTML=lines.map(line=>`<option value="${esc(line.id)}">${esc(line.title)} · ${esc(line.lineTag)} · ${esc(line.models.join(', '))}</option>`).join('');
   wpSelected=lines.some(line=>line.id===previous)?previous:(lines[0]?.id||'');$("wp-line").value=wpSelected;
   const line=lines.find(item=>item.id===wpSelected),key=line?wpRecordKey(line):'';
   if(!wpDraft||wpDraft.key!==key){const saved=wpRecords[key];wpDraft=key?{key,flowPositions:clone(saved?.flowPositions||{}),schemaVersion:saved?.schemaVersion,left:clone(saved?.left||[]),right:clone(saved?.right||[])}:null;wpDirty=false;}
   $("wp-copy-source").innerHTML='<option value="">เลือกรุ่นต้นทาง</option>'+lines.filter(line=>line.id!==wpSelected&&wpRecords[wpRecordKey(line)]).map(line=>`<option value="${esc(line.id)}">${esc(line.title)} · ${esc(line.lineTag)} · ${esc(line.models.join(', '))}</option>`).join('');
+  save('haier-work-process-choice-selection',wpSelected);
   renderWPSides();
 }
 function wpCopyTasks(source,targetSide=null){
@@ -3172,7 +3196,7 @@ function wpCopyTasks(source,targetSide=null){
  record.flowPositions=Object.fromEntries(Object.entries(record.flowPositions||{}).filter(([id])=>ids.has(id)).map(([id,p])=>[ids.get(id),p]));return record;
 }
 $("wp-copy-model").addEventListener('click',()=>{
- if(!wpDraft)return;const source=lines.find(line=>line.id===$("wp-copy-source").value),saved=source&&wpRecords[wpRecordKey(source)];
+ if(!wpDraft)return;const source=wpAvailableLines().find(line=>line.id===$("wp-copy-source").value),saved=source&&wpRecords[wpRecordKey(source)];
  if(!saved){$("wp-message").textContent='เลือกรุ่นต้นทางที่มีข้อมูลบันทึกไว้ก่อน';return;}
  if(!confirm('แทนที่กระบวนการทั้งซ้ายและขวาด้วยข้อมูลรุ่นต้นทาง?'))return;
  const copied=wpCopyTasks(saved);wpDraft={...copied,key:wpDraft.key,schemaVersion:2};wpDirty=true;renderWPSides();$("wp-message").textContent='คัดลอกแล้ว กรุณาตรวจสอบและกดบันทึก';
@@ -3239,7 +3263,7 @@ function wpTimerKey(id){return wpDraft.key+'::'+id;}
 function wpTimerSeconds(timer){return (timer.elapsed+(timer.running?performance.now()-timer.started:0))/1000;}
 function wpTaskCaptureHtml(item){
  const timer=wpTimers.get(wpTimerKey(item.id)),seconds=timer?wpTimerSeconds(timer):0;
- return `<div class="wp-capture"><label>รูปกระบวนการ<input type="file" accept="image/*" capture="environment" data-wp-photo="${esc(item.id)}"></label>${item.photo?`<img src="${esc(item.photo)}" alt="รูปกระบวนการ ${esc(item.name)}" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px;margin:10px 0"><button type="button" data-wp-capture="remove-photo" data-task="${esc(item.id)}">ลบรูป</button>`:''}${!item.children?.length?`<div class="wp-stopwatch"><strong data-wp-clock="${esc(item.id)}">${seconds.toFixed(2)}</strong> <span>วินาที</span><div class="controls"><button type="button" data-wp-capture="start" data-task="${esc(item.id)}">เริ่ม / ต่อ</button><button type="button" data-wp-capture="stop" data-task="${esc(item.id)}">หยุด</button><button type="button" data-wp-capture="reset" data-task="${esc(item.id)}">เริ่มใหม่</button><button type="button" class="primary" data-wp-capture="apply" data-task="${esc(item.id)}">ใช้เวลาเป็น Work Time</button></div><small>กดหยุดก่อนใช้เวลา • จับซ้ำได้ ประวัติการวัดจะเก็บเมื่อกดใช้เวลา</small><p>${item.timeStudies?.length||0} ครั้งที่บันทึก${item.timeStudies?.length?' · ล่าสุด '+Number(item.timeStudies.at(-1).seconds).toFixed(2)+' s':''}</p></div>`:'<p class="notice">จับเวลาแยกในงานย่อย เวลากระบวนการหลักจะรวมจากงานย่อย</p>'}</div>`;
+ return `<div class="wp-capture"><label>รูปกระบวนการ<input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" data-wp-photo="${esc(item.id)}"></label>${item.photo?`<img src="${esc(item.photo)}" alt="รูปกระบวนการ ${esc(item.name)}" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px;margin:10px 0"><button type="button" data-wp-capture="remove-photo" data-task="${esc(item.id)}">ลบรูป</button>`:''}${!item.children?.length?`<div class="wp-stopwatch"><strong data-wp-clock="${esc(item.id)}">${seconds.toFixed(2)}</strong> <span>วินาที</span><div class="controls"><button type="button" data-wp-capture="start" data-task="${esc(item.id)}">เริ่ม / ต่อ</button><button type="button" data-wp-capture="stop" data-task="${esc(item.id)}">หยุด</button><button type="button" data-wp-capture="reset" data-task="${esc(item.id)}">เริ่มใหม่</button><button type="button" class="primary" data-wp-capture="apply" data-task="${esc(item.id)}">ใช้เวลาเป็น Work Time</button></div><small>กดหยุดก่อนใช้เวลา • จับซ้ำได้ ประวัติการวัดจะเก็บเมื่อกดใช้เวลา</small><p>${item.timeStudies?.length||0} ครั้งที่บันทึก${item.timeStudies?.length?' · ล่าสุด '+Number(item.timeStudies.at(-1).seconds).toFixed(2)+' s':''}</p></div>`:'<p class="notice">จับเวลาแยกในงานย่อย เวลากระบวนการหลักจะรวมจากงานย่อย</p>'}</div>`;
 }
 setInterval(()=>{if(!wpDraft)return;document.querySelectorAll('[data-wp-clock]').forEach(node=>{const timer=wpTimers.get(wpTimerKey(node.dataset.wpClock));if(timer)node.textContent=wpTimerSeconds(timer).toFixed(2);});},80);
 $("wp-content").addEventListener('click',event=>{
