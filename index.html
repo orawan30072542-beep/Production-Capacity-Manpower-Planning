@@ -362,6 +362,7 @@ footer{
 .wp-flow-task:not(:has(.wp-task-editor[open])) .wp-task-editor{margin-top:7px;padding-top:6px;border:0}
 .wp-subtasks{margin:18px 0 18px 10px;border-left:2px solid #dbe7f3;padding-left:16px}.wp-subtask{border:1px solid #e1eaf3;border-radius:10px;padding:12px;margin:10px 0;background:#f8fbff}.wp-subtask>summary{cursor:pointer;font-size:12px;color:#345675;display:flex;gap:10px;align-items:center}.wp-subtask>summary b{color:#2471b2}.wp-subtask>summary [data-child-cycle]{margin-left:auto;white-space:nowrap}.wp-subtask[open]>summary{margin-bottom:14px}
 .wp-dependencies{border:1px solid #dce6f1;border-radius:10px;padding:12px;margin:14px 0;max-height:230px;overflow:auto}.wp-dependencies label{display:flex;flex-direction:row;align-items:center;gap:8px;margin:8px 0}.wp-dependencies input[type=checkbox]{width:16px;min-width:16px}.wp-dependencies small{display:block;color:#7c8da0;font-size:10px}.wp-flow-task::before{display:none}
+.wp-capture{margin:16px 0;padding:14px;background:#f2f7fc;border-radius:10px}.wp-stopwatch{margin-top:16px}.wp-stopwatch>[data-wp-clock]{font-size:28px;color:#145889;font-variant-numeric:tabular-nums}.wp-stopwatch .controls{margin:10px 0;flex-wrap:wrap}.wp-stopwatch small{font-size:10px;color:#718096}
 </style>
 </head>
 
@@ -3229,9 +3230,42 @@ function openWPFlowTask(id){
 }
 $("wp-content").addEventListener('dblclick',event=>{const node=event.target.closest('[data-flow-task]');if(node)openWPFlowTask(node.dataset.flowTask);});
 $("wp-content").addEventListener('keydown',event=>{const node=event.target.closest('[data-flow-task]');if(!node)return;if(event.key==='Enter'){event.preventDefault();openWPFlowTask(node.dataset.flowTask);return;}const delta={ArrowLeft:[-10,0],ArrowRight:[10,0],ArrowUp:[0,-10],ArrowDown:[0,10]}[event.key];if(!delta)return;event.preventDefault();wpDraft.flowPositions??={};wpDraft.flowPositions[node.dataset.flowTask]={x:Math.max(10,Number(node.dataset.flowX)+delta[0]),y:Math.max(10,Number(node.dataset.flowY)+delta[1])};wpDirty=true;renderWPDependencyFlow();});
+const wpTimers=new Map();
+function wpTimerKey(id){return wpDraft.key+'::'+id;}
+function wpTimerSeconds(timer){return (timer.elapsed+(timer.running?performance.now()-timer.started:0))/1000;}
+function wpTaskCaptureHtml(item){
+ const timer=wpTimers.get(wpTimerKey(item.id)),seconds=timer?wpTimerSeconds(timer):0;
+ return `<div class="wp-capture"><label>รูปกระบวนการ<input type="file" accept="image/*" capture="environment" data-wp-photo="${esc(item.id)}"></label>${item.photo?`<img src="${esc(item.photo)}" alt="รูปกระบวนการ ${esc(item.name)}" style="width:100%;max-height:240px;object-fit:contain;border-radius:10px;margin:10px 0"><button type="button" data-wp-capture="remove-photo" data-task="${esc(item.id)}">ลบรูป</button>`:''}${!item.children?.length?`<div class="wp-stopwatch"><strong data-wp-clock="${esc(item.id)}">${seconds.toFixed(2)}</strong> <span>วินาที</span><div class="controls"><button type="button" data-wp-capture="start" data-task="${esc(item.id)}">เริ่ม / ต่อ</button><button type="button" data-wp-capture="stop" data-task="${esc(item.id)}">หยุด</button><button type="button" data-wp-capture="reset" data-task="${esc(item.id)}">เริ่มใหม่</button><button type="button" class="primary" data-wp-capture="apply" data-task="${esc(item.id)}">ใช้เวลาเป็น Work Time</button></div><small>กดหยุดก่อนใช้เวลา • จับซ้ำได้ ประวัติการวัดจะเก็บเมื่อกดใช้เวลา</small><p>${item.timeStudies?.length||0} ครั้งที่บันทึก${item.timeStudies?.length?' · ล่าสุด '+Number(item.timeStudies.at(-1).seconds).toFixed(2)+' s':''}</p></div>`:'<p class="notice">จับเวลาแยกในงานย่อย เวลากระบวนการหลักจะรวมจากงานย่อย</p>'}</div>`;
+}
+setInterval(()=>{if(!wpDraft)return;document.querySelectorAll('[data-wp-clock]').forEach(node=>{const timer=wpTimers.get(wpTimerKey(node.dataset.wpClock));if(timer)node.textContent=wpTimerSeconds(timer).toFixed(2);});},80);
+$("wp-content").addEventListener('click',event=>{
+ const button=event.target.closest('button[data-wp-capture]');if(!button||!wpDraft)return;
+ const task=wpAllTasks().find(entry=>entry.item.id===button.dataset.task)?.item;if(!task)return;
+ const key=wpTimerKey(task.id),timer=wpTimers.get(key)||{elapsed:0,running:false,started:0};wpTimers.set(key,timer);
+ const action=button.dataset.wpCapture;
+ if(action==='remove-photo'){delete task.photo;wpDirty=true;renderWPSides();return;}
+ if(action==='start'&&!timer.running){timer.started=performance.now();timer.running=true;}
+ if(action==='stop'&&timer.running){timer.elapsed+=performance.now()-timer.started;timer.running=false;}
+ if(action==='reset'){timer.elapsed=0;timer.running=false;}
+ if(action==='apply'){
+   if(timer.running){$("wp-message").textContent='กดหยุดก่อนนำเวลาไปใช้';return;}
+   const seconds=Number(wpTimerSeconds(timer).toFixed(2));if(seconds<=0){$("wp-message").textContent='เริ่มจับเวลาก่อนนำเวลาไปใช้';return;}
+   task.wt=seconds;task.timeStudies??=[];task.timeStudies.push({seconds,measuredAt:new Date().toISOString()});wpDirty=true;
+   const editor=button.closest('details');const input=editor?.querySelector('input[data-wp-field="wt"]');if(input){input.value=seconds;input.dispatchEvent(new Event('input',{bubbles:true}));}
+   $("wp-message").textContent='นำเวลาที่จับได้ใส่ Work Time แล้ว • กดบันทึก Work Process';
+ }
+});
+async function wpCompressPhoto(file){
+ const url=URL.createObjectURL(file);try{const img=new Image();img.src=url;await img.decode();const scale=Math.min(1,1000/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);return canvas.toDataURL('image/jpeg',.72);}finally{URL.revokeObjectURL(url);}
+}
+$("wp-content").addEventListener('change',async event=>{
+ const input=event.target;if(!input.matches('input[data-wp-photo]')||!input.files?.[0]||!wpDraft)return;
+ const key=wpDraft.key,id=input.dataset.wpPhoto,file=input.files[0];
+ try{if(!file.type.startsWith('image/'))throw Error('เลือกไฟล์รูปภาพ');const photo=await wpCompressPhoto(file);if(wpDraft?.key!==key)return;const task=wpAllTasks().find(entry=>entry.item.id===id)?.item;if(!task)return;task.photo=photo;wpDirty=true;renderWPSides();openWPFlowTask(id);$("wp-message").textContent='เพิ่มรูปแล้ว • กดบันทึก Work Process เพื่อเก็บรูปและเวลา';}catch(error){$("wp-message").textContent='เพิ่มรูปไม่สำเร็จ: '+error.message;}
+});
 function wpTaskFields(item,side,index,childIndex=null){
  const attrs=`data-wp-side="${side}" data-wp-index="${index}" ${childIndex===null?'':`data-wp-child="${childIndex}"`}`;
- return `<label>${childIndex===null?'ชื่อกระบวนการหลัก':'ชื่องานย่อย'}<input ${attrs} data-wp-field="name" value="${esc(item.name)}" placeholder="ระบุชื่องาน"></label>${!item.children?.length?`<div class="wp-flow-times"><label>Work Time (s)<input ${attrs} data-wp-field="wt" type="number" min="0" step="0.01" value="${esc(item.wt??'')}"></label><label>Loss (s)<input ${attrs} data-wp-field="loss" type="number" min="0" step="0.01" value="${esc(item.loss??'')}"></label></div>`:'<p class="notice">เวลาและ Loss รวมจากงานย่อย</p>'}${wpDependencyFields(item,attrs)}`;
+ return `<label>${childIndex===null?'ชื่อกระบวนการหลัก':'ชื่องานย่อย'}<input ${attrs} data-wp-field="name" value="${esc(item.name)}" placeholder="ระบุชื่องาน"></label>${!item.children?.length?`<div class="wp-flow-times"><label>Work Time (s)<input ${attrs} data-wp-field="wt" type="number" min="0" step="0.01" value="${esc(item.wt??'')}"></label><label>Loss (s)<input ${attrs} data-wp-field="loss" type="number" min="0" step="0.01" value="${esc(item.loss??'')}"></label></div>`:'<p class="notice">เวลาและ Loss รวมจากงานย่อย</p>'}${wpTaskCaptureHtml(item)}${wpDependencyFields(item,attrs)}`;
 }
 function renderWPSides(){
  if(wpDraft&&wpDraft.schemaVersion!==2){wpAllTasks().forEach(({item})=>{item.predecessorIds=[];});wpDraft.schemaVersion=2;}
@@ -3291,7 +3325,7 @@ function validatedWorkProcess(draft){
   (item.children||[]).forEach((child,ci)=>{const valid=validate(child,side,children.length+1,id,children.at(-1),label+'.'+(ci+1));if(valid)children.push(valid);});
   if(!children.length&&(!raw||!Number.isFinite(Number(raw))||Number(raw)<0))throw Error(label+': กรอก Work Time ตั้งแต่ 0');
   const loss=lossRaw===''?0:Number(lossRaw);if(!Number.isFinite(loss)||loss<0)throw Error(label+': Loss ต้องตั้งแต่ 0');
-  return {id,name,wt:children.length?children.reduce((n,c)=>n+c.wt,0):Number(raw),loss:children.length?children.reduce((n,c)=>n+c.loss,0):loss,movable:item.movable===true,side,sequence,parentId,predecessorIds:[...new Set(item.predecessorIds||[])],children};
+  return {id,name,photo:item.photo||null,timeStudies:clone(item.timeStudies||[]),wt:children.length?children.reduce((n,c)=>n+c.wt,0):Number(raw),loss:children.length?children.reduce((n,c)=>n+c.loss,0):loss,movable:item.movable===true,side,sequence,parentId,predecessorIds:[...new Set(item.predecessorIds||[])],children};
  }
  for(const side of ['left','right'])draft[side].forEach((item,index)=>{const valid=validate(item,side,result[side].length+1,null,result[side].at(-1),`${side==='left'?'ซ้าย':'ขวา'} ${index+1}`);if(valid)result[side].push(valid);});
  wpCheckDependencies(result);return result;
